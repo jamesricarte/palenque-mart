@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   return (
     <>
       {/* Top Nav */}
@@ -11,7 +11,7 @@ const HomeScreen = () => {
         <View className="flex flex-row items-center justify-between">
           <View>
             <TextInput
-              className="py-2 border-2 border-gray-800 rounded-lg w-60"
+              className="p-3 border-2 border-gray-800 rounded-lg w-60"
               placeholder="Search item"
             ></TextInput>
           </View>
@@ -27,11 +27,17 @@ const HomeScreen = () => {
       </View>
 
       <View className="flex flex-row justify-center gap-8 p-6 mt-auto border-t border-gray-300">
-        <TouchableOpacity className="px-3 py-2 border border-black rounded-xl">
+        <TouchableOpacity
+          className="px-3 py-2 border border-black rounded-xl"
+          onPress={() => navigation.push("Login")}
+        >
           <Text className="text-xl">Login</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="px-3 py-2 bg-black rounded-xl">
+        <TouchableOpacity
+          className="px-3 py-2 bg-black rounded-xl"
+          onPress={() => navigation.push("Register")}
+        >
           <Text className="text-xl text-white">Sign up</Text>
         </TouchableOpacity>
       </View>

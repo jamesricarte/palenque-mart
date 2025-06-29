@@ -2,6 +2,7 @@
   "expo": {
     "name": "Palenque Mart",
     "slug": "Palenque Mart",
+    "scheme": "palenquemart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./app/assets/icon.png",
@@ -20,7 +21,8 @@
         "foregroundImage": "./app/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.PalenqueMart"
     },
     "web": {
       "favicon": "./app/assets/favicon.png",
