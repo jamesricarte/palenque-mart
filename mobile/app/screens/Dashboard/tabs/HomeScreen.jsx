@@ -36,7 +36,7 @@ const HomeScreen = ({ navigation }) => {
 
         <TouchableOpacity
           className="px-3 py-2 bg-black rounded-xl"
-          onPress={() => navigation.push("Register")}
+          onPress={() => navigation.push("SignUp")}
         >
           <Text className="text-xl text-white">Sign up</Text>
         </TouchableOpacity>

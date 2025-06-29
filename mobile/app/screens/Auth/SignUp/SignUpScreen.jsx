@@ -15,7 +15,7 @@ import LottieView from "lottie-react-native";
 
 import { API_URL } from "@env";
 
-const RegisterScreen = ({ navigation }) => {
+const SignUpScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [signUpOption, setSignUpOption] = useState("email");
 
@@ -25,24 +25,6 @@ const RegisterScreen = ({ navigation }) => {
   const [isFieldValid, setIsFieldValid] = useState(false);
 
   const [message, setMessage] = useState(null);
-
-  useEffect(() => {
-    let isValid = true;
-    const strictEmailFormat =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const mobileFormat = /^(09|\+639)\d{9}$/;
-
-    if (signUpOption === "email") {
-      if (strictEmailFormat.test(email)) isValid = true;
-      else isValid = false;
-    } else if (signUpOption === "mobileNumber") {
-      if (mobileFormat.test(mobileNumber)) isValid = true;
-      else isValid = false;
-    }
-
-    setIsFieldValid(isValid);
-    setMessage(null);
-  }, [email, mobileNumber, signUpOption]);
 
   const signUp = async () => {
     if (!isFieldValid) return;
@@ -83,6 +65,24 @@ const RegisterScreen = ({ navigation }) => {
       );
     }
   };
+
+  useEffect(() => {
+    let isValid = true;
+    const strictEmailFormat =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const mobileFormat = /^(09|\+639)\d{9}$/;
+
+    if (signUpOption === "email") {
+      if (strictEmailFormat.test(email)) isValid = true;
+      else isValid = false;
+    } else if (signUpOption === "mobileNumber") {
+      if (mobileFormat.test(mobileNumber)) isValid = true;
+      else isValid = false;
+    }
+
+    setIsFieldValid(isValid);
+    setMessage(null);
+  }, [email, mobileNumber, signUpOption]);
 
   return (
     <View className="relative">
@@ -204,4 +204,4 @@ const RegisterScreen = ({ navigation }) => {
   );
 };
 
-export default RegisterScreen;
+export default SignUpScreen;

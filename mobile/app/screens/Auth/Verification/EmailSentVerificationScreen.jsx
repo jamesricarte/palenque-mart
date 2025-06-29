@@ -70,7 +70,7 @@ const EmailSentVerificationScreen = ({ navigation }) => {
           if (responseData.exists) {
             navigation.navigate("Dashboard");
           } else {
-            navigation.navigate("AccountCreation", { email: email });
+            navigation.navigate("AccountDetailsCreation", { email: email });
           }
         },
         Math.max(0, minimumTime - elapseTime)

@@ -5,12 +5,9 @@ import { useRoute } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import LottieView from "lottie-react-native";
-import axios from "axios";
 import { Snackbar } from "react-native-paper";
 
-import { API_URL } from "@env";
-
-const AccountCreationScreen = ({ navigation }) => {
+const AccountDetailsCreationScreen = ({ navigation }) => {
   const route = useRoute();
   const [loading, setLoading] = useState(false);
 
@@ -21,18 +18,18 @@ const AccountCreationScreen = ({ navigation }) => {
   const [message, setMessage] = useState(null);
 
   const [snackBarVisible, setSnackBarVisible] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const [hasMinLength, setHasMinLength] = useState(false);
   const [hasUppercase, setHasUppercase] = useState(false);
   const [hasLowercase, setHasLowercase] = useState(false);
   const [hasDigit, setHasDigit] = useState(false);
 
+  const [isFieldValid, setIsFieldValid] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState("Weak");
 
   const createAccount = async () => {
-    if (firstName === "" || lastName === "" || password === "") {
+    if (!isFieldValid) {
       setMessage({
         message: "All fields required",
         error: {
@@ -59,8 +56,14 @@ const AccountCreationScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    if (password !== "") setPasswordFocused(true);
+    if (firstName === "" || lastName === "" || password === "")
+      setIsFieldValid(false);
+    else setIsFieldValid(true);
 
+    setMessage(null);
+  }, [firstName, lastName, password]);
+
+  useEffect(() => {
     const hasMinLength = /^.{6,}$/.test(password);
     const hasUppercase = /[A-Z]/.test(password);
     const hasLowercase = /[a-z]/.test(password);
@@ -149,7 +152,7 @@ const AccountCreationScreen = ({ navigation }) => {
           <Text className="mt-4 text-red-500">{message.message}</Text>
         )}
 
-        {passwordFocused && (
+        {password !== "" && (
           <View className="mt-4">
             <Text className="mb-3">
               Password strength
@@ -178,9 +181,8 @@ const AccountCreationScreen = ({ navigation }) => {
         )}
 
         <TouchableOpacity
-          className="flex items-center justify-center w-full px-4 py-3 mt-6 bg-orange-600 rounded-md"
+          className={`flex items-center justify-center w-full px-4 py-3 mt-6  rounded-md ${isFieldValid && isPasswordValid ? "bg-orange-600" : "bg-gray-300 opacity-60"}`}
           onPress={createAccount}
-          disabled={!isPasswordValid}
         >
           <Text className="text-xl text-white">Continue</Text>
         </TouchableOpacity>
@@ -208,4 +210,4 @@ const AccountCreationScreen = ({ navigation }) => {
   );
 };
 
-export default AccountCreationScreen;
+export default AccountDetailsCreationScreen;

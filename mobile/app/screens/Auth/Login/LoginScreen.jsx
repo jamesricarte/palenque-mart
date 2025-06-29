@@ -72,7 +72,7 @@ const LoginScreen = ({ navigation }) => {
         <View className="flex items-center gap-4 mt-auto">
           <View className="flex flex-row gap-2">
             <Text className="text-gray-600">Don't have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.replace("Register")}>
+            <TouchableOpacity onPress={() => navigation.replace("SignUp")}>
               <Text className="text-orange-500">Sign up</Text>
             </TouchableOpacity>
           </View>
