@@ -7,6 +7,7 @@ require("dotenv").config();
 
 require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const getLocalIp = require("./utils/getLocalIp");
 
 const app = express();
 const server = http.createServer(app);
@@ -35,4 +36,5 @@ app.set("wss", wss);
 
 server.listen(port, "0.0.0.0", () => {
   console.log(`Server is running at port ${port}`);
+  console.log(`Wifi ip address: ${getLocalIp()}`);
 });

@@ -5,13 +5,16 @@ import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import axios from "axios";
+import { Snackbar } from "react-native-paper";
 
-import { API_URL } from "@env";
+import { API_URL } from "../../../config/apiConfig";
 
 const MobileNumberRegistrationScreen = ({ navigation }) => {
   const [mobileNumber, setMobileNumber] = useState(null);
 
   const [isFieldValid, setIsFieldValid] = useState(false);
+
+  const [snackBarVisible, setSnackBarVisible] = useState(false);
 
   const [message, setMessage] = useState(null);
 
@@ -20,7 +23,7 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
       setMessage({
         message: "Invalid mobile number",
       });
-      // setSnackBarVisible(true);
+      setSnackBarVisible(true);
       return;
     }
 
@@ -28,32 +31,32 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
     const startTime = Date.now();
     let responseData;
 
-    // try {
-    //   const response = await axios.post(`${API_URL}/api/sign-up`, {
-    //     mobileNumber: mobileNumber,
-    //   });
+    try {
+      const response = await axios.post(`${API_URL}/api/sign-up`, {
+        mobileNumber: mobileNumber,
+      });
 
-    //   console.log(response.data);
-    //   responseData = response.data;
-    // } catch (error) {
-    //   console.log(error.response.data);
-    //   responseData = error.response.data;
-    // } finally {
-    //   const elapseTime = Date.now() - startTime;
-    //   const minimumTime = 2000;
+      console.log(response.data);
+      responseData = response.data;
+    } catch (error) {
+      console.log(error.response.data);
+      responseData = error.response.data;
+    } finally {
+      const elapseTime = Date.now() - startTime;
+      const minimumTime = 2000;
 
-    //   setTimeout(
-    //     () => {
-    //       setLoading(false);
-    //       if (responseData?.success) {
-    //         navigation.navigate("Dashboard");
-    //       } else {
-    //         setMessage(responseData);
-    //       }
-    //     },
-    //     Math.max(0, minimumTime - elapseTime)
-    //   );
-    // }
+      setTimeout(
+        () => {
+          setLoading(false);
+          if (responseData?.success) {
+            navigation.navigate("Dashboard");
+          } else {
+            setMessage(responseData);
+          }
+        },
+        Math.max(0, minimumTime - elapseTime)
+      );
+    }
 
     navigation.navigate("MobileNumberVerification", {
       mobileNumber: mobileNumber,
@@ -99,7 +102,7 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
           className={`w-full p-3 text-lg border  rounded-md ${
             message && !message?.success ? "border-red-500" : "border-black"
           }`}
-          placeholder="Sign up with Mobile Number"
+          placeholder="Enter your mobile number"
           keyboardType="phone-pad"
           includeFontPadding={false}
           value={mobileNumber}
@@ -120,6 +123,14 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
           <Text className="text-xl text-white">Continue</Text>
         </TouchableOpacity>
       </View>
+
+      <Snackbar
+        visible={snackBarVisible}
+        onDismiss={() => setSnackBarVisible(false)}
+        duration={3000}
+      >
+        {message?.message}
+      </Snackbar>
     </View>
   );
 };

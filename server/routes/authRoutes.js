@@ -6,8 +6,12 @@ const bcrypt = require("bcryptjs");
 
 const db = require("../config/db");
 const formValidator = require("../utils/formValidator");
+const getLocalIp = require("../utils/getLocalIp");
 
 const router = express.Router();
+
+//JWT
+const SECRET = "your_jwt_secret_key";
 
 //nodemailer
 const transporter = nodemailer.createTransport({
@@ -17,9 +21,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.ADMIN_PASS,
   },
 });
-
-//JWT
-const SECRET = "your_jwt_secret_key";
 
 router.post("/sign-up", (req, res) => {
   const signUpData = req.body;
@@ -59,7 +60,9 @@ router.post("/sign-up", (req, res) => {
         <tr>
           <td align="center" style="padding: 20px 0;">
             <a
-              href="http://192.168.1.11:3000/api/verify-email?token=${token}&email=${signUpData.email}"
+              href="http://${getLocalIp()}:3000/api/verify-email?token=${token}&email=${
+        signUpData.email
+      }"
               style="
                 color: white;
                 text-decoration: none;
@@ -86,70 +89,63 @@ router.post("/sign-up", (req, res) => {
           `,
     };
 
-    // transporter.sendMail(mailOptions, (error, info) => {
-    //   if (error) {
-    //     console.error("ERROR SENDING EMAIL", error);
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("ERROR SENDING EMAIL", error);
 
-    //     return res.status(500).json({
-    //       message:
-    //         "Failed to send the email. Please contact the server administrator for assistance.",
-    //       success: false,
-    //     });
-    //   }
+        return res.status(500).json({
+          message:
+            "Failed to send the email. Please contact the server administrator for assistance.",
+          success: false,
+        });
+      }
 
-    //   console.log("EMAIL SENT: \n", info.envelope, "\n", info.response);
+      console.log("EMAIL SENT: \n", info.envelope, "\n", info.response);
 
-    //   return res.status(200).json({
-    //     message:
-    //       "A verification code was sent to your email. Please check your inbox to verify.",
-    //     data: { email: signUpData.email },
-    //     success: true,
-    //   });
-    // });
-
-    return res.status(200).json({
-      message:
-        "A verification code was sent to your email. Please check your inbox to verify.",
-      data: { email: signUpData.email },
-      success: true,
+      return res.status(200).json({
+        message:
+          "A verification code was sent to your email. Please check your inbox to verify.",
+        data: { email: signUpData.email },
+        success: true,
+      });
     });
   } else if ("mobileNumber" in signUpData) {
-    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // optStore.set(signUpData.email, {
-    //   otp,
-    //   expiresAt: Date.now() + 5 * 60 * 1000,
-    // });
+    optStore.set(signUpData.email, {
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
 
-    // const mailOptions = {
-    //   from: "jamesmabois@gmail.com",
-    //   to: signUpData.email,
-    //   subject: "Verification code for your signup",
-    //   html: `
-    //         <div style="font-family: Arial, sans-serif; font-size: 16px;">
-    //         <p>Hello, we are Palenque Mart!</p>
-    //         <p>Your verification code: <b>${otp}</b></p>
-    //         <p>If you did not request this, you can safely ignore this email.</p>
-    //         <p>Thank you!</p>
-    //         </div>
-    //         `,
-    // };
-    // transporter.sendMail(mailOptions, (error, info) => {
-    //   if (error) {
-    //     console.error(error);
-    //     return res.status(500).json({
-    //       message:
-    //         "Failed to send the email. Please contact the server administrator for assistance.",
-    //       error: error,
-    //     });
-    //   }
-    //   console.log(info);
-    //   return res.status(200).json({
-    //     message:
-    //       "A verification code was sent to your email. Please check your inbox to verify.",
-    //     info,
-    //   });
-    // });
+    const mailOptions = {
+      from: "jamesmabois@gmail.com",
+      to: signUpData.email,
+      subject: "Verification code for your signup",
+      html: `
+            <div style="font-family: Arial, sans-serif; font-size: 16px;">
+            <p>Hello, we are Palenque Mart!</p>
+            <p>Your verification code: <b>${otp}</b></p>
+            <p>If you did not request this, you can safely ignore this email.</p>
+            <p>Thank you!</p>
+            </div>
+            `,
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({
+          message:
+            "Failed to send the email. Please contact the server administrator for assistance.",
+          success: false,
+        });
+      }
+      console.log(info);
+      return res.status(200).json({
+        message:
+          "A verification code was sent to your email. Please check your inbox to verify.",
+        info,
+      });
+    });
 
     return res
       .status(200)

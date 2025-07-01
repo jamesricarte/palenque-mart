@@ -13,7 +13,8 @@ import axios from "axios";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import LottieView from "lottie-react-native";
 
-import { API_URL } from "@env";
+// import { API_URL } from "@env";
+import { API_URL } from "../../../config/apiConfig";
 
 const SignUpScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);

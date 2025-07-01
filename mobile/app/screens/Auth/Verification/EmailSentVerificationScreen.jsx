@@ -13,7 +13,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
-import { API_URL, WEBSOCKET_URL } from "@env";
+import { API_URL, WEBSOCKET_URL } from "../../../config/apiConfig";
 
 import useWebSocket from "../../../hooks/useWebSocket";
 
