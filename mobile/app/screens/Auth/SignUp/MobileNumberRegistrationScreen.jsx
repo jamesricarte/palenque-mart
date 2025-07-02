@@ -1,19 +1,24 @@
 import { useEffect, useState } from "react";
 
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { useRoute } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import axios from "axios";
-import { Snackbar } from "react-native-paper";
+import { Modal, Snackbar } from "react-native-paper";
+import LottieView from "lottie-react-native";
 
 import { API_URL } from "../../../config/apiConfig";
 
 const MobileNumberRegistrationScreen = ({ navigation }) => {
+  const route = useRoute();
+
   const [mobileNumber, setMobileNumber] = useState(null);
 
   const [isFieldValid, setIsFieldValid] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
 
   const [message, setMessage] = useState(null);
@@ -27,7 +32,7 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
       return;
     }
 
-    // setLoading(true);
+    setLoading(true);
     const startTime = Date.now();
     let responseData;
 
@@ -48,8 +53,14 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
       setTimeout(
         () => {
           setLoading(false);
-          if (responseData?.success) {
-            navigation.navigate("Dashboard");
+          if (responseData.success) {
+            navigation.navigate("MobileNumberVerification", {
+              email: route.params?.email,
+              firstName: route.params?.firstName,
+              lastName: route.params?.lastName,
+              password: route.params?.password,
+              mobileNumber: responseData.data.mobileNumber,
+            });
           } else {
             setMessage(responseData);
           }
@@ -57,10 +68,6 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
         Math.max(0, minimumTime - elapseTime)
       );
     }
-
-    navigation.navigate("MobileNumberVerification", {
-      mobileNumber: mobileNumber,
-    });
   };
 
   useEffect(() => {
@@ -123,6 +130,17 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
           <Text className="text-xl text-white">Continue</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal transparent visible={loading}>
+        <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
+          <LottieView
+            source={require("../../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
+            autoPlay
+            loop
+            style={{ width: 70, height: 30 }}
+          />
+        </View>
+      </Modal>
 
       <Snackbar
         visible={snackBarVisible}
