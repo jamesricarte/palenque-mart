@@ -16,7 +16,7 @@ const HomeScreen = ({ navigation }) => {
             ></TextInput>
           </View>
           <View className="flex flex-row gap-4">
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.push("Cart")}>
               <Feather name="shopping-cart" size={24} color="black" />
             </TouchableOpacity>
             <TouchableOpacity>

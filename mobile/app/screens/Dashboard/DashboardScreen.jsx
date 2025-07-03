@@ -6,6 +6,7 @@ import HomeScreen from "./tabs/HomeScreen";
 import LiveStreamingScreen from "./tabs/LiveStreamingScreen";
 import ChatScreen from "./tabs/ChatScreen";
 import AccountScreen from "./tabs/AccountScreen";
+import NotificationsScreen from "./tabs/NotificationsScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -42,6 +43,15 @@ const DashboardScreen = () => {
         options={{
           tabBarIcon: ({ color, size }) => (
             <Entypo name="chat" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="notifications" size={size} color={color} />
           ),
         }}
       />

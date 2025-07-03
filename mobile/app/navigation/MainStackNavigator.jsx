@@ -6,6 +6,11 @@ import EmailSentVerificationScreen from "../screens/Auth/Verification/EmailSentV
 import AccountDetailsCreationScreen from "../screens/Auth/SignUp/AccountDetailsCreationScreen";
 import MobileRegistrationScreen from "../screens/Auth/SignUp/MobileNumberRegistrationScreen";
 import MobileNumberVerificationScreen from "../screens/Auth/Verification/MobileNumberVerificationScreen";
+import CartScreen from "../screens/Cart/CartScreen";
+import EditProfileScreen from "../screens/EditProfile/EditProfileScreen";
+import PartnershipOptionsScreen from "../screens/PartnershipOptions/PartnershipOptionsScreen";
+import NotificationsScreen from "../screens/Dashboard/tabs/NotificationsScreen";
+import SettingsScreen from "../screens/Settings/SettingsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +45,26 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="MobileNumberVerification"
         component={MobileNumberVerificationScreen}
+      />
+      <Stack.Screen 
+        name="Cart" 
+        component={CartScreen}
+      />
+      <Stack.Screen 
+        name="EditProfile" 
+        component={EditProfileScreen}
+      />
+      <Stack.Screen 
+        name="PartnershipOptions" 
+        component={PartnershipOptionsScreen}
+      />
+      <Stack.Screen 
+        name="Notifications" 
+        component={NotificationsScreen}
+      />
+      <Stack.Screen 
+        name="Settings" 
+        component={SettingsScreen}
       />
     </Stack.Navigator>
   );
