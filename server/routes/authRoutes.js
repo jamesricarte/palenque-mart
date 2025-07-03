@@ -3,10 +3,12 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
+const axios = require("axios");
 
 const db = require("../config/db");
 const formValidator = require("../utils/formValidator");
 const getLocalIp = require("../utils/getLocalIp");
+const { optStore } = require("../utils/otpStore");
 
 const router = express.Router();
 
@@ -22,7 +24,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-router.post("/sign-up", (req, res) => {
+//Text belt
+const TEXTBELT_URL = "http://textbelt.com/text";
+const TEXTBELT_API_KEY = "textbelt";
+
+router.post("/sign-up", async (req, res) => {
   const signUpData = req.body;
 
   const formValidation = formValidator.validate(signUpData);
@@ -89,98 +95,83 @@ router.post("/sign-up", (req, res) => {
           `,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("ERROR SENDING EMAIL", error);
+    // transporter.sendMail(mailOptions, (error, info) => {
+    //   if (error) {
+    //     console.error("ERROR SENDING EMAIL", error);
 
-        return res.status(500).json({
-          message:
-            "Failed to send the email. Please contact the server administrator for assistance.",
-          success: false,
-        });
-      }
+    //     return res.status(500).json({
+    //       message:
+    //         "Failed to send the email. Please contact the server administrator for assistance.",
+    //       success: false,
+    //     });
+    //   }
 
-      console.log("EMAIL SENT: \n", info.envelope, "\n", info.response);
+    //   console.log("EMAIL SENT: \n", info.envelope, "\n", info.response);
 
-      return res.status(200).json({
-        message:
-          "A verification code was sent to your email. Please check your inbox to verify.",
-        data: { email: signUpData.email },
-        success: true,
-      });
+    //   return res.status(200).json({
+    //     message:
+    //       "A verification code was sent to your email. Please check your inbox to verify.",
+    //     data: { email: signUpData.email },
+    //     success: true,
+    //   });
+    // });
+
+    return res.status(200).json({
+      message:
+        "A verification code was sent to your email. Please check your inbox to verify.",
+      data: { email: signUpData.email },
+      success: true,
     });
   } else if ("mobileNumber" in signUpData) {
+    const phone = signUpData.mobileNumber;
+
+    if (!phone) {
+      return res
+        .status(400)
+        .json({ message: "Phone number is required.", success: false });
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    optStore.set(signUpData.email, {
-      otp,
-      expiresAt: Date.now() + 5 * 60 * 1000,
-    });
+    const [rows] = await db.execute("SELECT phone FROM users WHERE phone = ?", [
+      phone,
+    ]);
 
-    const mailOptions = {
-      from: "jamesmabois@gmail.com",
-      to: signUpData.email,
-      subject: "Verification code for your signup",
-      html: `
-            <div style="font-family: Arial, sans-serif; font-size: 16px;">
-            <p>Hello, we are Palenque Mart!</p>
-            <p>Your verification code: <b>${otp}</b></p>
-            <p>If you did not request this, you can safely ignore this email.</p>
-            <p>Thank you!</p>
-            </div>
-            `,
-    };
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error(error);
-        return res.status(500).json({
-          message:
-            "Failed to send the email. Please contact the server administrator for assistance.",
-          success: false,
-        });
-      }
-      console.log(info);
-      return res.status(200).json({
-        message:
-          "A verification code was sent to your email. Please check your inbox to verify.",
-        info,
+    if (rows.length > 0) {
+      return res
+        .status(400)
+        .json({ message: "Phone number is already used", success: false });
+    }
+
+    try {
+      optStore.set(phone, {
+        otp,
+        expiresAt: Date.now() + 5 * 60 * 1000,
       });
-    });
 
-    return res
-      .status(200)
-      .json({ message: "Your mobile number is valid!", success: true });
-  }
-});
+      // const response = await axios.post(TEXTBELT_URL, {
+      //   phone,
+      //   message: `Your OTP code is: ${otp}`,
+      //   key: TEXTBELT_API_KEY,
+      // });
 
-router.get("/verify-email", async (req, res) => {
-  const token = req.query.token;
-  const email = req.query.email;
+      // console.log("Textbelt Response:", response.data);
 
-  const wss = req.app.get("wss");
-  if (!wss) console.log("!WSS");
+      const storedOtp = optStore.get(phone);
 
-  const verifyToken = jwt.verify(token, "your_jwt_secret_key");
+      console.log(`OTP for ${phone} is: ${storedOtp.otp}`);
 
-  if (verifyToken) {
-    wss.clients.forEach((socket) => {
-      if (socket.readyState === 1) {
-        socket.send(
-          JSON.stringify({
-            message: "Email Verified",
-            email: email,
-          })
-        );
-      }
-    });
-
-    return res.status(200).send("Email Verified!");
-  } else {
-    return res
-      .status(400)
-      .send(
-        "Verification Failed. Your email is either invalid or your token have already expired."
-      );
+      return res.status(200).json({
+        message: "OTP sent successfully.",
+        success: true,
+        data: { mobileNumber: phone },
+      });
+    } catch (error) {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ message: "Failed to send OTP.", success: false });
+    }
   }
 });
 
@@ -217,6 +208,106 @@ router.post("/check-account", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+router.post("/verify-phone", async (req, res) => {
+  const userData = req.body;
+
+  const formValidation = formValidator.validate(userData);
+
+  if (!formValidation.validation) {
+    return res
+      .status(400)
+      .json({ message: formValidation.message, success: false });
+  }
+
+  const phoneStoredOtp = optStore.get(userData.mobileNumber);
+
+  console.log(optStore);
+  console.log(userData.mobileNumber);
+  console.log(phoneStoredOtp);
+  console.log(userData);
+
+  if (!phoneStoredOtp)
+    return res.status(400).json({
+      message: "The otp has been already expired, please request a new one.",
+      success: false,
+    });
+
+  if (userData.otp !== phoneStoredOtp.otp)
+    return res.status(400).json({ message: "Invalid otp", success: false });
+
+  const [emailRows] = await db.execute("SELECT * FROM users WHERE email = ?", [
+    userData.email,
+  ]);
+
+  if (emailRows.length > 0) {
+    return res
+      .status(400)
+      .json({ message: "Email is already registered", success: false });
+  }
+
+  const [phoneRows] = await db.execute("SELECT * FROM users WHERE phone = ?", [
+    userData.mobileNumber,
+  ]);
+
+  if (phoneRows.length > 0) {
+    return res
+      .status(400)
+      .json({ message: "Phone number is already registered", success: false });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+    const [result] = await db.execute(
+      "INSERT INTO users (first_name, last_name, email, password, phone) VALUES (?, ?, ?, ?, ?)",
+      [
+        userData.firstName,
+        userData.lastName,
+        userData.email,
+        hashedPassword,
+        userData.mobileNumber,
+      ]
+    );
+
+    console.log(result);
+    res.status(200).json({ message: "Registered successfully", success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong", success: false });
+  }
+});
+
+router.get("/verify-email", async (req, res) => {
+  const token = req.query.token;
+  const email = req.query.email;
+
+  const wss = req.app.get("wss");
+  if (!wss) console.log("!WSS");
+
+  const verifyToken = jwt.verify(token, "your_jwt_secret_key");
+
+  if (verifyToken) {
+    wss.clients.forEach((socket) => {
+      if (socket.readyState === 1) {
+        socket.send(
+          JSON.stringify({
+            message: "Email Verified",
+            email: email,
+          })
+        );
+      }
+    });
+
+    return res.status(200).send("Email Verified!");
+  } else {
+    return res
+      .status(400)
+      .send(
+        "Verification Failed. Your email is either invalid or your token have already expired."
+      );
   }
 });
 
