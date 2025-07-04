@@ -1,7 +1,11 @@
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRoute } from "@react-navigation/native";
+import {
+  CommonActions,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import { useEffect, useRef, useState } from "react";
 
 import axios from "axios";
@@ -9,9 +13,13 @@ import { Modal, Snackbar } from "react-native-paper";
 import LottieView from "lottie-react-native";
 
 import { API_URL } from "../../../config/apiConfig";
+import { useAuth } from "../../../context/AuthContext";
 
-const MobileNumberVerification = ({ navigation }) => {
+const MobileNumberVerificationScreen = ({ navigation }) => {
   const route = useRoute();
+  const customNavigation = useNavigation();
+
+  const { login } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
@@ -30,15 +38,20 @@ const MobileNumberVerification = ({ navigation }) => {
     const startTime = Date.now();
     let responseData;
 
+    let formData = {
+      otp: verificationCode,
+      mobileNumber: route.params?.mobileNumber,
+    };
+
+    if (route.params?.email) {
+      formData.email = route.params.email;
+    }
+
     try {
-      const response = await axios.post(`${API_URL}/api/verify-phone`, {
-        email: route.params?.email,
-        firstName: route.params?.firstName,
-        lastName: route.params?.lastName,
-        mobileNumber: route.params?.mobileNumber,
-        password: route.params?.password,
-        otp: verificationCode,
-      });
+      const response = await axios.post(
+        `${API_URL}/api/verify-phone`,
+        formData
+      );
 
       console.log(response.data);
       responseData = response.data;
@@ -53,7 +66,26 @@ const MobileNumberVerification = ({ navigation }) => {
         () => {
           setLoading(false);
           if (responseData?.success) {
-            navigation.navigate("Dashboard");
+            if (responseData.exists) {
+              login(responseData.token);
+              customNavigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: "Dashboard",
+                      params: {
+                        screen: "Account",
+                      },
+                    },
+                  ],
+                })
+              );
+            } else {
+              navigation.navigate("AccountDetailsCreation", {
+                mobileNumber: responseData.data.mobileNumber,
+              });
+            }
           } else {
             console.log(responseData);
             setMessage(responseData);
@@ -181,4 +213,4 @@ const MobileNumberVerification = ({ navigation }) => {
   );
 };
 
-export default MobileNumberVerification;
+export default MobileNumberVerificationScreen;

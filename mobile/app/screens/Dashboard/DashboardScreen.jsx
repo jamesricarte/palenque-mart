@@ -8,9 +8,15 @@ import ChatScreen from "./tabs/ChatScreen";
 import AccountScreen from "./tabs/AccountScreen";
 import NotificationsScreen from "./tabs/NotificationsScreen";
 
+import { useAuth } from "../../context/AuthContext";
+
 const Tab = createBottomTabNavigator();
 
 const DashboardScreen = () => {
+  const { user } = useAuth();
+
+  console.log("User data:", user);
+
   return (
     <Tab.Navigator
       initialRouteName="Home"

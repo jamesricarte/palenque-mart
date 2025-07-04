@@ -7,22 +7,32 @@ import {
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 
-import { useRoute } from "@react-navigation/native";
+import {
+  CommonActions,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
-import { API_URL, WEBSOCKET_URL } from "../../../config/apiConfig";
 
+import { API_URL, WEBSOCKET_URL } from "../../../config/apiConfig";
 import useWebSocket from "../../../hooks/useWebSocket";
 
+import { useAuth } from "../../../context/AuthContext";
+
 const EmailSentVerificationScreen = ({ navigation }) => {
+  const customNavigation = useNavigation();
   const route = useRoute();
-  const { socket } = useWebSocket(WEBSOCKET_URL);
+
+  const { login } = useAuth();
 
   const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  const { socket } = useWebSocket(WEBSOCKET_URL);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -51,7 +61,7 @@ const EmailSentVerificationScreen = ({ navigation }) => {
     let responseData;
 
     try {
-      const response = await axios.post(`${API_URL}/api/check-account`, {
+      const response = await axios.post(`${API_URL}/api/check-email`, {
         email: email,
       });
 
@@ -68,7 +78,20 @@ const EmailSentVerificationScreen = ({ navigation }) => {
         () => {
           setLoading(false);
           if (responseData.exists) {
-            navigation.navigate("Dashboard");
+            login(responseData.token);
+            customNavigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: "Dashboard",
+                    params: {
+                      screen: "Account",
+                    },
+                  },
+                ],
+              })
+            );
           } else {
             navigation.navigate("AccountDetailsCreation", { email: email });
           }

@@ -38,17 +38,20 @@ const SignUpScreen = ({ navigation }) => {
         ? { email: email }
         : { mobileNumber: mobileNumber };
 
+    const apiPath =
+      signUpOption === "email" ? "sign-up-email" : "sign-up-mobile";
+
     const startTime = Date.now();
     let responseData;
 
     try {
-      const response = await axios.post(`${API_URL}/api/sign-up`, formData);
+      const response = await axios.post(`${API_URL}/api/${apiPath}`, formData);
 
       console.log(response.data);
       responseData = response.data;
     } catch (error) {
       console.log(error.response.data);
-      responseData = response.data;
+      responseData = error.response.data;
     } finally {
       const elapseTime = Date.now() - startTime;
       const minimumTime = 2000;
@@ -56,11 +59,18 @@ const SignUpScreen = ({ navigation }) => {
       setTimeout(
         () => {
           setLoading(false);
-          if (responseData?.success && signUpOption === "email")
-            navigation.navigate("EmailSentVerification", {
-              email: responseData.data.email,
-            });
-          setMessage(responseData);
+          if (responseData?.success) {
+            if (responseData.signUpOption === "email")
+              navigation.navigate("EmailSentVerification", {
+                email: responseData.data.email,
+              });
+            else if (responseData.signUpOption === "mobileNumber")
+              navigation.navigate("MobileNumberVerification", {
+                mobileNumber: responseData.data.mobileNumber,
+              });
+          } else {
+            setMessage(responseData);
+          }
         },
         Math.max(0, minimumTime - elapseTime)
       );

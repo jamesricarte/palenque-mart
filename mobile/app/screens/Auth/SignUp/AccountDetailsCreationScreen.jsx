@@ -1,14 +1,26 @@
-import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
 import { useEffect, useState } from "react";
 
-import { useRoute } from "@react-navigation/native";
+import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
+import {
+  useRoute,
+  CommonActions,
+  useNavigation,
+} from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
+import axios from "axios";
 import LottieView from "lottie-react-native";
 import { Snackbar } from "react-native-paper";
 
+import { API_URL } from "../../../config/apiConfig";
+import { useAuth } from "../../../context/AuthContext";
+
 const AccountDetailsCreationScreen = ({ navigation }) => {
+  const customNavigation = useNavigation();
   const route = useRoute();
+
+  const { login } = useAuth();
+
   const [loading, setLoading] = useState(false);
 
   const [firstName, setFirstName] = useState("");
@@ -16,7 +28,6 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
 
   const [message, setMessage] = useState(null);
-
   const [snackBarVisible, setSnackBarVisible] = useState(false);
 
   const [hasMinLength, setHasMinLength] = useState(false);
@@ -43,16 +54,81 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
     if (!isPasswordValid) return;
 
     setLoading(true);
+    const startTime = Date.now();
+    let responseData;
 
-    setTimeout(() => {
-      setLoading(false);
-      navigation.navigate("MobileNumberRegistration", {
-        email: route.params?.email,
-        firstName: firstName,
-        lastName: lastName,
-        password: password,
-      });
-    }, 2500);
+    let formData = {
+      firstName: firstName,
+      lastName: lastName,
+      password: password,
+    };
+
+    if (route.params?.email) formData.email = route.params.email;
+    else if (route.params?.mobileNumber)
+      formData.mobileNumber = route.params.mobileNumber;
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/create-account`,
+        formData
+      );
+
+      console.log(response.data);
+      responseData = response.data;
+    } catch (error) {
+      console.error(error);
+      responseData = error.response.data;
+    } finally {
+      const elapseTime = Date.now() - startTime;
+      const minimumTime = 2000;
+
+      setTimeout(
+        () => {
+          setLoading(false);
+          if (responseData?.success) {
+            if (responseData?.data?.email) {
+              login(responseData.token);
+              customNavigation.dispatch(
+                CommonActions.reset({
+                  index: 1,
+                  routes: [
+                    {
+                      name: "Dashboard",
+                      params: {
+                        screen: "Account",
+                      },
+                    },
+                    {
+                      name: "MobileNumberRegistration",
+                      params: {
+                        email: responseData.data.email,
+                      },
+                    },
+                  ],
+                })
+              );
+            } else if (responseData?.data?.mobileNumber) {
+              customNavigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: "Dashboard",
+                      params: {
+                        screen: "Account",
+                      },
+                    },
+                  ],
+                })
+              );
+            }
+          } else {
+            setMessage(responseData);
+          }
+        },
+        Math.max(0, minimumTime - elapseTime)
+      );
+    }
   };
 
   useEffect(() => {
@@ -139,7 +215,7 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
 
           <TextInput
             key="password"
-            className={`w-full p-3 text-lg border rounded-md ${(message?.error?.code == "ALL_REQUIRED" && password == "") || message?.error.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
+            className={`w-full p-3 text-lg border rounded-md ${(message?.error?.code == "ALL_REQUIRED" && password == "") || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
             placeholder="Password"
             secureTextEntry={true}
             includeFontPadding={false}

@@ -2,7 +2,11 @@ import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
+import { useAuth } from "../../../context/AuthContext";
+
 const HomeScreen = ({ navigation }) => {
+  const { user } = useAuth();
+
   return (
     <>
       {/* Top Nav */}
@@ -26,21 +30,23 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <View className="flex flex-row justify-center gap-8 p-6 mt-auto border-t border-gray-300">
-        <TouchableOpacity
-          className="px-3 py-2 border border-black rounded-xl"
-          onPress={() => navigation.push("Login")}
-        >
-          <Text className="text-xl">Login</Text>
-        </TouchableOpacity>
+      {!user && (
+        <View className="flex flex-row justify-center gap-8 p-6 mt-auto border-t border-gray-300">
+          <TouchableOpacity
+            className="px-3 py-2 border border-black rounded-xl"
+            onPress={() => navigation.push("Login")}
+          >
+            <Text className="text-xl">Login</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          className="px-3 py-2 bg-black rounded-xl"
-          onPress={() => navigation.push("SignUp")}
-        >
-          <Text className="text-xl text-white">Sign up</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            className="px-3 py-2 bg-black rounded-xl"
+            onPress={() => navigation.push("SignUp")}
+          >
+            <Text className="text-xl text-white">Sign up</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </>
   );
 };

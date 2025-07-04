@@ -36,10 +36,19 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
     const startTime = Date.now();
     let responseData;
 
+    let formData = {
+      mobileNumber: mobileNumber,
+    };
+
+    if (route.params?.email) {
+      formData.email = route.params.email;
+    }
+
     try {
-      const response = await axios.post(`${API_URL}/api/sign-up`, {
-        mobileNumber: mobileNumber,
-      });
+      const response = await axios.post(
+        `${API_URL}/api/sign-up-mobile`,
+        formData
+      );
 
       console.log(response.data);
       responseData = response.data;
@@ -54,13 +63,13 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
         () => {
           setLoading(false);
           if (responseData.success) {
-            navigation.navigate("MobileNumberVerification", {
-              email: route.params?.email,
-              firstName: route.params?.firstName,
-              lastName: route.params?.lastName,
-              password: route.params?.password,
-              mobileNumber: responseData.data.mobileNumber,
-            });
+            let params = { mobileNumber: responseData.data.mobileNumber };
+
+            if (responseData?.data?.email) {
+              params.email = responseData.data.email;
+            }
+
+            navigation.navigate("MobileNumberVerification", params);
           } else {
             setMessage(responseData);
           }
