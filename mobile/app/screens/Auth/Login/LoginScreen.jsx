@@ -1,7 +1,92 @@
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { useEffect, useState } from "react";
+
+import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
+import { CommonActions } from "@react-navigation/native";
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 
+import LottieView from "lottie-react-native";
+import axios from "axios";
+
+import { API_URL } from "../../../config/apiConfig";
+import { useAuth } from "../../../context/AuthContext";
+
 const LoginScreen = ({ navigation }) => {
+  const { login } = useAuth();
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(false);
+
+  const [phoneEmail, setPhoneEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [twoFA, setTwoFA] = useState(false);
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const mobileRegex = /^\+?[0-9]{10,15}$/;
+
+  const handleLogin = async () => {
+    if (phoneEmail === "" || password === "") {
+      setMessage({ message: "All fields required." });
+      return;
+    }
+
+    if (emailRegex.test(phoneEmail) || mobileRegex.test(phoneEmail)) {
+      setMessage(null);
+    } else {
+      setMessage({ message: "Invalid email or phone format." });
+      return;
+    }
+
+    setLoading(true);
+    const startTime = Date.now();
+    let responseData;
+
+    try {
+      const response = await axios.post(`${API_URL}/api/login`, {
+        phoneEmail: phoneEmail,
+        password: password,
+      });
+
+      console.log(response.data);
+      responseData = response.data;
+    } catch (error) {
+      console.error(error.response.data);
+      responseData = error.response.data;
+    } finally {
+      const elapseTime = Date.now() - startTime;
+      const minimumTime = 2000;
+
+      setTimeout(
+        () => {
+          setLoading(false);
+          if (responseData?.success) {
+            if (!twoFA) {
+              login(responseData.data.token);
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: "Dashboard",
+                      params: {
+                        screen: "Account",
+                      },
+                    },
+                  ],
+                })
+              );
+            } else {
+            }
+          } else {
+            setMessage(responseData);
+          }
+        },
+        Math.max(0, minimumTime - elapseTime)
+      );
+    }
+  };
+
   return (
     <>
       <View className="p-3 border-b border-gray-300 pt-14">
@@ -20,16 +105,21 @@ const LoginScreen = ({ navigation }) => {
         <View className="flex gap-5">
           <TextInput
             className="w-full p-3 text-lg border border-black rounded-md"
-            placeholder="Phone/Email/Username"
+            placeholder="Email/Phone"
             keyboardType="email-address"
             includeFontPadding={false}
+            value={phoneEmail}
+            onChangeText={setPhoneEmail}
           />
 
           <TextInput
             className="w-full p-3 text-lg border border-black rounded-md"
             placeholder="Password"
-            keyboardType="email-address"
+            keyboardType="default"
+            secureTextEntry={true}
             includeFontPadding={false}
+            value={password}
+            onChangeText={setPassword}
           />
         </View>
 
@@ -39,7 +129,14 @@ const LoginScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="flex items-center justify-center w-full px-4 py-3 mt-4 bg-orange-600 rounded-md">
+        {message && !message?.success && (
+          <Text className="text-red-500">{message.message}</Text>
+        )}
+
+        <TouchableOpacity
+          className={`flex items-center justify-center w-full px-4 py-3 mt-4 rounded-md bg-orange-600`}
+          onPress={handleLogin}
+        >
           <Text className="text-xl text-white">Log in</Text>
         </TouchableOpacity>
 
@@ -77,6 +174,17 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
+
+        <Modal transparent visible={loading}>
+          <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
+            <LottieView
+              source={require("../../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
+              autoPlay
+              loop
+              style={{ width: 70, height: 30 }}
+            />
+          </View>
+        </Modal>
       </View>
     </>
   );

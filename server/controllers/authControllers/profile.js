@@ -25,6 +25,8 @@ exports.profile = async (req, res) => {
       .json({ message: "user account is not present", succes: false });
   }
 
+  console.log("User's details fetched!");
+
   res
     .status(200)
     .json({ message: "Here is your profile!", succes: true, data: rows[0] });

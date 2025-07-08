@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
+
 import LottieView from "lottie-react-native";
 
 // import { API_URL } from "@env";

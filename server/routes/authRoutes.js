@@ -12,6 +12,8 @@ const {
 
 const { profile } = require("../controllers/authControllers/profile");
 
+const { login } = require("../controllers/authControllers/login");
+
 const router = express.Router();
 
 //Sign up with email
@@ -31,5 +33,8 @@ router.post("/create-account", createAccount);
 
 // User info
 router.get("/profile", authenticateToken, profile);
+
+//Login
+router.post("/login", login);
 
 module.exports = router;

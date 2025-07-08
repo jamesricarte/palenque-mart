@@ -108,6 +108,7 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
                 })
               );
             } else if (responseData?.data?.mobileNumber) {
+              login(responseData.token);
               customNavigation.dispatch(
                 CommonActions.reset({
                   index: 0,

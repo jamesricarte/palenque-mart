@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         setToken(null);
       }
     } catch (error) {
-      console.error(error);
+      console.error(error.response.data);
       setUser(null);
       setToken(null);
     }
