@@ -1,10 +1,10 @@
 const formValidator = require("../../utils/formValidator");
-const { optStore } = require("../../utils/otpStore");
+const sendOTP = require("../../utils/sendOTP");
 
 exports.signUpMobile = async (req, res) => {
-  const signUpData = req.body;
+  const { mobileNumber, email } = req.body;
 
-  const formValidation = formValidator.validate(signUpData);
+  const formValidation = formValidator.validate(req.body);
 
   if (!formValidation.validation) {
     return res
@@ -12,30 +12,19 @@ exports.signUpMobile = async (req, res) => {
       .json({ message: formValidation.message, success: false });
   }
 
-  const mobileNumber = signUpData.mobileNumber;
-
   if (!mobileNumber) {
     return res
       .status(400)
       .json({ message: "Phone number is required.", success: false });
   }
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
   try {
-    optStore.set(mobileNumber, {
-      otp,
-      expiresAt: Date.now() + 5 * 60 * 1000,
-    });
-
-    const storedOtp = optStore.get(mobileNumber);
-
-    console.log(`OTP for ${mobileNumber} is: ${storedOtp.otp}`);
+    sendOTP(mobileNumber);
 
     let data = { mobileNumber: mobileNumber };
 
-    if ("email" in signUpData) {
-      data.email = signUpData.email;
+    if ("email" in req.body) {
+      data.email = email;
     }
 
     return res.status(200).json({

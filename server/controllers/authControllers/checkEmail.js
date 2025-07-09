@@ -5,9 +5,9 @@ const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 
 exports.checkEmail = async (req, res) => {
-  const emailData = req.body;
+  const { email } = req.body;
 
-  const formValidation = formValidator.validate(emailData);
+  const formValidation = formValidator.validate(req.body);
 
   if (!formValidation.validation) {
     return res
@@ -17,7 +17,7 @@ exports.checkEmail = async (req, res) => {
 
   try {
     const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
-      emailData.email,
+      email,
     ]);
 
     if (rows.length === 0) {
@@ -25,7 +25,7 @@ exports.checkEmail = async (req, res) => {
         message: "Email is not yet registered",
         success: true,
         exists: false,
-        email: emailData.email,
+        email: email,
       });
     }
 

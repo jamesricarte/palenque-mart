@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
 import { CommonActions } from "@react-navigation/native";
@@ -34,7 +34,10 @@ const LoginScreen = ({ navigation }) => {
     if (emailRegex.test(phoneEmail) || mobileRegex.test(phoneEmail)) {
       setMessage(null);
     } else {
-      setMessage({ message: "Invalid email or phone format." });
+      setMessage({
+        message: "Invalid email or phone format.",
+        error: { code: "INVALID_FORMAT" },
+      });
       return;
     }
 
@@ -46,6 +49,7 @@ const LoginScreen = ({ navigation }) => {
       const response = await axios.post(`${API_URL}/api/login`, {
         phoneEmail: phoneEmail,
         password: password,
+        twoFA: twoFA,
       });
 
       console.log(response.data);
@@ -61,7 +65,51 @@ const LoginScreen = ({ navigation }) => {
         () => {
           setLoading(false);
           if (responseData?.success) {
-            if (!twoFA) {
+            if (!responseData.exists) {
+              let apiPath;
+              let formData;
+
+              if (responseData?.data?.email) {
+                apiPath = "sign-up-email";
+                formData = { email: responseData?.data?.email };
+              } else if (responseData?.data?.mobileNumber) {
+                apiPath = "sign-up-mobile";
+                formData = { mobileNumber: responseData?.data?.mobileNumber };
+              }
+
+              async function signUpAccount() {
+                setLoading(true);
+                try {
+                  const response = await axios.post(
+                    `${API_URL}/api/${apiPath}`,
+                    formData
+                  );
+
+                  console.log("Registering account...:", response.data);
+                  if (response.data?.signUpOption === "email") {
+                    navigation.navigate("EmailSentVerification", {
+                      email: response.data.data.email,
+                    });
+                  } else if (response.data?.signUpOption === "mobileNumber") {
+                    navigation.navigate("MobileNumberVerification", {
+                      mobileNumber: response.data.data.mobileNumber,
+                    });
+                  }
+                } catch (error) {
+                  console.error(error);
+                  setMessage({
+                    message: "Something went wrong",
+                    success: false,
+                  });
+                } finally {
+                  setLoading(false);
+                }
+              }
+
+              return signUpAccount();
+            }
+
+            if (!responseData?.twoFA) {
               login(responseData.data.token);
               navigation.dispatch(
                 CommonActions.reset({
@@ -76,7 +124,18 @@ const LoginScreen = ({ navigation }) => {
                   ],
                 })
               );
+              return;
             } else {
+              if (responseData?.data?.email) {
+                navigation.navigate("EmailSentVerification", {
+                  email: responseData?.data?.email,
+                });
+              } else if (responseData?.data?.mobileNumber) {
+                navigation.navigate("MobileNumberVerification", {
+                  mobileNumber: responseData?.data?.mobileNumber,
+                });
+              }
+              return;
             }
           } else {
             setMessage(responseData);
@@ -104,7 +163,7 @@ const LoginScreen = ({ navigation }) => {
 
         <View className="flex gap-5">
           <TextInput
-            className="w-full p-3 text-lg border border-black rounded-md"
+            className={`w-full p-3 text-lg border rounded-md ${message?.error?.code === "INVALID_FORMAT" ? "border-red-500" : "border-black"}`}
             placeholder="Email/Phone"
             keyboardType="email-address"
             includeFontPadding={false}
@@ -113,7 +172,7 @@ const LoginScreen = ({ navigation }) => {
           />
 
           <TextInput
-            className="w-full p-3 text-lg border border-black rounded-md"
+            className={`w-full p-3 text-lg border rounded-md ${message?.error?.code === "INCORRECT_PASSWORD" || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
             placeholder="Password"
             keyboardType="default"
             secureTextEntry={true}

@@ -6,9 +6,9 @@ const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 
 exports.createAccount = async (req, res) => {
-  const createAccountData = req.body;
+  const { email, password, firstName, lastName, mobileNumber } = req.body;
 
-  const formValidation = formValidator.validate(createAccountData);
+  const formValidation = formValidator.validate(req.body);
 
   if (!formValidation.validation) {
     console.log(formValidation);
@@ -19,9 +19,9 @@ exports.createAccount = async (req, res) => {
     });
   }
 
-  if ("email" in createAccountData) {
+  if ("email" in req.body) {
     const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
-      createAccountData.email,
+      email,
     ]);
 
     if (rows.length > 0)
@@ -32,16 +32,11 @@ exports.createAccount = async (req, res) => {
       });
 
     try {
-      const hashedPassword = await bcrypt.hash(createAccountData.password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const [result] = await db.execute(
         "INSERT INTO users (email, first_name, last_name, password) VALUES (?, ?, ?, ?)",
-        [
-          createAccountData.email,
-          createAccountData.firstName,
-          createAccountData.lastName,
-          hashedPassword,
-        ]
+        [email, firstName, lastName, hashedPassword]
       );
 
       const [user] = await db.execute("SELECT id FROM users WHERE id = ?", [
@@ -57,7 +52,7 @@ exports.createAccount = async (req, res) => {
       res.status(201).json({
         message: "Account registered successfully!",
         success: true,
-        data: { email: createAccountData.email },
+        data: { email: email },
         token: token,
       });
     } catch (error) {
@@ -66,9 +61,9 @@ exports.createAccount = async (req, res) => {
         .status(500)
         .json({ message: "Something went wrong.", success: false });
     }
-  } else if ("mobileNumber" in createAccountData) {
+  } else if ("mobileNumber" in req.body) {
     const [rows] = await db.execute("SELECT * FROM users WHERE phone = ?", [
-      createAccountData.mobileNumber,
+      mobileNumber,
     ]);
 
     if (rows.length > 0)
@@ -79,16 +74,11 @@ exports.createAccount = async (req, res) => {
       });
 
     try {
-      const hashedPassword = await bcrypt.hash(createAccountData.password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const [result] = await db.execute(
         "INSERT INTO users (phone, first_name, last_name, password) VALUES (?, ?, ?, ?)",
-        [
-          createAccountData.mobileNumber,
-          createAccountData.firstName,
-          createAccountData.lastName,
-          hashedPassword,
-        ]
+        [mobileNumber, firstName, lastName, hashedPassword]
       );
 
       const [user] = await db.execute("SELECT id FROM users WHERE id = ?", [
@@ -104,7 +94,7 @@ exports.createAccount = async (req, res) => {
       res.status(201).json({
         message: "Account registered successfully!",
         success: true,
-        data: { mobileNumber: createAccountData.mobileNumber },
+        data: { mobileNumber: mobileNumber },
         token: token,
       });
     } catch (error) {

@@ -1,8 +1,8 @@
-exports.validate = (formData) => {
+exports.validate = (requestObject) => {
   if (
-    Object.values(formData).includes("") |
-    Object.values(formData).includes(null) |
-    Object.values(formData).includes(undefined)
+    Object.values(requestObject).includes("") |
+    Object.values(requestObject).includes(null) |
+    Object.values(requestObject).includes(undefined)
   ) {
     return {
       validation: false,
@@ -12,16 +12,18 @@ exports.validate = (formData) => {
       },
     };
   } else {
-    if ("email" in formData) {
+    if ("email" in requestObject) {
       if (
-        !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)
+        !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+          requestObject.email
+        )
       ) {
         return { validation: false, message: "Invalid email" };
       }
     }
 
-    if ("mobileNumber" in formData) {
-      const stringMobileNumber = String(formData.mobileNumber);
+    if ("mobileNumber" in requestObject) {
+      const stringMobileNumber = String(requestObject.mobileNumber);
 
       if (/^(09|\+639)\d{9}$/.test(stringMobileNumber)) {
         const cleanedNumber = stringMobileNumber.replace(/[\s()-]/g, "");
@@ -36,10 +38,10 @@ exports.validate = (formData) => {
       }
     }
 
-    if ("password" in formData) {
+    if ("password" in requestObject) {
       const passwordRegex = /^.{6,}$/;
 
-      if (!passwordRegex.test(formData.password)) {
+      if (!passwordRegex.test(requestObject.password)) {
         return {
           validation: false,
           message: "Minimum of 6 characters",
@@ -50,8 +52,8 @@ exports.validate = (formData) => {
       }
     }
 
-    if ("confirmPassword" in formData) {
-      if (formData.password !== formData.confirmPassword) {
+    if ("confirmPassword" in requestObject) {
+      if (requestObject.password !== requestObject.confirmPassword) {
         return {
           validation: false,
           message: "Your confirmation password did not match.",

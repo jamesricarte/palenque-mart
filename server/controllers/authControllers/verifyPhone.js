@@ -5,9 +5,9 @@ const formValidator = require("../../utils/formValidator");
 const { optStore } = require("../../utils/otpStore");
 
 exports.verifyPhone = async (req, res) => {
-  const userData = req.body;
+  const { mobileNumber, otp, email } = req.body;
 
-  const formValidation = formValidator.validate(userData);
+  const formValidation = formValidator.validate(req.body);
 
   if (!formValidation.validation) {
     return res
@@ -15,7 +15,7 @@ exports.verifyPhone = async (req, res) => {
       .json({ message: formValidation.message, success: false });
   }
 
-  const phoneStoredOtp = optStore.get(userData.mobileNumber);
+  const phoneStoredOtp = optStore.get(mobileNumber);
 
   if (!phoneStoredOtp)
     return res.status(400).json({
@@ -23,11 +23,11 @@ exports.verifyPhone = async (req, res) => {
       success: false,
     });
 
-  if (userData.otp !== phoneStoredOtp.otp)
+  if (otp !== phoneStoredOtp.otp)
     return res.status(400).json({ message: "Invalid otp", success: false });
 
   const [rows] = await db.execute("SELECT * FROM users WHERE phone = ?", [
-    userData.mobileNumber,
+    mobileNumber,
   ]);
 
   if (rows.length > 0) {
@@ -41,15 +41,15 @@ exports.verifyPhone = async (req, res) => {
     });
   }
 
-  if ("email" in userData) {
+  if ("email" in req.body) {
     try {
       const [result] = await db.execute(
         "UPDATE users SET phone = ? WHERE email = ?",
-        [userData.mobileNumber, userData.email]
+        [mobileNumber, email]
       );
 
       const [rows] = await db.execute("SELECT id FROM users WHERE email = ?", [
-        userData.email,
+        email,
       ]);
 
       if (rows.length === 0) {
@@ -80,7 +80,7 @@ exports.verifyPhone = async (req, res) => {
     success: true,
     exists: false,
     data: {
-      mobileNumber: userData.mobileNumber,
+      mobileNumber: mobileNumber,
     },
   });
 };
