@@ -138,6 +138,10 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
         >
           <Text className="text-xl text-white">Continue</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity className="px-4 py-3 mt-4 bg-orange-500 rounded-md">
+          <Text className="text-center text-white">Skip</Text>
+        </TouchableOpacity>
       </View>
 
       <Modal transparent visible={loading}>

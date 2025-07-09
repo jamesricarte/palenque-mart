@@ -80,33 +80,33 @@ exports.signUpEmail = async (req, res) => {
           `,
   };
 
-  // transporter.sendMail(mailOptions, (error, info) => {
-  //   if (error) {
-  //     console.error("ERROR SENDING EMAIL", error);
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("ERROR SENDING EMAIL", error);
 
-  //     return res.status(500).json({
-  //       message:
-  //         "Failed to send the email. Please contact the server administrator for assistance.",
-  //       success: false,
-  //     });
-  //   }
+      return res.status(500).json({
+        message:
+          "Failed to send the email. Please contact the server administrator for assistance.",
+        success: false,
+      });
+    }
 
-  //   console.log("EMAIL SENT: \n", info.envelope, "\n", info.response);
+    console.log("EMAIL SENT: \n", info.envelope, "\n", info.response);
 
-  //   return res.status(200).json({
-  //     message:
-  //       "A verification code was sent to your email. Please check your inbox to verify.",
-  //     data: { email: signUpData.email },
-  //     success: true,
-  //     signUpOption: "email",
-  //   });
-  // });
-
-  res.status(200).json({
-    message:
-      "A verification code was sent to your email. Please check your inbox to verify.",
-    data: { email: signUpData.email },
-    success: true,
-    signUpOption: "email",
+    return res.status(200).json({
+      message:
+        "A verification code was sent to your email. Please check your inbox to verify.",
+      data: { email: signUpData.email },
+      success: true,
+      signUpOption: "email",
+    });
   });
+
+  // res.status(200).json({
+  //   message:
+  //     "A verification code was sent to your email. Please check your inbox to verify.",
+  //   data: { email: signUpData.email },
+  //   success: true,
+  //   signUpOption: "email",
+  // });
 };

@@ -20,28 +20,16 @@ const AccountScreen = () => {
     { icon: "star", label: "To Rate", count: 3 },
   ];
 
-  const menuItems = [
-    { icon: "heart", label: "My Wishlist", screen: null },
-    { icon: "clock", label: "Recently Viewed", screen: null },
-    { icon: "message-circle", label: "My Reviews", screen: null },
-    { icon: "help-circle", label: "Help Center", screen: null },
-    { icon: "shield", label: "Privacy Policy", screen: null },
-    { icon: "info", label: "About Us", screen: null },
-  ];
-
   return (
     <ScrollView className="flex-1 bg-gray-50">
       {/* Header */}
       <View className="flex gap-5 px-6 pt-16 pb-5 bg-white border-b border-gray-300">
         <View className="flex flex-row justify-end gap-5">
-          <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
-            <Feather name="settings" size={22} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
             <Feather name="shopping-cart" size={22} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="notifications" size={22} color="black" />
+          <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
+            <Feather name="settings" size={22} color="black" />
           </TouchableOpacity>
         </View>
 
@@ -52,11 +40,10 @@ const AccountScreen = () => {
               <MaterialIcons name="account-circle" size={50} color="black" />
               <View className="flex-1">
                 <Text className="text-lg font-semibold">
-                  James Mickel C. Ricarte
+                  {user.first_name} {user.last_name}
                 </Text>
-                <Text className="text-sm text-gray-600">uhenyou@gmail.com</Text>
-                <Text className="mt-1 text-xs text-gray-500">
-                  Tap to edit profile
+                <Text className="text-sm text-gray-600">
+                  {user.email ? user.email : user.phone}
                 </Text>
               </View>
               <Feather name="chevron-right" size={20} color="gray" />
@@ -129,20 +116,6 @@ const AccountScreen = () => {
           <Feather name="chevron-right" size={20} color="gray" />
         </View>
       </TouchableOpacity>
-
-      {/* Menu Items */}
-      <View className="mt-4 bg-white">
-        {menuItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            className={`flex flex-row items-center gap-4 p-6 ${index !== menuItems.length - 1 ? "border-b border-gray-100" : ""}`}
-          >
-            <Feather name={item.icon} size={20} color="black" />
-            <Text className="flex-1 text-lg">{item.label}</Text>
-            <Feather name="chevron-right" size={20} color="gray" />
-          </TouchableOpacity>
-        ))}
-      </View>
 
       {/* Logout Section */}
       {user && (

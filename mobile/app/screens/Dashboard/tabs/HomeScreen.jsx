@@ -23,9 +23,6 @@ const HomeScreen = ({ navigation }) => {
             <TouchableOpacity onPress={() => navigation.push("Cart")}>
               <Feather name="shopping-cart" size={24} color="black" />
             </TouchableOpacity>
-            <TouchableOpacity>
-              <Ionicons name="notifications" size={24} color="black" />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
