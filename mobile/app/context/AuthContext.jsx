@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
           },
         });
 
+        console.log("User details fetched!");
         setUser(response.data.data);
         setToken(savedToken);
       } else {
@@ -36,8 +37,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    checkToken();
-  }, []);
+    if (token) {
+      checkToken();
+    }
+  }, [token]);
 
   const login = async (token) => {
     setToken(token);

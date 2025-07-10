@@ -23,6 +23,7 @@ const SignUpScreen = ({ navigation }) => {
 
   const [email, setEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState(null);
+  const [countryCode, setCountryCode] = useState("+63");
 
   const [isFieldValid, setIsFieldValid] = useState(false);
 
@@ -31,13 +32,15 @@ const SignUpScreen = ({ navigation }) => {
   const signUp = async () => {
     if (!isFieldValid) return;
 
+    const righMobileFormat = countryCode + mobileNumber;
+
     Keyboard.dismiss();
     setLoading(true);
 
     const formData =
       signUpOption === "email"
         ? { email: email }
-        : { mobileNumber: mobileNumber };
+        : { mobileNumber: righMobileFormat };
 
     const apiPath =
       signUpOption === "email" ? "sign-up-email" : "sign-up-mobile";
@@ -82,14 +85,16 @@ const SignUpScreen = ({ navigation }) => {
     let isValid = true;
     const strictEmailFormat =
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const mobileFormat = /^(09|\+639)\d{9}$/;
+    const mobileFormat = /^(\+639\d{9}|09\d{9}|9\d{9})$/;
 
     if (signUpOption === "email") {
       if (strictEmailFormat.test(email)) isValid = true;
       else isValid = false;
     } else if (signUpOption === "mobileNumber") {
-      if (mobileFormat.test(mobileNumber)) isValid = true;
-      else isValid = false;
+      if (mobileFormat.test(mobileNumber)) {
+        isValid = true;
+        setMobileNumber(mobileNumber.replace(/^(0|\+63)/, ""));
+      } else isValid = false;
     }
 
     setIsFieldValid(isValid);
@@ -123,17 +128,29 @@ const SignUpScreen = ({ navigation }) => {
             onChangeText={setEmail}
           />
         ) : (
-          <TextInput
-            key="mobile"
-            className={`w-full p-3 text-lg border  rounded-md ${
-              message && !message?.success ? "border-red-500" : "border-black"
-            }`}
-            placeholder="Sign up with Mobile Number"
-            keyboardType="phone-pad"
-            includeFontPadding={false}
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
-          />
+          <View className="flex-row gap-2">
+            <TextInput
+              key="country-code"
+              className={` p-3 text-lg border rounded-md text-black ${
+                message && !message?.success ? "border-red-500" : "border-black"
+              }`}
+              keyboardType="default"
+              includeFontPadding={false}
+              value={countryCode}
+              editable={false}
+            />
+            <TextInput
+              key="mobile"
+              className={`flex-1 p-3 text-lg border  rounded-md ${
+                message && !message?.success ? "border-red-500" : "border-black"
+              }`}
+              placeholder="Sign up with Mobile Number"
+              keyboardType="phone-pad"
+              includeFontPadding={false}
+              value={mobileNumber}
+              onChangeText={setMobileNumber}
+            />
+          </View>
         )}
 
         {message && !message?.success && (
@@ -147,7 +164,7 @@ const SignUpScreen = ({ navigation }) => {
               : setSignUpOption("email")
           }
         >
-          <Text className="w-full mt-4 text-gray-600">
+          <Text className="w-40 mt-4 text-gray-600 ">
             {signUpOption === "email" ? "Use mobile number?" : "Use email?"}
           </Text>
         </Pressable>

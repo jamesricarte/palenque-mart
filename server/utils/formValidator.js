@@ -25,16 +25,19 @@ exports.validate = (requestObject) => {
     if ("mobileNumber" in requestObject) {
       const stringMobileNumber = String(requestObject.mobileNumber);
 
-      if (/^(09|\+639)\d{9}$/.test(stringMobileNumber)) {
+      if (/^\+[1-9]\d{7,14}$/.test(stringMobileNumber)) {
         const cleanedNumber = stringMobileNumber.replace(/[\s()-]/g, "");
 
-        if (/^(09|\+639)\d{9}$/.test(cleanedNumber)) {
+        if (/^\+[1-9]\d{7,14}$/.test(cleanedNumber)) {
           return { validation: true };
         } else {
-          return { validation: false, message: "Invalid mobile number" };
+          return {
+            validation: false,
+            message: "Invalid mobile number format.",
+          };
         }
       } else {
-        return { validation: false, message: "Invalid mobile number" };
+        return { validation: false, message: "Invalid mobile number format." };
       }
     }
 

@@ -14,6 +14,7 @@ import { API_URL } from "../../../config/apiConfig";
 const MobileNumberRegistrationScreen = ({ navigation }) => {
   const route = useRoute();
 
+  const [countryCode, setCountryCode] = useState("+63");
   const [mobileNumber, setMobileNumber] = useState(null);
 
   const [isFieldValid, setIsFieldValid] = useState(false);
@@ -32,12 +33,14 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
       return;
     }
 
+    const righMobileFormat = countryCode + mobileNumber;
+
     setLoading(true);
     const startTime = Date.now();
     let responseData;
 
     let formData = {
-      mobileNumber: mobileNumber,
+      mobileNumber: righMobileFormat,
     };
 
     if (route.params?.email) {
@@ -81,10 +84,12 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
 
   useEffect(() => {
     let isValid = true;
-    const mobileFormat = /^(09|\+639)\d{9}$/;
+    const mobileFormat = /^(\+639\d{9}|09\d{9}|9\d{9})$/;
 
-    if (mobileFormat.test(mobileNumber)) isValid = true;
-    else isValid = false;
+    if (mobileFormat.test(mobileNumber)) {
+      isValid = true;
+      setMobileNumber(mobileNumber.replace(/^(0|\+63)/, ""));
+    } else isValid = false;
 
     setIsFieldValid(isValid);
     setMessage(null);
@@ -112,18 +117,29 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
         <Text className="mb-5">
           We need this to verify and secure your account
         </Text>
-
-        <TextInput
-          key="mobile"
-          className={`w-full p-3 text-lg border  rounded-md ${
-            message && !message?.success ? "border-red-500" : "border-black"
-          }`}
-          placeholder="Enter your mobile number"
-          keyboardType="phone-pad"
-          includeFontPadding={false}
-          value={mobileNumber}
-          onChangeText={setMobileNumber}
-        />
+        <View className="flex-row gap-2">
+          <TextInput
+            key="country-code"
+            className={` p-3 text-lg border rounded-md text-black ${
+              message && !message?.success ? "border-red-500" : "border-black"
+            }`}
+            keyboardType="default"
+            includeFontPadding={false}
+            value={countryCode}
+            editable={false}
+          />
+          <TextInput
+            key="mobile"
+            className={`flex-1 p-3 text-lg border  rounded-md ${
+              message && !message?.success ? "border-red-500" : "border-black"
+            }`}
+            placeholder="Sign up with Mobile Number"
+            keyboardType="phone-pad"
+            includeFontPadding={false}
+            value={mobileNumber}
+            onChangeText={setMobileNumber}
+          />
+        </View>
 
         {message && !message?.success && (
           <Text className="mt-3 text-red-500">{message?.message}</Text>

@@ -23,7 +23,7 @@ const LoginScreen = ({ navigation }) => {
   const [twoFA, setTwoFA] = useState(false);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const mobileRegex = /^\+?[0-9]{10,15}$/;
+  const mobileRegex = /^(\+639\d{9}|09\d{9}|9\d{9})$/;
 
   const handleLogin = async () => {
     if (phoneEmail === "" || password === "") {
@@ -31,8 +31,21 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    let formData = {
+      phoneEmail: phoneEmail,
+      password: password,
+      twoFA: twoFA,
+    };
+
     if (emailRegex.test(phoneEmail) || mobileRegex.test(phoneEmail)) {
       setMessage(null);
+      if (mobileRegex.test(phoneEmail)) {
+        const fixedMobileNumber = phoneEmail.replace(/^(0|\+63)/, "");
+        const countryCode = "+63";
+        const righMobileFormat = countryCode + fixedMobileNumber;
+
+        formData.phoneEmail = righMobileFormat;
+      }
     } else {
       setMessage({
         message: "Invalid email or phone format.",
@@ -46,11 +59,7 @@ const LoginScreen = ({ navigation }) => {
     let responseData;
 
     try {
-      const response = await axios.post(`${API_URL}/api/login`, {
-        phoneEmail: phoneEmail,
-        password: password,
-        twoFA: twoFA,
-      });
+      const response = await axios.post(`${API_URL}/api/login`, formData);
 
       console.log(response.data);
       responseData = response.data;

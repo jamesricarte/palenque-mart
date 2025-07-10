@@ -21,7 +21,7 @@ exports.login = async (req, res) => {
   }
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const mobileRegex = /^\+?[0-9]{10,15}$/;
+  const mobileRegex = /^\+[1-9]\d{7,14}$/;
   const usernameRegex = /^[a-zA-Z0-9._]{3,20}$/;
 
   let column;
@@ -107,7 +107,7 @@ exports.login = async (req, res) => {
       });
     } else {
       res.status(200).json({
-        message: "Incorrect password",
+        message: "Incorrect password.",
         success: false,
         error: {
           code: "INCORRECT_PASSWORD",
