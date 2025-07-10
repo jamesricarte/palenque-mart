@@ -24,10 +24,43 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
 
-  const [verificationCode, setVerificationCode] = useState("");
   const [message, setMessage] = useState(null);
 
-  const verificationInputRef = useRef(null);
+  const [verificationCode, setVerificationCode] = useState(null);
+
+  const numDigits = 6;
+  const [otp, setOTP] = useState(Array(numDigits).fill(""));
+
+  const inputs = Array(numDigits)
+    .fill()
+    .map(() => useRef(null));
+
+  const handleChange = (text, index) => {
+    if (/^\d?$/.test(text)) {
+      const newOTP = [...otp];
+      newOTP[index] = text;
+      setOTP(newOTP);
+
+      if (text && index < numDigits - 1) {
+        inputs[index + 1].current.focus();
+      }
+
+      setVerificationCode(newOTP.join(""));
+    }
+  };
+
+  const handleKeyPress = (e, index) => {
+    if (e.nativeEvent.key === "Backspace" && index > 0) {
+      inputs[index - 1].current.focus();
+    } else if (/^\d+$/.test(e.nativeEvent.key) && index < numDigits - 1) {
+      inputs[index + 1].current.focus();
+      const newOTP = [...otp];
+      newOTP[index + 1] = e.nativeEvent.key;
+      setOTP(newOTP);
+
+      setVerificationCode(newOTP.join(""));
+    }
+  };
 
   const verifyCode = async () => {
     if (verificationCode.length < 6) {
@@ -97,7 +130,7 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    if (verificationCode.length === 6) {
+    if (verificationCode?.length === 6) {
       verifyCode();
     }
   }, [verificationCode]);
@@ -122,44 +155,26 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
         </Text>
 
         <Text className="mb-5">
-          Enter 6-digit code sent to yout mobile number{" "}
+          Enter 6-digit code sent to your mobile number{" "}
           <Text className="font-bold">{route.params?.mobileNumber}</Text>
         </Text>
 
-        {/* <View className="flex flex-row gap-4">
-          <TextInput
-            className="w-10 text-lg text-center border-b border-black"
-            keyboardType="number-pad"
-            maxLength={1}
-          ></TextInput>
-          <TextInput
-            className="w-10 text-lg text-center border-b border-black"
-            keyboardType="number-pad"
-            maxLength={1}
-          ></TextInput>
-          <TextInput
-            className="w-10 text-lg text-center border-b border-black"
-            keyboardType="number-pad"
-            maxLength={1}
-          ></TextInput>
-          <TextInput
-            className="w-10 text-lg text-center border-b border-black"
-            keyboardType="number-pad"
-            maxLength={1}
-          ></TextInput>
-          <TextInput
-            className="w-10 text-lg text-center border-b border-black"
-            keyboardType="number-pad"
-            maxLength={1}
-          ></TextInput>
-          <TextInput
-            className="w-10 text-lg text-center border-b border-black"
-            keyboardType="number-pad"
-            maxLength={1}
-          ></TextInput>
-        </View> */}
+        <View className="flex flex-row gap-4">
+          {otp.map((digit, index) => (
+            <TextInput
+              key={index}
+              ref={inputs[index]}
+              className="w-10 text-lg text-center border-b border-black"
+              keyboardType="number-pad"
+              value={digit}
+              onChangeText={(text) => handleChange(text, index)}
+              onKeyPress={(e) => handleKeyPress(e, index)}
+              maxLength={1}
+            />
+          ))}
+        </View>
 
-        <TextInput
+        {/* <TextInput
           key="mobile"
           ref={verificationInputRef}
           className={`w-full p-3 text-lg border  rounded-md ${
@@ -170,7 +185,7 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
           value={verificationCode}
           onChangeText={setVerificationCode}
           maxLength={6}
-        />
+        /> */}
 
         {message && !message?.success && (
           <Text className="mt-3 text-red-500">{message?.message}</Text>
