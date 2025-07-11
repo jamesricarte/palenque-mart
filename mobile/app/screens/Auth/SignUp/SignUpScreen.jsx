@@ -6,6 +6,7 @@ import {
   Pressable,
   Keyboard,
   Modal,
+  Image,
 } from "react-native";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -13,6 +14,12 @@ import axios from "axios";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import LottieView from "lottie-react-native";
+
+import GoogleIcon from '../../../assets/images/Google.png';
+import FacebookIcon from '../../../assets/images/Facebook.png';
+import PhilIcon from '../../../assets/images/PhilFlag.png';
+// import MarketDesign from '../../../assets/images/MarketDesign.png';
+
 
 // import { API_URL } from "@env";
 import { API_URL } from "../../../config/apiConfig";
@@ -102,26 +109,37 @@ const SignUpScreen = ({ navigation }) => {
   }, [email, mobileNumber, signUpOption]);
 
   return (
-    <View className="relative">
-      <View className="p-3 border-b border-gray-300 pt-14">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="black" />
-        </TouchableOpacity>
-      </View>
-      <View className="p-6 h-[87%]">
-        <View className="flex items-center">
-          <View className="pt-10 pb-16">
-            <Text className="text-3xl font-semibold">Palenque Mart</Text>
-          </View>
+    
+    <View className="relative flex-1 px-6 py-16 bg-white">
+
+        {/* <View className="absolute top-0 right-0">
+        <Image source={MarketDesign} style={{width: 400, height:200, transform: [{ rotate: '30deg' }]}}/>
+        </View> */}
+
+        <View className="mb-10">
+
+          <Pressable className="bg-grey rounded-full p-2 self-start" onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
+          </Pressable>
+
         </View>
+
+        <View className="mb-10">
+         
+            <Text className="font-semibold text-3xl">Create your account</Text>
+            <Text className="text-primary font-normal text-lg">Be part of something fresh.</Text>
+
+        </View>
+  
 
         {signUpOption === "email" ? (
           <TextInput
             key="email"
-            className={`w-full p-3 text-lg border  rounded-md ${
-              message && !message?.success ? "border-red-500" : "border-black"
+            className={`w-full p-4 text-lg bg-grey rounded-md text-black${
+              message && !message?.success ? "border-error" : "border-black"
             }`}
-            placeholder="Sign up with Email"
+            placeholder="Sign up with Email Address"
+            placeholderTextColor="#9E9E9E"
             keyboardType="email-address"
             includeFontPadding={false}
             value={email}
@@ -129,22 +147,30 @@ const SignUpScreen = ({ navigation }) => {
           />
         ) : (
           <View className="flex-row gap-2">
+
+            <View className="px-2 text-lg bg-grey rounded-md flex-row items-center gap-1">
+
+            <Image source={PhilIcon} style={{width: 20, height: 20}}/>
             <TextInput
               key="country-code"
-              className={` p-3 text-lg border rounded-md text-black ${
-                message && !message?.success ? "border-red-500" : "border-black"
+              className={` text-black ${
+                message && !message?.success ? "border-error" : "border-black"
               }`}
               keyboardType="default"
               includeFontPadding={false}
               value={countryCode}
               editable={false}
             />
+
+            </View>
+            
             <TextInput
               key="mobile"
-              className={`flex-1 p-3 text-lg border  rounded-md ${
-                message && !message?.success ? "border-red-500" : "border-black"
+              className={`flex-1 p-4 text-lg bg-grey rounded-md ${
+                message && !message?.success ? "border-error" : "border-black"
               }`}
               placeholder="Sign up with Mobile Number"
+              placeholderTextColor="#9E9E9E"
               keyboardType="phone-pad"
               includeFontPadding={false}
               value={mobileNumber}
@@ -154,70 +180,92 @@ const SignUpScreen = ({ navigation }) => {
         )}
 
         {message && !message?.success && (
-          <Text className="mt-3 text-red-500">{message?.message}</Text>
+          <Text className="mt-3 text-error">{message?.message}</Text>
         )}
+        
+        <View className="items-end mt-2">
+
+          <Pressable
+            onPress={() =>
+              signUpOption === "email"
+                ? setSignUpOption("mobileNumber")
+                : setSignUpOption("email")
+            }
+          >
+            <Text className=" text-primary">
+              {signUpOption === "email" ? "Use mobile number?" : "Use email?"}
+            </Text>
+
+          </Pressable>
+
+        </View>
 
         <Pressable
-          onPress={() =>
-            signUpOption === "email"
-              ? setSignUpOption("mobileNumber")
-              : setSignUpOption("email")
-          }
-        >
-          <Text className="w-40 mt-4 text-gray-600 ">
-            {signUpOption === "email" ? "Use mobile number?" : "Use email?"}
-          </Text>
-        </Pressable>
-
-        <TouchableOpacity
-          className={`flex items-center justify-center w-full px-4 py-3 mt-4 rounded-md ${
-            !isFieldValid ? "bg-gray-300 opacity-60" : "bg-orange-600"
+          className={`flex items-center justify-center w-full p-4 mt-6 rounded-md ${
+            !isFieldValid ? "bg-grey" : "bg-primary"
           }`}
           onPress={signUp}
           disabled={!isFieldValid}
         >
-          <Text className="text-xl text-white">Sign up</Text>
-        </TouchableOpacity>
+          <Text
+          className={`text-lg font-semibold ${
+            !isFieldValid ? "text-darkgrey" : "text-white"
+          }`}
+        >Sign up</Text>
+        </Pressable>
 
-        <View className="flex-row items-center w-full mt-5 mb-8">
-          <View className="flex-1 h-0.5 bg-gray-300" />
-          <Text className="mx-4 text-dark-grey">Or sign up with</Text>
-          <View className="flex-1 h-0.5 bg-gray-300" />
+        <View className="flex-row items-center w-full my-10">
+
+          <View className="flex-1 h-0.5 bg-grey" />
+          <Text className="mx-4 text-darkgrey">Or signup with</Text>
+          <View className="flex-1 h-0.5 bg-grey" />
+
         </View>
 
         <View className="flex w-full gap-4">
-          <TouchableOpacity
-            className="py-3 border border-gray-400 rounded-lg"
+          <Pressable
+            className="p-4 border border-primary rounded-md items-center justify-center"
             onPress={() => {}}
-          >
-            <Text className="text-base text-center text-black">
+          > 
+
+            <Image className="absolute left-4" source={GoogleIcon} style={{width: 20, height: 20}}/>
+            <Text className="text-lg text-center text-primary">
               Continue with Google
             </Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            className="py-3 border border-gray-400 rounded-lg"
+          </Pressable>
+
+          <Pressable
+            className="p-4 border border-primary rounded-md items-center justify-center"
             onPress={() => {}}
           >
-            <Text className="text-base text-center text-black">
+            <Image className="absolute left-4" source={FacebookIcon} style={{width: 21, height: 21}}/>
+            <Text className="text-lg text-center text-primary">
               Continue with Facebook
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         <View className="flex items-center gap-4 mt-auto">
-          <Text className="text-sm text-center text-gray-600">
-            By signing up, you agree to Palenque Mart Terms of Service & Privacy
-            Policy
-          </Text>
-          <View className="flex flex-row gap-2">
-            <Text className="text-gray-600">Already have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.replace("Login")}>
-              <Text className="text-orange-500">Login</Text>
-            </TouchableOpacity>
+
+         <Text className="text-sm text-center text-gray-600">
+          By signing up, you agree to Palenque Mart{' '}
+          <Text className="text-primary font-medium">Terms of Service</Text>
+          {' '}&{' '}
+          <Text className="text-primary font-medium">Privacy Policy</Text>
+        </Text>
+
+          <View className="flex flex-row gap-1">
+
+            <Text className="text-black text-lg">Already have an account?</Text>
+            
+            <Pressable onPress={() => navigation.replace("Login")}>
+              <Text className="text-primary text-lg">Login</Text>
+            </Pressable>
+
           </View>
+
         </View>
-      </View>
 
       <Modal transparent visible={loading}>
         <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
@@ -229,6 +277,7 @@ const SignUpScreen = ({ navigation }) => {
           />
         </View>
       </Modal>
+
     </View>
   );
 };
