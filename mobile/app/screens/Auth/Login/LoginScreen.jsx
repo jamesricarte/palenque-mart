@@ -1,9 +1,17 @@
 import { useState } from "react";
 
-import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Pressable,
+} from "react-native";
 import { CommonActions } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 import LottieView from "lottie-react-native";
 import axios from "axios";
@@ -19,6 +27,7 @@ const LoginScreen = ({ navigation }) => {
 
   const [phoneEmail, setPhoneEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [twoFA, setTwoFA] = useState(false);
 
@@ -180,15 +189,25 @@ const LoginScreen = ({ navigation }) => {
             onChangeText={setPhoneEmail}
           />
 
-          <TextInput
-            className={`w-full p-3 text-lg border rounded-md ${message?.error?.code === "INCORRECT_PASSWORD" || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
-            placeholder="Password"
-            keyboardType="default"
-            secureTextEntry={true}
-            includeFontPadding={false}
-            value={password}
-            onChangeText={setPassword}
-          />
+          <View>
+            <TextInput
+              className={`w-full p-3 text-lg border rounded-md ${message?.error?.code === "INCORRECT_PASSWORD" || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
+              placeholder="Password"
+              keyboardType="default"
+              secureTextEntry={!showPassword}
+              includeFontPadding={false}
+              value={password}
+              onChangeText={setPassword}
+            />
+
+            <AntDesign
+              className="absolute transform -translate-y-1/2 right-4 top-1/2"
+              name="eyeo"
+              size={24}
+              color={showPassword ? "gray" : "black"}
+              onPress={() => setShowPassword(!showPassword)}
+            />
+          </View>
         </View>
 
         <TouchableOpacity>

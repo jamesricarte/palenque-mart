@@ -28,7 +28,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       {!user && (
-        <View className="flex flex-row justify-center gap-8 p-6 mt-auto border-t border-gray-300">
+        <View className="flex flex-row justify-center gap-8 px-6 py-20 mt-auto border-t border-gray-300">
           <TouchableOpacity
             className="px-3 py-2 border border-black rounded-xl"
             onPress={() => navigation.push("Login")}

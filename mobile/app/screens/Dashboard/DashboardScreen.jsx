@@ -8,15 +8,19 @@ import ChatScreen from "./tabs/ChatScreen";
 import AccountScreen from "./tabs/AccountScreen";
 import NotificationsScreen from "./tabs/NotificationsScreen";
 
+import { useAuth } from "../../context/AuthContext";
+
 const Tab = createBottomTabNavigator();
 
 const DashboardScreen = () => {
+  const { user } = useAuth();
   return (
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#F16B44",
+        tabBarStyle: !user && { display: "none" },
       }}
     >
       <Tab.Screen

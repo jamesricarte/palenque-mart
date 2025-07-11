@@ -6,7 +6,9 @@ import {
   CommonActions,
   useNavigation,
 } from "@react-navigation/native";
+
 import Ionicons from "@expo/vector-icons/Ionicons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 import axios from "axios";
 import LottieView from "lottie-react-native";
@@ -29,6 +31,7 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
 
   const [message, setMessage] = useState(null);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [hasMinLength, setHasMinLength] = useState(false);
   const [hasUppercase, setHasUppercase] = useState(false);
@@ -214,15 +217,25 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
             />
           </View>
 
-          <TextInput
-            key="password"
-            className={`w-full p-3 text-lg border rounded-md ${(message?.error?.code == "ALL_REQUIRED" && password == "") || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
-            placeholder="Password"
-            secureTextEntry={true}
-            includeFontPadding={false}
-            value={password}
-            onChangeText={setPassword}
-          />
+          <View>
+            <TextInput
+              key="password"
+              className={`w-full p-3 text-lg border rounded-md ${(message?.error?.code == "ALL_REQUIRED" && password == "") || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
+              placeholder="Password"
+              secureTextEntry={!showPassword}
+              includeFontPadding={false}
+              value={password}
+              onChangeText={setPassword}
+            />
+
+            <AntDesign
+              className="absolute transform -translate-y-1/2 right-4 top-1/2"
+              name="eyeo"
+              size={24}
+              color={showPassword ? "gray" : "black"}
+              onPress={() => setShowPassword(!showPassword)}
+            />
+          </View>
         </View>
 
         {message && (

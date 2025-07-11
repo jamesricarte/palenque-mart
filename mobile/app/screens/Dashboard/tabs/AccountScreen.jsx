@@ -1,17 +1,25 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  Modal,
+} from "react-native";
+
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useNavigation } from "@react-navigation/native";
 
 import { useAuth } from "../../../context/AuthContext";
 
-const AccountScreen = () => {
-  const navigation = useNavigation();
-
+const AccountScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
+
+  const [loading, setLoading] = useState(false);
 
   const orderCategories = [
     { icon: "package", label: "To Pay", count: 2 },
@@ -19,6 +27,37 @@ const AccountScreen = () => {
     { icon: "box", label: "To Receive", count: 0 },
     { icon: "star", label: "To Rate", count: 3 },
   ];
+
+  const handleLogoutClick = () => {
+    Alert.alert(
+      "Confirm logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "OK", onPress: () => handleLogout() },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  const handleLogout = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "Dashboard",
+            params: {
+              screen: "Home",
+            },
+          },
+        ],
+      });
+      logout();
+    }, 3000);
+  };
 
   return (
     <ScrollView className="flex-1 bg-gray-50">
@@ -122,13 +161,19 @@ const AccountScreen = () => {
         <View className="mt-4 mb-8 bg-white">
           <TouchableOpacity
             className="flex flex-row items-center gap-4 p-6"
-            onPress={logout}
+            onPress={handleLogoutClick}
           >
             <AntDesign name="logout" size={20} color="#ef4444" />
             <Text className="flex-1 text-lg text-red-500">Logout</Text>
           </TouchableOpacity>
         </View>
       )}
+
+      <Modal transparent visible={loading}>
+        <View className="absolute px-8 transform -translate-x-1/2 -translate-y-1/2 bg-black rounded-lg opacity-70 py-7 top-1/2 left-1/2">
+          <ActivityIndicator size="large" color="white" />
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
