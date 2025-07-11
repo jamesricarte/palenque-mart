@@ -1,7 +1,7 @@
 const formValidator = require("../../utils/formValidator");
 const sendVerificationEmail = require("../../utils/sendVerificationEmail");
 
-module.exports = signUpEmail = async (req, res) => {
+module.exports = sendEmail = async (req, res) => {
   const { email } = req.body;
 
   const formValidation = formValidator.validate(req.body);
@@ -13,14 +13,12 @@ module.exports = signUpEmail = async (req, res) => {
   }
 
   try {
-    await sendVerificationEmail(email, "new");
+    await sendVerificationEmail(email);
 
     return res.status(200).json({
       message:
-        "A verification link was sent to your email. Please check your inbox to verify.",
-      data: { email: email },
+        "We sent a verification link to your email. Please check your inbox to verify.",
       success: true,
-      signUpOption: "email",
     });
   } catch (error) {
     console.error("ERROR SENDING EMAIL", error);
@@ -31,12 +29,4 @@ module.exports = signUpEmail = async (req, res) => {
       success: false,
     });
   }
-
-  // res.status(200).json({
-  //   message:
-  //     "A verification code was sent to your email. Please check your inbox to verify.",
-  //   data: { email: email },
-  //   success: true,
-  //   signUpOption: "email",
-  // });
 };

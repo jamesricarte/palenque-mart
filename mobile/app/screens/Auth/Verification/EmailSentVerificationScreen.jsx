@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 import {
   View,
   Text,
@@ -5,7 +7,6 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import { useEffect, useRef, useState } from "react";
 
 import {
   CommonActions,
@@ -17,6 +18,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
+import { Snackbar } from "react-native-paper";
 
 import { API_URL, WEBSOCKET_URL } from "../../../config/apiConfig";
 import useWebSocket from "../../../hooks/useWebSocket";
@@ -31,6 +33,11 @@ const EmailSentVerificationScreen = ({ navigation }) => {
 
   const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  const [snackBarVisible, setSnackBarVisible] = useState(false);
+
+  const [resendEmailTimeout, setResendEmailTimeout] = useState(60);
 
   const { socket } = useWebSocket(WEBSOCKET_URL);
 
@@ -101,6 +108,60 @@ const EmailSentVerificationScreen = ({ navigation }) => {
     }
   };
 
+  const resendEmail = async () => {
+    if (resendEmailTimeout > 0) return;
+
+    setLoading(true);
+    const startTime = Date.now();
+    let responseData;
+
+    try {
+      const response = await axios.post(`${API_URL}/api/send-email`, {
+        email: route.params?.email,
+      });
+
+      console.log(response.data);
+      responseData = response.data;
+    } catch (error) {
+      console.log(error);
+      responseData = error.response.data;
+    } finally {
+      const elapseTime = Date.now() - startTime;
+      const minimumTime = 2000;
+
+      setTimeout(
+        () => {
+          setLoading(false);
+          setMessage(responseData);
+          if (responseData?.success) {
+            setResendEmailTimeout(60);
+            setSnackBarVisible(true);
+          }
+        },
+        Math.max(0, minimumTime - elapseTime)
+      );
+    }
+  };
+
+  useEffect(() => {
+    let interval;
+
+    if (resendEmailTimeout > 0) {
+      interval = setTimeout(() => {
+        setResendEmailTimeout((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [resendEmailTimeout]);
+
   return (
     <>
       <View className="p-3 border-b border-gray-300 pt-14">
@@ -126,13 +187,17 @@ const EmailSentVerificationScreen = ({ navigation }) => {
           </View>
 
           <View className="flex gap-4 p-5 pb-10 mt-auto border-t border-gray-300">
-            <TouchableOpacity className="flex items-center justify-center w-full px-4 py-3 bg-orange-600 rounded-md">
-              <Text className="text-xl text-white">Check inbox</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="flex items-center justify-center w-full px-4 py-3 border border-gray-600 rounded-md">
-              <Text className="text-xl text-gray-600">
-                Resend verification link
+            <TouchableOpacity
+              className="flex items-center justify-center w-full px-4 py-3 border border-gray-600 rounded-md"
+              onPress={resendEmail}
+              disabled={resendEmailTimeout > 0}
+            >
+              <Text
+                className={`text-xl ${resendEmailTimeout > 0 ? "text-gray-400" : "text-gray-600"} `}
+              >
+                {resendEmailTimeout > 0
+                  ? `Resend again after ${resendEmailTimeout} ${resendEmailTimeout > 1 ? "seconds" : "second"}`
+                  : "Resend verification link"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -144,6 +209,14 @@ const EmailSentVerificationScreen = ({ navigation }) => {
           <ActivityIndicator size="large" color="black" />
         </View>
       </Modal>
+
+      <Snackbar
+        visible={snackBarVisible}
+        onDismiss={() => setSnackBarVisible(false)}
+        duration={3000}
+      >
+        {message?.message}
+      </Snackbar>
     </>
   );
 };

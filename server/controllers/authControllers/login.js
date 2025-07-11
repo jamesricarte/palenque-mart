@@ -7,7 +7,7 @@ const formValidator = require("../../utils/formValidator");
 const sendVerificationEmail = require("../../utils/sendVerificationEmail");
 const sendOTP = require("../../utils/sendOTP");
 
-exports.login = async (req, res) => {
+module.exports = login = async (req, res) => {
   const { phoneEmail, password, twoFA } = req.body;
 
   const formValidation = formValidator.validate(req.body);

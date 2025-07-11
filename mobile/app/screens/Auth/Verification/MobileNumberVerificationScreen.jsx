@@ -28,6 +28,8 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
 
   const [verificationCode, setVerificationCode] = useState(null);
 
+  const [resendOtpTimeout, setResendOtpTimeout] = useState(0);
+
   const numDigits = 6;
   const [otp, setOTP] = useState(Array(numDigits).fill(""));
 
@@ -129,11 +131,64 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
     }
   };
 
+  const sendCodeAgain = async () => {
+    if (resendOtpTimeout > 0) return;
+
+    setLoading(true);
+    const startTime = Date.now();
+    let responseData;
+
+    try {
+      const response = await axios.post(`${API_URL}/api/send-otp`, {
+        mobileNumber: route.params?.mobileNumber,
+      });
+
+      console.log(response.data);
+      responseData = response.data;
+    } catch (error) {
+      console.error(error);
+      responseData = error.response.data;
+    } finally {
+      const elapseTime = Date.now() - startTime;
+      const minimumTime = 2000;
+
+      setTimeout(
+        () => {
+          setLoading(false);
+          setMessage(responseData);
+          if (responseData?.success) {
+            setResendOtpTimeout(60);
+            setSnackBarVisible(true);
+          }
+        },
+        Math.max(0, minimumTime - elapseTime)
+      );
+    }
+  };
+
   useEffect(() => {
     if (verificationCode?.length === 6) {
       verifyCode();
     }
   }, [verificationCode]);
+
+  useEffect(() => {
+    let interval;
+
+    if (resendOtpTimeout > 0) {
+      interval = setInterval(() => {
+        setResendOtpTimeout((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [resendOtpTimeout]);
 
   return (
     <View className="relative">
@@ -164,7 +219,7 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
             <TextInput
               key={index}
               ref={inputs[index]}
-              className="w-10 text-lg text-center border-b border-black"
+              className={`w-10 text-lg text-center border-b ${message && !message?.success ? "border-red-500" : "border-black"} `}
               keyboardType="number-pad"
               value={digit}
               onChangeText={(text) => handleChange(text, index)}
@@ -174,19 +229,6 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
           ))}
         </View>
 
-        {/* <TextInput
-          key="mobile"
-          ref={verificationInputRef}
-          className={`w-full p-3 text-lg border  rounded-md ${
-            message && !message?.success ? "border-red-500" : "border-black"
-          }`}
-          keyboardType="number-pad"
-          includeFontPadding={false}
-          value={verificationCode}
-          onChangeText={setVerificationCode}
-          maxLength={6}
-        /> */}
-
         {message && !message?.success && (
           <Text className="mt-3 text-red-500">{message?.message}</Text>
         )}
@@ -194,15 +236,20 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
         <View className="flex gap-4 mt-10">
           <TouchableOpacity
             className={`flex items-center justify-center px-4 py-3 rounded-md w-1/2 ${
-              true ? "bg-orange-600" : "bg-gray-300 opacity-60"
+              resendOtpTimeout > 0 ? "bg-gray-300 opacity-60" : " bg-orange-600"
             }`}
-            onPress={() => {}}
-            disabled={false}
+            onPress={sendCodeAgain}
+            disabled={resendOtpTimeout > 0}
           >
-            <Text className="text-xl text-white">Send code again</Text>
+            <Text className="text-xl text-white ">Send code again</Text>
           </TouchableOpacity>
 
-          <Text className="text-lg">Try again in 26 seconds</Text>
+          {resendOtpTimeout > 0 && (
+            <Text className="text-lg">
+              Try again in {resendOtpTimeout}{" "}
+              {`${resendOtpTimeout > 1 ? "seconds" : "second"}`}
+            </Text>
+          )}
         </View>
       </View>
 

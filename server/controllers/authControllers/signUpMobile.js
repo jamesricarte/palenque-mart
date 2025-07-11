@@ -1,7 +1,7 @@
 const formValidator = require("../../utils/formValidator");
 const sendOTP = require("../../utils/sendOTP");
 
-exports.signUpMobile = async (req, res) => {
+module.exports = signUpMobile = async (req, res) => {
   const { mobileNumber, email } = req.body;
 
   const formValidation = formValidator.validate(req.body);

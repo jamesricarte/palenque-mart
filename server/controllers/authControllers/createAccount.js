@@ -5,7 +5,7 @@ require("dotenv").config();
 const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 
-exports.createAccount = async (req, res) => {
+module.exports = createAccount = async (req, res) => {
   const { email, password, firstName, lastName, mobileNumber } = req.body;
 
   const formValidation = formValidator.validate(req.body);

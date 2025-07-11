@@ -36,27 +36,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    if (token) {
-      checkToken();
-    }
-  }, [token]);
-
   const login = async (token) => {
     setToken(token);
     await AsyncStorage.setItem("token", token);
-
-    try {
-      const response = await axios.get(`${API_URL}/api/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setUser(response.data.data);
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   const logout = async () => {
@@ -64,6 +46,12 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     await AsyncStorage.removeItem("token");
   };
+
+  useEffect(() => {
+    if (token) {
+      checkToken();
+    }
+  }, [token]);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

@@ -4,7 +4,7 @@ const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 const { optStore } = require("../../utils/otpStore");
 
-exports.verifyPhone = async (req, res) => {
+module.exports = verifyPhone = async (req, res) => {
   const { mobileNumber, otp, email } = req.body;
 
   const formValidation = formValidator.validate(req.body);

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-exports.verifyEmail = async (req, res) => {
+module.exports = verifyEmail = async (req, res) => {
   const token = req.query.token;
   const email = req.query.email;
 

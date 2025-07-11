@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
  * @returns {Promise} resolves when email sent successfully
  */
 
-async function sendVerificationEmail(email, verificationType) {
+async function sendVerificationEmail(email, verificationType = "new") {
   //jwt
   const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
     expiresIn: "1h",

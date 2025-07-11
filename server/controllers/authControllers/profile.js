@@ -1,7 +1,7 @@
 const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 
-exports.profile = async (req, res) => {
+module.exports = profile = async (req, res) => {
   const { id } = req.userData;
 
   const formValidation = formValidator.validate(req.userData);
