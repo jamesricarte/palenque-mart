@@ -1,13 +1,20 @@
 import { useState } from "react";
 
-import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Keyboard,
+} from "react-native";
 import { CommonActions } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 
-import LottieView from "lottie-react-native";
 import axios from "axios";
+
+import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
 
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
@@ -56,6 +63,7 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    Keyboard.dismiss();
     setLoading(true);
     const startTime = Date.now();
     let responseData;
@@ -158,14 +166,14 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <>
+    <View className="flex-1">
       <View className="p-3 border-b border-gray-300 pt-14">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
       </View>
 
-      <View className="p-6 h-[87%]">
+      <View className="flex-1 p-6">
         <View className="flex items-center">
           <View className="pt-10 pb-16">
             <Text className="text-3xl font-semibold">Palenque Mart</Text>
@@ -254,19 +262,10 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-
-        <Modal transparent visible={loading}>
-          <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
-            <LottieView
-              source={require("../../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
-              autoPlay
-              loop
-              style={{ width: 70, height: 30 }}
-            />
-          </View>
-        </Modal>
       </View>
-    </>
+
+      <PersonalizedLoadingAnimation visible={loading} />
+    </View>
   );
 };
 

@@ -12,17 +12,15 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
-import { Modal } from "react-native-paper";
+
+import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation";
+import Snackbar from "../../components/Snackbar";
 
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
-import LottieView from "lottie-react-native";
-import { Snackbar } from "react-native-paper";
 
 const EditProfileScreen = ({ navigation }) => {
   const { user, setUser, token } = useAuth();
-
-  console.log(token);
 
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({ ...user });
@@ -116,6 +114,10 @@ const EditProfileScreen = ({ navigation }) => {
             {user.first_name} {user.last_name}
           </Text>
 
+          <Text className="text-sm text-gray-600">
+            {user.email ? user.email : user.phone}
+          </Text>
+
           <View className="flex-row w-full mt-4 justify-evenly">
             <TouchableOpacity className="items-center">
               <Text>0</Text>
@@ -192,36 +194,44 @@ const EditProfileScreen = ({ navigation }) => {
             <Text className="mb-2 text-sm font-medium text-gray-700">
               Email Address
             </Text>
-            {isEditing ? (
-              <TextInput
-                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
-                keyboardType="default"
-                value={profileData.email}
-                onChangeText={(text) => handleInputChange("email", text)}
-              />
-            ) : (
-              <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                <Text className="text-base">{profileData.email}</Text>
+
+            <TouchableOpacity onPress={() => navigation.navigate("EditEmail")}>
+              <View>
+                <Text className="p-3 text-base bg-white border border-gray-300 rounded-lg">
+                  {profileData.email}
+                </Text>
+
+                <Feather
+                  className="absolute transform -translate-y-1/2 top-1/2 right-5"
+                  name="edit-2"
+                  size={16}
+                  color="black"
+                />
               </View>
-            )}
+            </TouchableOpacity>
           </View>
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium text-gray-700">
               Phone
             </Text>
-            {isEditing ? (
-              <TextInput
-                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
-                keyboardType="phone-pad"
-                value={profileData.phone}
-                onChangeText={(text) => handleInputChange("phone", text)}
-              />
-            ) : (
-              <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                <Text className="text-base">{profileData.phone}</Text>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("EditMobileNumber")}
+            >
+              <View>
+                <Text className="p-3 text-base bg-white border border-gray-300 rounded-lg">
+                  {profileData.phone}
+                </Text>
+
+                <Feather
+                  className="absolute transform -translate-y-1/2 top-1/2 right-5"
+                  name="edit-2"
+                  size={16}
+                  color="black"
+                />
               </View>
-            )}
+            </TouchableOpacity>
           </View>
 
           <View className="mb-4">
@@ -273,24 +283,13 @@ const EditProfileScreen = ({ navigation }) => {
         </View>
       )}
 
-      <Modal transparent visible={loading}>
-        <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
-          <LottieView
-            source={require("../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
-            autoPlay
-            loop
-            style={{ width: 70, height: 30 }}
-          />
-        </View>
-      </Modal>
+      <PersonalizedLoadingAnimation visible={loading} />
 
       <Snackbar
         visible={snackBarVisible}
-        onDismiss={() => setSnackBarVisible(false)}
-        duration={3000}
-      >
-        {message?.message}
-      </Snackbar>
+        onDismiss={setSnackBarVisible}
+        text={message?.message}
+      />
     </View>
   );
 };

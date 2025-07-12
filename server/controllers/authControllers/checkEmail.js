@@ -5,7 +5,7 @@ const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 
 module.exports = checkEmail = async (req, res) => {
-  const { email } = req.body;
+  const { email, editing, id } = req.body;
 
   const formValidation = formValidator.validate(req.body);
 
@@ -15,30 +15,61 @@ module.exports = checkEmail = async (req, res) => {
       .json({ message: formValidation.message, success: false });
   }
 
-  try {
-    const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
+  if (editing) {
+    try {
+      const [result] = await db.execute(
+        "UPDATE users SET email = ? WHERE id = ?",
+        [email, id]
+      );
 
-    if (rows.length === 0) {
+      const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
+
+      if (rows.length === 0) {
+        return res.status(400).json({
+          message: "User account was unfortunately not found.",
+          success: false,
+        });
+      }
+
+      const { password, ...userData } = rows[0];
+
       return res.status(200).json({
-        message: "Email is not yet registered",
+        message: "Email was updated successfully!",
         success: true,
-        exists: false,
-        email: email,
+        exists: true,
+        editing: true,
+        data: userData,
       });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Something went wrong" });
     }
+  } else {
+    try {
+      const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [
+        email,
+      ]);
 
-    const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET);
+      if (rows.length === 0) {
+        return res.status(200).json({
+          message: "Email is not yet registered",
+          success: true,
+          exists: false,
+          data: { email: email },
+        });
+      }
 
-    res.status(200).json({
-      message: "Email is already registered",
-      success: true,
-      exists: true,
-      token: token,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Something went wrong" });
+      const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET);
+
+      res.status(200).json({
+        message: "Email is already registered",
+        success: true,
+        exists: true,
+        token: token,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Something went wrong" });
+    }
   }
 };

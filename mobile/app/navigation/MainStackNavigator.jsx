@@ -11,10 +11,13 @@ import MobileNumberVerificationScreen from "../screens/Auth/Verification/MobileN
 
 import DashboardScreen from "../screens/Dashboard/DashboardScreen";
 import CartScreen from "../screens/Cart/CartScreen";
-import EditProfileScreen from "../screens/EditProfile/EditProfileScreen";
 import PartnershipOptionsScreen from "../screens/PartnershipOptions/PartnershipOptionsScreen";
 import NotificationsScreen from "../screens/Dashboard/tabs/NotificationsScreen";
 import SettingsScreen from "../screens/Settings/SettingsScreen";
+
+import EditProfileScreen from "../screens/EditProfile/EditProfileScreen";
+import EditEmailScreen from "../screens/EditProfile/EditEmailScreen";
+import EditMobileNumberScreen from "../screens/EditProfile/EditMobileNumberScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -55,13 +58,20 @@ const MainStackNavigator = () => {
 
       {/* Dashboard */}
       <Stack.Screen name="Cart" component={CartScreen} />
-      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen
         name="PartnershipOptions"
         component={PartnershipOptionsScreen}
       />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+
+      {/* Profile */}
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="EditEmail" component={EditEmailScreen} />
+      <Stack.Screen
+        name="EditMobileNumber"
+        component={EditMobileNumberScreen}
+      />
     </Stack.Navigator>
   );
 };

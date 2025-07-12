@@ -5,7 +5,7 @@ const formValidator = require("../../utils/formValidator");
 const { optStore } = require("../../utils/otpStore");
 
 module.exports = verifyPhone = async (req, res) => {
-  const { mobileNumber, otp, email } = req.body;
+  const { mobileNumber, otp, email, editing, id } = req.body;
 
   const formValidation = formValidator.validate(req.body);
 
@@ -26,6 +26,37 @@ module.exports = verifyPhone = async (req, res) => {
   if (otp !== phoneStoredOtp.otp)
     return res.status(400).json({ message: "Invalid otp", success: false });
 
+  if (editing) {
+    try {
+      const [result] = await db.execute(
+        "UPDATE users SET phone = ? WHERE id = ?",
+        [mobileNumber, id]
+      );
+
+      const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
+
+      if (rows.length === 0) {
+        return res.status(400).json({
+          message: "User account was unfortunately not found.",
+          success: false,
+        });
+      }
+
+      const { password, ...userData } = rows[0];
+
+      return res.status(200).json({
+        message: "Phone number was updated successfully!",
+        success: true,
+        exists: true,
+        editing: true,
+        data: userData,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Something went wrong" });
+    }
+  }
+
   const [rows] = await db.execute("SELECT * FROM users WHERE phone = ?", [
     mobileNumber,
   ]);
@@ -41,6 +72,7 @@ module.exports = verifyPhone = async (req, res) => {
     });
   }
 
+  //If there is an email in req.body, meaning it will just add phone to existing account
   if ("email" in req.body) {
     try {
       const [result] = await db.execute(

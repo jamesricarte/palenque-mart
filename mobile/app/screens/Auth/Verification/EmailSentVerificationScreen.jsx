@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TouchableOpacity, Modal } from "react-native";
 
 import {
   CommonActions,
@@ -18,18 +12,19 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
-import { Snackbar } from "react-native-paper";
+
+import Snackbar from "../../../components/Snackbar";
+import DefaultLoadingAnimation from "../../../components/DefaultLoadingAnimation";
 
 import { API_URL, WEBSOCKET_URL } from "../../../config/apiConfig";
 import useWebSocket from "../../../hooks/useWebSocket";
-
 import { useAuth } from "../../../context/AuthContext";
 
 const EmailSentVerificationScreen = ({ navigation }) => {
   const customNavigation = useNavigation();
   const route = useRoute();
 
-  const { login } = useAuth();
+  const { login, setUser } = useAuth();
 
   const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -67,10 +62,15 @@ const EmailSentVerificationScreen = ({ navigation }) => {
     const startTime = Date.now();
     let responseData;
 
+    const formData = { email: email };
+
+    if (route.params?.editing) {
+      formData.editing = route.params?.editing;
+      formData.id = route.params?.id;
+    }
+
     try {
-      const response = await axios.post(`${API_URL}/api/check-email`, {
-        email: email,
-      });
+      const response = await axios.post(`${API_URL}/api/check-email`, formData);
 
       console.log(response.data);
       responseData = response.data;
@@ -85,22 +85,46 @@ const EmailSentVerificationScreen = ({ navigation }) => {
         () => {
           setLoading(false);
           if (responseData.exists) {
-            login(responseData.token);
-            customNavigation.dispatch(
-              CommonActions.reset({
+            if (responseData?.editing) {
+              setUser(responseData?.data);
+              navigation.reset({
                 index: 0,
                 routes: [
                   {
                     name: "Dashboard",
-                    params: {
-                      screen: "Account",
+                    state: {
+                      routes: [
+                        {
+                          name: "Account",
+                          params: { message: responseData?.message },
+                        },
+                      ],
                     },
                   },
                 ],
-              })
-            );
+              });
+              return;
+            } else {
+              login(responseData.token);
+              customNavigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: "Dashboard",
+                      params: {
+                        screen: "Account",
+                      },
+                    },
+                  ],
+                })
+              );
+            }
+            return;
           } else {
-            navigation.navigate("AccountDetailsCreation", { email: email });
+            navigation.navigate("AccountDetailsCreation", {
+              email: responseData?.data?.email,
+            });
           }
         },
         Math.max(0, minimumTime - elapseTime)
@@ -204,19 +228,13 @@ const EmailSentVerificationScreen = ({ navigation }) => {
         </>
       )}
 
-      <Modal transparent visible={initialLoading || loading}>
-        <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 rounded-xl left-1/2 top-1/2">
-          <ActivityIndicator size="large" color="black" />
-        </View>
-      </Modal>
+      <DefaultLoadingAnimation visible={initialLoading || loading} />
 
       <Snackbar
         visible={snackBarVisible}
-        onDismiss={() => setSnackBarVisible(false)}
-        duration={3000}
-      >
-        {message?.message}
-      </Snackbar>
+        onDismiss={setSnackBarVisible}
+        text={message?.message}
+      />
     </>
   );
 };

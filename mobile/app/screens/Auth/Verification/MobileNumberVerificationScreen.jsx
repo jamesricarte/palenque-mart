@@ -9,8 +9,9 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import axios from "axios";
-import { Modal, Snackbar } from "react-native-paper";
-import LottieView from "lottie-react-native";
+
+import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
+import Snackbar from "../../../components/Snackbar";
 
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
@@ -19,7 +20,7 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
   const route = useRoute();
   const customNavigation = useNavigation();
 
-  const { login } = useAuth();
+  const { login, setUser } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
@@ -82,6 +83,11 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
       formData.email = route.params.email;
     }
 
+    if (route.params?.editing) {
+      formData.editing = route.params?.editing;
+      formData.id = route.params?.id;
+    }
+
     try {
       const response = await axios.post(
         `${API_URL}/api/verify-phone`,
@@ -102,27 +108,48 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
           setLoading(false);
           if (responseData?.success) {
             if (responseData.exists) {
-              login(responseData.token);
-              customNavigation.dispatch(
-                CommonActions.reset({
+              if (responseData?.editing) {
+                setUser(responseData?.data);
+                navigation.reset({
                   index: 0,
                   routes: [
                     {
                       name: "Dashboard",
-                      params: {
-                        screen: "Account",
+                      state: {
+                        routes: [
+                          {
+                            name: "Account",
+                            params: { message: responseData?.message },
+                          },
+                        ],
                       },
                     },
                   ],
-                })
-              );
+                });
+                return;
+              } else {
+                login(responseData.token);
+                customNavigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [
+                      {
+                        name: "Dashboard",
+                        params: {
+                          screen: "Account",
+                        },
+                      },
+                    ],
+                  })
+                );
+                return;
+              }
             } else {
               navigation.navigate("AccountDetailsCreation", {
                 mobileNumber: responseData.data.mobileNumber,
               });
             }
           } else {
-            console.log(responseData);
             setMessage(responseData);
           }
         },
@@ -253,24 +280,13 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <Modal transparent visible={loading}>
-        <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
-          <LottieView
-            source={require("../../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
-            autoPlay
-            loop
-            style={{ width: 70, height: 30 }}
-          />
-        </View>
-      </Modal>
+      <PersonalizedLoadingAnimation visible={loading} />
 
       <Snackbar
         visible={snackBarVisible}
-        onDismiss={() => setSnackBarVisible(false)}
-        duration={3000}
-      >
-        {message?.message}
-      </Snackbar>
+        onDismiss={setSnackBarVisible}
+        text={message?.message}
+      />
     </View>
   );
 };

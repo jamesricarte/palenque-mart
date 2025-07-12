@@ -6,8 +6,9 @@ import { useRoute } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import axios from "axios";
-import { Modal, Snackbar } from "react-native-paper";
-import LottieView from "lottie-react-native";
+
+import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
+import Snackbar from "../../../components/Snackbar";
 
 import { API_URL } from "../../../config/apiConfig";
 
@@ -163,24 +164,13 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <Modal transparent visible={loading}>
-        <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
-          <LottieView
-            source={require("../../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
-            autoPlay
-            loop
-            style={{ width: 70, height: 30 }}
-          />
-        </View>
-      </Modal>
+      <PersonalizedLoadingAnimation visible={loading} />
 
       <Snackbar
         visible={snackBarVisible}
-        onDismiss={() => setSnackBarVisible(false)}
-        duration={3000}
-      >
-        {message?.message}
-      </Snackbar>
+        onDismiss={setSnackBarVisible}
+        text={message?.message}
+      />
     </View>
   );
 };

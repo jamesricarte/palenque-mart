@@ -13,8 +13,6 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import axios from "axios";
-import { Modal } from "react-native-paper";
-import LottieView from "lottie-react-native";
 
 import GoogleIcon from "../../../assets/images/Google.png";
 import FacebookIcon from "../../../assets/images/Facebook.png";
@@ -23,6 +21,7 @@ import PhilIcon from "../../../assets/images/PhilFlag.png";
 
 // import { API_URL } from "@env";
 import { API_URL } from "../../../config/apiConfig";
+import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
 
 const SignUpScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -260,16 +259,7 @@ const SignUpScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <Modal transparent visible={loading}>
-        <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
-          <LottieView
-            source={require("../../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
-            autoPlay
-            loop
-            style={{ width: 70, height: 30 }}
-          />
-        </View>
-      </Modal>
+      <PersonalizedLoadingAnimation visible={loading} />
     </View>
   );
 };

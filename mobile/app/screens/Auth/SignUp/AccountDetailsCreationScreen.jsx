@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import {
   useRoute,
   CommonActions,
@@ -11,8 +11,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
-import LottieView from "lottie-react-native";
-import { Snackbar } from "react-native-paper";
+
+import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
+import Snackbar from "../../../components/Snackbar";
 
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
@@ -278,24 +279,13 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <Modal transparent visible={loading}>
-        <View className="absolute flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl left-1/2 top-1/2">
-          <LottieView
-            source={require("../../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
-            autoPlay
-            loop
-            style={{ width: 70, height: 30 }}
-          />
-        </View>
-      </Modal>
+      <PersonalizedLoadingAnimation visible={loading} />
 
       <Snackbar
         visible={snackBarVisible}
-        onDismiss={() => setSnackBarVisible(false)}
-        duration={3000}
-      >
-        {message?.message}
-      </Snackbar>
+        onDismiss={setSnackBarVisible}
+        text={message?.message}
+      />
     </View>
   );
 };
