@@ -8,7 +8,7 @@ import {
 } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
 import LottieView from "lottie-react-native";
@@ -228,11 +228,11 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
               onChangeText={setPassword}
             />
 
-            <AntDesign
-              className="absolute transform -translate-y-1/2 right-4 top-1/2"
-              name="eyeo"
-              size={24}
-              color={showPassword ? "gray" : "black"}
+            <Feather
+              className="absolute transform -translate-y-1/2 right-6 top-1/2"
+              name={showPassword ? "eye-off" : "eye"}
+              size={20}
+              color="black"
               onPress={() => setShowPassword(!showPassword)}
             />
           </View>

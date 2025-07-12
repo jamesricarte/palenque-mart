@@ -1,17 +1,10 @@
 import { useState } from "react";
 
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  Pressable,
-} from "react-native";
+import { View, Text, TouchableOpacity, TextInput, Modal } from "react-native";
 import { CommonActions } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import Feather from "@expo/vector-icons/Feather";
 
 import LottieView from "lottie-react-native";
 import axios from "axios";
@@ -200,11 +193,11 @@ const LoginScreen = ({ navigation }) => {
               onChangeText={setPassword}
             />
 
-            <AntDesign
-              className="absolute transform -translate-y-1/2 right-4 top-1/2"
-              name="eyeo"
-              size={24}
-              color={showPassword ? "gray" : "black"}
+            <Feather
+              className="absolute transform -translate-y-1/2 right-6 top-1/2"
+              name={showPassword ? "eye-off" : "eye"}
+              size={20}
+              color="black"
               onPress={() => setShowPassword(!showPassword)}
             />
           </View>

@@ -11,6 +11,7 @@ const sendOtp = require("../controllers/authControllers/sendOtp");
 const createAccount = require("../controllers/authControllers/createAccount");
 const profile = require("../controllers/authControllers/profile");
 const login = require("../controllers/authControllers/login");
+const updateProfile = require("../controllers/authControllers/updateProfile");
 
 const router = express.Router();
 
@@ -38,5 +39,8 @@ router.get("/profile", authenticateToken, profile);
 
 //Login
 router.post("/login", login);
+
+//Edit profile
+router.post("/update-profile", authenticateToken, updateProfile);
 
 module.exports = router;

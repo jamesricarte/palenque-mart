@@ -12,20 +12,25 @@ module.exports = profile = async (req, res) => {
       .json({ message: formValidation.message, success: false });
   }
 
-  const [rows] = await db.execute(
-    "SELECT first_name, last_name, email, phone, address FROM users WHERE id = ?",
-    [id]
-  );
+  try {
+    const [rows] = await db.execute(
+      "SELECT id, first_name, last_name, email, phone, profile_picture FROM users WHERE id = ?",
+      [id]
+    );
 
-  if (rows.length === 0) {
-    return res
-      .status(400)
-      .json({ message: "user account is not present", succes: false });
+    if (rows.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "user account is not present", succes: false });
+    }
+
+    console.log("User's details fetched!");
+
+    res
+      .status(200)
+      .json({ message: "Here is your profile!", succes: true, data: rows[0] });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong." });
   }
-
-  console.log("User's details fetched!");
-
-  res
-    .status(200)
-    .json({ message: "Here is your profile!", succes: true, data: rows[0] });
 };
