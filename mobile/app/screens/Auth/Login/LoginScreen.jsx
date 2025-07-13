@@ -136,8 +136,13 @@ const LoginScreen = ({ navigation }) => {
                   routes: [
                     {
                       name: "Dashboard",
-                      params: {
-                        screen: "Account",
+                      state: {
+                        routes: [
+                          {
+                            name: "Account",
+                            params: { message: responseData?.message },
+                          },
+                        ],
                       },
                     },
                   ],

@@ -9,7 +9,10 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(async () => {
+    const savedToken = await AsyncStorage.getItem("token");
+    return savedToken ? savedToken : null;
+  });
 
   const checkToken = async () => {
     try {
@@ -18,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       if (savedToken) {
         const response = await axios.get(`${API_URL}/api/profile`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${savedToken}`,
           },
         });
 

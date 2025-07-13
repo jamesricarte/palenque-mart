@@ -71,6 +71,10 @@ const PartnershipOptionsScreen = ({ navigation }) => {
     // Temporary functionality - would navigate to application form
     console.log(`Applying for: ${option.title}`);
     // navigation.navigate('PartnershipApplication', { partnershipType: option.id })
+
+    if (option.id === 1) {
+      navigation.navigate("SellerWelcome");
+    }
   };
 
   const handleLearnMore = (option) => {

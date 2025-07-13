@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+  Animated,
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -22,13 +26,16 @@ import { API_URL } from "../../config/apiConfig";
 const EditProfileScreen = ({ navigation }) => {
   const { user, setUser, token } = useAuth();
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [profileChanges, setProfileChanges] = useState(false);
   const [profileData, setProfileData] = useState({ ...user });
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
   const [snackBarVisible, setSnackBarVisible] = useState(false);
+
+  const [keyboardHeight] = useState(new Animated.Value(0));
+  const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
   const handleSave = async () => {
     const { profile_picture, ...newProfileData } = profileData;
@@ -75,7 +82,6 @@ const EditProfileScreen = ({ navigation }) => {
           }
           setMessage(responseData);
           setSnackBarVisible(true);
-          setIsEditing(false);
         },
         Math.max(0, minimumTime - elapseTime)
       );
@@ -93,8 +99,36 @@ const EditProfileScreen = ({ navigation }) => {
     }));
   };
 
+  useEffect(() => {
+    if (JSON.stringify(profileData) !== JSON.stringify(user)) {
+      setProfileChanges(true);
+    } else {
+      setProfileChanges(false);
+    }
+  }, [profileData]);
+
+  useEffect(() => {
+    const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardVisibility(false);
+    });
+
+    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
+      setKeyboardVisibility(true);
+    });
+    return () => {
+      keyboardDidHide.remove();
+      keyboardDidShow.remove();
+    };
+  }, []);
+
   return (
-    <View className="flex-1">
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={
+        Platform.OS === "android" && !keyBoardVisibility ? null : "padding"
+      }
+      keyboardVerticalOffset={0}
+    >
       <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-300">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
@@ -139,19 +173,6 @@ const EditProfileScreen = ({ navigation }) => {
         <View className="p-6 mt-4 bg-white">
           <View className="flex-row justify-between mb-6">
             <Text className="text-xl font-semibold">Personal Information</Text>
-
-            <TouchableOpacity
-              onPress={() => {
-                setIsEditing(!isEditing);
-                handleCancel();
-              }}
-            >
-              <Feather
-                name={isEditing ? "x" : "edit-2"}
-                size={20}
-                color="black"
-              />
-            </TouchableOpacity>
           </View>
 
           <View className="flex flex-row gap-4 mb-4">
@@ -159,34 +180,24 @@ const EditProfileScreen = ({ navigation }) => {
               <Text className="mb-2 text-sm font-medium text-gray-700">
                 First Name
               </Text>
-              {isEditing ? (
-                <TextInput
-                  className="p-3 text-base bg-white border border-gray-300 rounded-lg"
-                  value={profileData.first_name}
-                  onChangeText={(text) => handleInputChange("first_name", text)}
-                />
-              ) : (
-                <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                  <Text className="text-base">{profileData.first_name}</Text>
-                </View>
-              )}
+
+              <TextInput
+                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+                value={profileData.first_name}
+                onChangeText={(text) => handleInputChange("first_name", text)}
+              />
             </View>
 
             <View className="flex-1">
               <Text className="mb-2 text-sm font-medium text-gray-700">
                 Last Name
               </Text>
-              {isEditing ? (
-                <TextInput
-                  className="p-3 text-base bg-white border border-gray-300 rounded-lg"
-                  value={profileData.last_name}
-                  onChangeText={(text) => handleInputChange("last_name", text)}
-                />
-              ) : (
-                <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                  <Text className="text-base">{profileData.last_name}</Text>
-                </View>
-              )}
+
+              <TextInput
+                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+                value={profileData.last_name}
+                onChangeText={(text) => handleInputChange("last_name", text)}
+              />
             </View>
           </View>
 
@@ -238,45 +249,38 @@ const EditProfileScreen = ({ navigation }) => {
             <Text className="mb-2 text-sm font-medium text-gray-700">
               Birth Date
             </Text>
-            {isEditing ? (
+
+            <View>
               <TextInput
                 className="p-3 text-base bg-white border border-gray-300 rounded-lg"
                 keyboardType="phone-pad"
                 value={profileData.birth_date}
                 onChangeText={(text) => handleInputChange("birth_date", text)}
               />
-            ) : (
-              <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                <Text className="text-base">{profileData.birth_date}</Text>
-              </View>
-            )}
+            </View>
           </View>
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium text-gray-700">
               Gender
             </Text>
-            {isEditing ? (
-              <TextInput
-                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
-                keyboardType="phone-pad"
-                value={profileData.gender}
-                onChangeText={(text) => handleInputChange("gender", text)}
-              />
-            ) : (
-              <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                <Text className="text-base">{profileData.gender}</Text>
-              </View>
-            )}
+
+            <TextInput
+              className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+              keyboardType="phone-pad"
+              value={profileData.gender}
+              onChangeText={(text) => handleInputChange("gender", text)}
+            />
           </View>
         </View>
       </ScrollView>
 
-      {isEditing && (
+      {profileChanges && (
         <View className="flex flex-row gap-3 p-4 bg-white border-t border-gray-300">
           <TouchableOpacity
             className="flex-1 py-3 bg-black rounded-lg"
             onPress={handleSave}
+            disabled={!profileChanges}
           >
             <Text className="text-lg text-center text-white">Save Changes</Text>
           </TouchableOpacity>
@@ -290,7 +294,7 @@ const EditProfileScreen = ({ navigation }) => {
         onDismiss={setSnackBarVisible}
         text={message?.message}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

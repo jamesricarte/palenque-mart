@@ -19,6 +19,11 @@ import EditProfileScreen from "../screens/EditProfile/EditProfileScreen";
 import EditEmailScreen from "../screens/EditProfile/EditEmailScreen";
 import EditMobileNumberScreen from "../screens/EditProfile/EditMobileNumberScreen";
 
+import SellerWelcomeScreen from "../screens/PartnershipOptions/Seller/SellerWelcomeScreen";
+import SellerAccountTypeScreen from "../screens/PartnershipOptions/Seller/SellerAccountTypeScreen";
+import SellerRegistrationFormScreen from "../screens/PartnershipOptions/Seller/SellerRegistrationFormScreen";
+import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/SellerReviewSubmitScreen";
+
 const Stack = createNativeStackNavigator();
 
 const MainStackNavigator = () => {
@@ -71,6 +76,22 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="EditMobileNumber"
         component={EditMobileNumberScreen}
+      />
+
+      {/* Partnership */}
+      {/* Seller */}
+      <Stack.Screen name="SellerWelcome" component={SellerWelcomeScreen} />
+      <Stack.Screen
+        name="SellerAccountType"
+        component={SellerAccountTypeScreen}
+      />
+      <Stack.Screen
+        name="SellerRegistrationForm"
+        component={SellerRegistrationFormScreen}
+      />
+      <Stack.Screen
+        name="SellerReviewSubmit"
+        component={SellerReviewSubmitScreen}
       />
     </Stack.Navigator>
   );
