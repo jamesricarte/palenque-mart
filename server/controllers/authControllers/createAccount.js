@@ -50,7 +50,7 @@ module.exports = createAccount = async (req, res) => {
       const token = jwt.sign({ id: user[0].id }, process.env.JWT_SECRET);
 
       res.status(201).json({
-        message: "Account registered successfully!",
+        message: "Account have registered successfully!",
         success: true,
         data: { email: email },
         token: token,
@@ -92,7 +92,7 @@ module.exports = createAccount = async (req, res) => {
       const token = jwt.sign({ id: user[0].id }, process.env.JWT_SECRET);
 
       res.status(201).json({
-        message: "Account registered successfully!",
+        message: "Account have registered successfully!",
         success: true,
         data: { mobileNumber: mobileNumber },
         token: token,

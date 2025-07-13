@@ -42,6 +42,7 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
 
     let formData = {
       mobileNumber: righMobileFormat,
+      editing: true,
     };
 
     if (route.params?.email) {

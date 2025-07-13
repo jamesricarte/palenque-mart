@@ -87,39 +87,25 @@ const EmailSentVerificationScreen = ({ navigation }) => {
           if (responseData.exists) {
             if (responseData?.editing) {
               setUser(responseData?.data);
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: "Dashboard",
-                    state: {
-                      routes: [
-                        {
-                          name: "Account",
-                          params: { message: responseData?.message },
-                        },
-                      ],
-                    },
-                  },
-                ],
-              });
-              return;
             } else {
               login(responseData.token);
-              customNavigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [
-                    {
-                      name: "Dashboard",
-                      params: {
-                        screen: "Account",
-                      },
-                    },
-                  ],
-                })
-              );
             }
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: "Dashboard",
+                  state: {
+                    routes: [
+                      {
+                        name: "Account",
+                        params: { message: responseData?.message },
+                      },
+                    ],
+                  },
+                },
+              ],
+            });
             return;
           } else {
             navigation.navigate("AccountDetailsCreation", {

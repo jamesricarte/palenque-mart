@@ -65,7 +65,9 @@ module.exports = verifyPhone = async (req, res) => {
     const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET);
 
     return res.status(200).json({
-      message: "OTP was succesfully verified, logging in your account",
+      devMessage:
+        "OTP was succesfully verified, phone number is already registered",
+      message: "Logged in successfully!",
       success: true,
       exists: true,
       token: token,
@@ -93,7 +95,8 @@ module.exports = verifyPhone = async (req, res) => {
       const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET);
 
       return res.status(201).json({
-        message: "OTP was succesfully verified, logging in your account",
+        devMessage: "OTP was succesfully verified, logging in your account",
+        message: "Account have registered successfully!",
         success: true,
         exists: true,
         token: token,

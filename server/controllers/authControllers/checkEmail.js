@@ -62,7 +62,8 @@ module.exports = checkEmail = async (req, res) => {
       const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET);
 
       res.status(200).json({
-        message: "Email is already registered",
+        devMessage: "Email is already registered",
+        message: "Logged in successfully!",
         success: true,
         exists: true,
         token: token,

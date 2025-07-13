@@ -92,40 +92,46 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
           if (responseData?.success) {
             if (responseData?.data?.email) {
               login(responseData.token);
-              customNavigation.dispatch(
-                CommonActions.reset({
-                  index: 1,
-                  routes: [
-                    {
-                      name: "Dashboard",
-                      params: {
-                        screen: "Account",
-                      },
+              navigation.reset({
+                index: 1,
+                routes: [
+                  {
+                    name: "Dashboard",
+                    state: {
+                      routes: [
+                        {
+                          name: "Account",
+                          params: { message: responseData?.message },
+                        },
+                      ],
                     },
-                    {
-                      name: "MobileNumberRegistration",
-                      params: {
-                        email: responseData.data.email,
-                      },
+                  },
+                  {
+                    name: "MobileNumberRegistration",
+                    params: {
+                      email: responseData.data.email,
                     },
-                  ],
-                })
-              );
+                  },
+                ],
+              });
             } else if (responseData?.data?.mobileNumber) {
               login(responseData.token);
-              customNavigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [
-                    {
-                      name: "Dashboard",
-                      params: {
-                        screen: "Account",
-                      },
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: "Dashboard",
+                    state: {
+                      routes: [
+                        {
+                          name: "Account",
+                          params: { message: responseData?.message },
+                        },
+                      ],
                     },
-                  ],
-                })
-              );
+                  },
+                ],
+              });
             }
           } else {
             setMessage(responseData);

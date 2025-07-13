@@ -1,8 +1,9 @@
+const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 const sendOTP = require("../../utils/sendOTP");
 
 module.exports = signUpMobile = async (req, res) => {
-  const { mobileNumber, email } = req.body;
+  const { mobileNumber, email, editing } = req.body;
 
   const formValidation = formValidator.validate(req.body);
 
@@ -16,6 +17,21 @@ module.exports = signUpMobile = async (req, res) => {
     return res
       .status(400)
       .json({ message: "Phone number is required.", success: false });
+  }
+
+  if (editing) {
+    const [rows] = await db.execute("SELECT id FROM users WHERE phone = ?", [
+      mobileNumber,
+    ]);
+
+    if (rows.length > 0) {
+      return res
+        .status(409)
+        .json({
+          message: "This phone number was already used.",
+          success: false,
+        });
+    }
   }
 
   try {
