@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
           },
         });
 
-        console.log("User details fetched!");
         setUser(response.data.data);
         setToken(savedToken);
       } else {

@@ -13,10 +13,7 @@ module.exports = profile = async (req, res) => {
   }
 
   try {
-    const [rows] = await db.execute(
-      "SELECT id, first_name, last_name, email, phone, profile_picture FROM users WHERE id = ?",
-      [id]
-    );
+    const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
 
     if (rows.length === 0) {
       return res
@@ -26,9 +23,12 @@ module.exports = profile = async (req, res) => {
 
     console.log("User's details fetched!");
 
+    const { password, ...userData } = rows[0];
+    console.log(userData.birth_date);
+
     res
       .status(200)
-      .json({ message: "Here is your profile!", succes: true, data: rows[0] });
+      .json({ message: "Here is your profile!", succes: true, data: userData });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Something went wrong." });

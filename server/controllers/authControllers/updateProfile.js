@@ -1,7 +1,10 @@
 const db = require("../../config/db");
 
 module.exports = updateProfile = async (req, res) => {
-  const { id, first_name, last_name, email, phone } = req.body;
+  const { id, first_name, last_name, email, phone, birth_date, gender } =
+    req.body;
+
+  console.log(req.body);
 
   if (!email || !phone) {
     return res
@@ -11,8 +14,8 @@ module.exports = updateProfile = async (req, res) => {
 
   try {
     const [result] = await db.execute(
-      "UPDATE users SET first_name = ?, last_name = ? , email = ? , phone =? WHERE id = ?",
-      [first_name, last_name, email, phone, id]
+      "UPDATE users SET first_name = ?, last_name = ? , email = ? , phone = ?, birth_date = ?, gender = ? WHERE id = ?",
+      [first_name, last_name, email, phone, birth_date, gender, id]
     );
 
     const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);

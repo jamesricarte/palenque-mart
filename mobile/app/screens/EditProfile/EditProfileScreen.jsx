@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import {
   View,
@@ -19,6 +21,8 @@ import axios from "axios";
 
 import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation";
 import Snackbar from "../../components/Snackbar";
+import CustomDatePicker from "./components/CustomDatePicker";
+import GenderPicker from "./components/GenderPicker";
 
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
@@ -28,11 +32,14 @@ const EditProfileScreen = ({ navigation }) => {
 
   const [profileChanges, setProfileChanges] = useState(false);
   const [profileData, setProfileData] = useState({ ...user });
+  const [isEditing, setIsEditing] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
   const [snackBarVisible, setSnackBarVisible] = useState(false);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [genderPickerVisible, setGenderPickerVisible] = useState(false);
 
   const [keyboardHeight] = useState(new Animated.Value(0));
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
@@ -97,6 +104,27 @@ const EditProfileScreen = ({ navigation }) => {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const formatDisplayDate = (dateString) => {
+    if (!dateString) return "Select birth date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const formatDisplayGender = (gender) => {
+    if (!gender) return "Select gender";
+    const genderMap = {
+      male: "Male",
+      female: "Female",
+      "non-binary": "Non-binary",
+      "prefer-not-to-say": "Prefer not to say",
+    };
+    return genderMap[gender] || gender;
   };
 
   useEffect(() => {
@@ -171,8 +199,21 @@ const EditProfileScreen = ({ navigation }) => {
         </View>
 
         <View className="p-6 mt-4 bg-white">
-          <View className="flex-row justify-between mb-6">
+          <View className="flex-row items-center justify-between mb-6">
             <Text className="text-xl font-semibold">Personal Information</Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                setIsEditing(!isEditing);
+                handleCancel();
+              }}
+            >
+              <Feather
+                name={isEditing ? "x" : "edit-2"}
+                size={20}
+                color="black"
+              />
+            </TouchableOpacity>
           </View>
 
           <View className="flex flex-row gap-4 mb-4">
@@ -182,9 +223,10 @@ const EditProfileScreen = ({ navigation }) => {
               </Text>
 
               <TextInput
-                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+                className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
                 value={profileData.first_name}
                 onChangeText={(text) => handleInputChange("first_name", text)}
+                editable={isEditing}
               />
             </View>
 
@@ -194,9 +236,10 @@ const EditProfileScreen = ({ navigation }) => {
               </Text>
 
               <TextInput
-                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+                className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
                 value={profileData.last_name}
                 onChangeText={(text) => handleInputChange("last_name", text)}
+                editable={isEditing}
               />
             </View>
           </View>
@@ -245,32 +288,52 @@ const EditProfileScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* Custom Birth Date Picker */}
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium text-gray-700">
               Birth Date
             </Text>
 
-            <View>
-              <TextInput
-                className="p-3 text-base bg-white border border-gray-300 rounded-lg"
-                keyboardType="phone-pad"
-                value={profileData.birth_date}
-                onChangeText={(text) => handleInputChange("birth_date", text)}
-              />
-            </View>
+            <TouchableOpacity
+              className="relative"
+              onPress={() => isEditing && setDatePickerVisible(true)}
+              disabled={!isEditing}
+            >
+              <View
+                className={`flex-row items-center justify-between p-3 border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
+              >
+                <Text
+                  className={`text-base ${profileData.birth_date ? "text-black" : "text-gray-500"}`}
+                >
+                  {formatDisplayDate(profileData.birth_date)}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+              </View>
+            </TouchableOpacity>
           </View>
 
+          {/* Custom Gender Picker */}
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium text-gray-700">
               Gender
             </Text>
 
-            <TextInput
-              className="p-3 text-base bg-white border border-gray-300 rounded-lg"
-              keyboardType="phone-pad"
-              value={profileData.gender}
-              onChangeText={(text) => handleInputChange("gender", text)}
-            />
+            <TouchableOpacity
+              className="relative"
+              onPress={() => isEditing && setGenderPickerVisible(true)}
+              disabled={!isEditing}
+            >
+              <View
+                className={`flex-row items-center justify-between p-3 border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
+              >
+                <Text
+                  className={`text-base ${profileData.gender ? "text-black" : "text-gray-500"}`}
+                >
+                  {formatDisplayGender(profileData.gender)}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#6B7280" />
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -286,6 +349,22 @@ const EditProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Custom Date Picker Modal */}
+      <CustomDatePicker
+        visible={datePickerVisible}
+        onClose={() => setDatePickerVisible(false)}
+        onDateSelect={(date) => handleInputChange("birth_date", date)}
+        initialDate={profileData.birth_date}
+      />
+
+      {/* Custom Gender Picker Modal */}
+      <GenderPicker
+        visible={genderPickerVisible}
+        onClose={() => setGenderPickerVisible(false)}
+        onGenderSelect={(gender) => handleInputChange("gender", gender)}
+        selectedGender={profileData.gender}
+      />
 
       <PersonalizedLoadingAnimation visible={loading} />
 

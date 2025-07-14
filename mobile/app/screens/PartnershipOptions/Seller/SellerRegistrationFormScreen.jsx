@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 
 import { useAuth } from "../../../context/AuthContext";
 
@@ -17,7 +19,7 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
 
   const { accountType } = route.params;
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 4;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -30,7 +32,7 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     contactPerson: "",
     email: user.email,
     phone: user.phone,
-    dateOfBirth: "",
+    dateOfBirth: user.birth_date,
     businessAddress: "",
 
     // Address Details
@@ -51,13 +53,177 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     categories: [],
     returnPolicy: "",
     shippingOptions: [],
+
+    // Document uploads
+    governmentId: null,
+    selfieWithId: null,
+    businessDocuments: null,
+    bankStatement: null,
+    storeLogo: null,
   });
+
+  const [errors, setErrors] = useState({});
+  const [showErrors, setShowErrors] = useState(false);
 
   const updateFormData = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Sorry, we need camera roll permissions to upload images!");
+      return false;
+    }
+
+    const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+    if (cameraStatus.status !== "granted") {
+      alert("Sorry, we need camera permissions to take photos!");
+      return false;
+    }
+
+    return true;
+  };
+
+  const pickDocument = async (field) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "image/jpeg", "image/png"],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const file = result.assets[0];
+        if (file.size > 5 * 1024 * 1024) {
+          alert("File size must be less than 5MB");
+          return;
+        }
+        updateFormData(field, file);
+      }
+    } catch (error) {
+      console.error("Error picking document:", error);
+      alert("Error selecting document");
+    }
+  };
+
+  const takePhoto = async (field) => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const file = result.assets[0];
+        updateFormData(field, file);
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      alert("Error taking photo");
+    }
+  };
+
+  const pickImage = async (field) => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const file = result.assets[0];
+        updateFormData(field, file);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      alert("Error selecting image");
+    }
+  };
+
+  const showUploadOptions = (field, type = "document") => {
+    if (type === "camera") {
+      takePhoto(field);
+    } else if (type === "image") {
+      pickImage(field);
+    } else {
+      pickDocument(field);
+    }
+  };
+
+  const validateCurrentStep = () => {
+    const newErrors = {};
+
+    if (currentStep === 1) {
+      if (accountType === "individual") {
+        // Exclude disabled fields from validation
+        if (!formData.firstName.trim())
+          newErrors.firstName = "First name is required";
+        if (!formData.lastName.trim())
+          newErrors.lastName = "Last name is required";
+        if (!formData.dateOfBirth.trim())
+          newErrors.dateOfBirth = "Date of birth is required";
+      } else {
+        if (!formData.businessName.trim())
+          newErrors.businessName = "Business name is required";
+        if (!formData.businessRegNumber.trim())
+          newErrors.businessRegNumber = "Registration number is required";
+        if (!formData.contactPerson.trim())
+          newErrors.contactPerson = "Contact person is required";
+        if (!formData.businessAddress.trim())
+          newErrors.businessAddress = "Business address is required";
+      }
+      if (!formData.email.trim()) newErrors.email = "Email is required";
+      if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+    }
+
+    if (currentStep === 2) {
+      if (!formData.pickupAddress.trim())
+        newErrors.pickupAddress = "Pickup address is required";
+      if (!formData.returnAddress.trim())
+        newErrors.returnAddress = "Return address is required";
+    }
+
+    if (currentStep === 3) {
+      if (!formData.governmentId)
+        newErrors.governmentId = "Government ID is required";
+      if (!formData.selfieWithId)
+        newErrors.selfieWithId = "Selfie with ID is required";
+    }
+
+    if (currentStep === 4) {
+      if (!formData.storeName.trim())
+        newErrors.storeName = "Store name is required";
+      if (!formData.storeDescription.trim())
+        newErrors.storeDescription = "Store description is required";
+      if (formData.categories.length === 0)
+        newErrors.categories = "At least one category is required";
+      if (!formData.returnPolicy.trim())
+        newErrors.returnPolicy = "Return policy is required";
+      if (formData.shippingOptions.length === 0)
+        newErrors.shippingOptions = "At least one shipping option is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleNext = () => {
+    if (!validateCurrentStep()) {
+      setShowErrors(true);
+      return;
+    }
+
+    setShowErrors(false);
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -102,36 +268,94 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         {accountType === "individual" ? "personal" : "business"} information
       </Text>
 
+      {/* Identity Verification Warning */}
+      <View className="p-4 mb-6 border rounded-lg bg-amber-50 border-amber-200">
+        <View className="flex flex-row items-start">
+          <Ionicons name="warning" size={20} color="#f59e0b" />
+          <View className="flex-1 ml-3">
+            <Text className="mb-1 font-semibold text-amber-800">
+              Important Notice
+            </Text>
+            <Text className="text-sm text-amber-700">
+              Please ensure all information matches your real identity details
+              exactly as they appear on your official documents. This
+              information will be verified against the documents you submit in
+              the next steps.
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Pre-filled Fields Notice */}
+      <View className="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
+        <View className="flex flex-row items-start">
+          <Ionicons name="information-circle" size={20} color="#3b82f6" />
+          <View className="flex-1 ml-3">
+            <Text className="mb-1 font-semibold text-blue-800">
+              Personal Information
+            </Text>
+            <Text className="text-sm text-blue-700">
+              Your personal details are pre-filled from your account. To change
+              these details, please update them in your Profile Settings.
+            </Text>
+          </View>
+        </View>
+      </View>
+
       {accountType === "individual" ? (
         <>
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">First Name *</Text>
             <TextInput
-              className="w-full p-3 border border-gray-300 rounded-lg"
+              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
               value={formData.firstName}
-              onChangeText={(value) => updateFormData("firstName", value)}
+              editable={false}
               placeholder="Enter your first name"
             />
+            <Text className="mt-1 text-xs text-gray-500">
+              Change in Profile Settings
+            </Text>
+            {errors.firstName && showErrors && (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.firstName}
+              </Text>
+            )}
           </View>
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">Last Name *</Text>
             <TextInput
-              className="w-full p-3 border border-gray-300 rounded-lg"
+              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
               value={formData.lastName}
-              onChangeText={(value) => updateFormData("lastName", value)}
+              editable={false}
               placeholder="Enter your last name"
             />
+            <Text className="mt-1 text-xs text-gray-500">
+              Change in Profile Settings
+            </Text>
+            {errors.lastName && showErrors && (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.lastName}
+              </Text>
+            )}
           </View>
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">Date of Birth *</Text>
             <TextInput
-              className="w-full p-3 border border-gray-300 rounded-lg"
+              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
               value={formData.dateOfBirth}
-              onChangeText={(value) => updateFormData("dateOfBirth", value)}
+              editable={false}
               placeholder="DD/MM/YYYY"
             />
+            <Text className="mt-1 text-xs text-gray-500">
+              Change in Profile Settings
+            </Text>
+            {errors.dateOfBirth && showErrors && (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.dateOfBirth}
+              </Text>
+            )}
           </View>
         </>
       ) : (
@@ -139,11 +363,16 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">Business Name *</Text>
             <TextInput
-              className="w-full p-3 border border-gray-300 rounded-lg"
+              className={`w-full p-3 border rounded-lg ${errors.businessName && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
               value={formData.businessName}
               onChangeText={(value) => updateFormData("businessName", value)}
               placeholder="Enter your business name"
             />
+            {errors.businessName && showErrors && (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.businessName}
+              </Text>
+            )}
           </View>
 
           <View className="mb-4">
@@ -151,35 +380,50 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
               Business Registration Number *
             </Text>
             <TextInput
-              className="w-full p-3 border border-gray-300 rounded-lg"
+              className={`w-full p-3 border rounded-lg ${errors.businessRegNumber && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
               value={formData.businessRegNumber}
               onChangeText={(value) =>
                 updateFormData("businessRegNumber", value)
               }
               placeholder="Enter registration number"
             />
+            {errors.businessRegNumber && showErrors && (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.businessRegNumber}
+              </Text>
+            )}
           </View>
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">Contact Person *</Text>
             <TextInput
-              className="w-full p-3 border border-gray-300 rounded-lg"
+              className={`w-full p-3 border rounded-lg ${errors.contactPerson && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
               value={formData.contactPerson}
               onChangeText={(value) => updateFormData("contactPerson", value)}
               placeholder="Enter contact person name"
             />
+            {errors.contactPerson && showErrors && (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.contactPerson}
+              </Text>
+            )}
           </View>
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">Business Address *</Text>
             <TextInput
-              className="w-full p-3 border border-gray-300 rounded-lg"
+              className={`w-full p-3 border rounded-lg ${errors.businessAddress && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
               value={formData.businessAddress}
               onChangeText={(value) => updateFormData("businessAddress", value)}
               placeholder="Enter business address"
               multiline
               numberOfLines={3}
             />
+            {errors.businessAddress && showErrors && (
+              <Text className="mt-1 text-sm text-red-500">
+                {errors.businessAddress}
+              </Text>
+            )}
           </View>
         </>
       )}
@@ -187,23 +431,35 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Email Address *</Text>
         <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
+          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
           value={formData.email}
-          onChangeText={(value) => updateFormData("email", value)}
+          editable={false}
           placeholder="Enter your email"
           keyboardType="email-address"
         />
+        <Text className="mt-1 text-xs text-gray-500">
+          Change in Profile Settings
+        </Text>
+        {errors.email && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">{errors.email}</Text>
+        )}
       </View>
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Phone Number *</Text>
         <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
+          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
           value={formData.phone}
-          onChangeText={(value) => updateFormData("phone", value)}
+          editable={false}
           placeholder="Enter your phone number"
           keyboardType="phone-pad"
         />
+        <Text className="mt-1 text-xs text-gray-500">
+          Change in Profile Settings
+        </Text>
+        {errors.phone && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">{errors.phone}</Text>
+        )}
       </View>
     </View>
   );
@@ -221,13 +477,18 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           Where couriers will collect your items
         </Text>
         <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
+          className={`w-full p-3 border rounded-lg ${errors.pickupAddress && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
           value={formData.pickupAddress}
           onChangeText={(value) => updateFormData("pickupAddress", value)}
           placeholder="Enter pickup address"
           multiline
           numberOfLines={3}
         />
+        {errors.pickupAddress && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">
+            {errors.pickupAddress}
+          </Text>
+        )}
       </View>
 
       <View className="mb-4">
@@ -236,13 +497,18 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           Address for returned items
         </Text>
         <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
+          className={`w-full p-3 border rounded-lg ${errors.returnAddress && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
           value={formData.returnAddress}
           onChangeText={(value) => updateFormData("returnAddress", value)}
           placeholder="Enter return address"
           multiline
           numberOfLines={3}
         />
+        {errors.returnAddress && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">
+            {errors.returnAddress}
+          </Text>
+        )}
       </View>
 
       <View className="mb-4">
@@ -274,106 +540,6 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     </View>
   );
 
-  const renderStep3 = () => (
-    <View className="px-6 py-6">
-      <Text className="mb-2 text-2xl font-bold">Bank & Payment Details</Text>
-      <Text className="mb-6 text-gray-600">
-        Add your payment information for receiving payments
-      </Text>
-
-      <View className="mb-4">
-        <Text className="mb-2 text-sm font-medium">Bank Name *</Text>
-        <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
-          value={formData.bankName}
-          onChangeText={(value) => updateFormData("bankName", value)}
-          placeholder="Enter your bank name"
-        />
-      </View>
-
-      <View className="mb-4">
-        <Text className="mb-2 text-sm font-medium">Account Number *</Text>
-        <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
-          value={formData.accountNumber}
-          onChangeText={(value) => updateFormData("accountNumber", value)}
-          placeholder="Enter account number"
-          keyboardType="numeric"
-          secureTextEntry={true}
-        />
-      </View>
-
-      <View className="mb-4">
-        <Text className="mb-2 text-sm font-medium">Account Holder Name *</Text>
-        <Text className="mb-2 text-xs text-gray-500">
-          Must match the name on your bank account
-        </Text>
-        <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
-          value={formData.accountName}
-          onChangeText={(value) => updateFormData("accountName", value)}
-          placeholder="Enter account holder name"
-        />
-      </View>
-
-      <View className="mb-4">
-        <Text className="mb-2 text-sm font-medium">
-          Bank Branch/IFSC Code *
-        </Text>
-        <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
-          value={formData.bankCode}
-          onChangeText={(value) => updateFormData("bankCode", value)}
-          placeholder="Enter IFSC/routing code"
-        />
-      </View>
-
-      <View className="mb-6">
-        <Text className="mb-2 text-sm font-medium">Account Type *</Text>
-        <View className="flex flex-row gap-3">
-          <TouchableOpacity
-            className={`flex-1 p-3 border rounded-lg ${
-              formData.accountType === "savings"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300"
-            }`}
-            onPress={() => updateFormData("accountType", "savings")}
-          >
-            <Text
-              className={`text-center ${formData.accountType === "savings" ? "text-blue-600 font-medium" : "text-gray-700"}`}
-            >
-              Savings
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`flex-1 p-3 border rounded-lg ${
-              formData.accountType === "current"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300"
-            }`}
-            onPress={() => updateFormData("accountType", "current")}
-          >
-            <Text
-              className={`text-center ${formData.accountType === "current" ? "text-blue-600 font-medium" : "text-gray-700"}`}
-            >
-              Current
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-        <View className="flex flex-row items-start">
-          <Ionicons name="shield-checkmark" size={20} color="#f59e0b" />
-          <Text className="ml-2 text-sm text-yellow-700">
-            Your banking information is encrypted and secure. We use this only
-            for payment processing.
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
   const renderStep4 = () => (
     <View className="px-6 py-6">
       <Text className="mb-2 text-2xl font-bold">Document Upload</Text>
@@ -390,15 +556,37 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
             : "Business Registration Certificate"}
         </Text>
 
-        <TouchableOpacity className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
+        <TouchableOpacity
+          className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50"
+          onPress={() => showUploadOptions("governmentId")}
+        >
           <View className="items-center">
-            <Ionicons name="cloud-upload-outline" size={40} color="#6b7280" />
-            <Text className="mt-2 text-gray-600">Tap to upload document</Text>
-            <Text className="mt-1 text-xs text-gray-500">
-              PDF, JPG, PNG (Max 5MB)
-            </Text>
+            {formData.governmentId ? (
+              <Text className="mt-2 text-gray-600">
+                {formData.governmentId.name || "Uploaded"}
+              </Text>
+            ) : (
+              <>
+                <Ionicons
+                  name="cloud-upload-outline"
+                  size={40}
+                  color="#6b7280"
+                />
+                <Text className="mt-2 text-gray-600">
+                  Tap to upload document
+                </Text>
+                <Text className="mt-1 text-xs text-gray-500">
+                  PDF, JPG, PNG (Max 5MB)
+                </Text>
+              </>
+            )}
           </View>
         </TouchableOpacity>
+        {errors.governmentId && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">
+            {errors.governmentId}
+          </Text>
+        )}
       </View>
 
       {/* Selfie with ID */}
@@ -408,15 +596,31 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           Take a clear photo holding your ID next to your face
         </Text>
 
-        <TouchableOpacity className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
+        <TouchableOpacity
+          className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50"
+          onPress={() => showUploadOptions("selfieWithId", "camera")}
+        >
           <View className="items-center">
-            <Ionicons name="camera-outline" size={40} color="#6b7280" />
-            <Text className="mt-2 text-gray-600">Take selfie with ID</Text>
-            <Text className="mt-1 text-xs text-gray-500">
-              JPG, PNG (Max 5MB)
-            </Text>
+            {formData.selfieWithId ? (
+              <Text className="mt-2 text-gray-600">
+                {formData.selfieWithId.name || "Uploaded"}
+              </Text>
+            ) : (
+              <>
+                <Ionicons name="camera-outline" size={40} color="#6b7280" />
+                <Text className="mt-2 text-gray-600">Take selfie with ID</Text>
+                <Text className="mt-1 text-xs text-gray-500">
+                  JPG, PNG (Max 5MB)
+                </Text>
+              </>
+            )}
           </View>
         </TouchableOpacity>
+        {errors.selfieWithId && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">
+            {errors.selfieWithId}
+          </Text>
+        )}
       </View>
 
       {/* Business Documents (if business account) */}
@@ -427,15 +631,26 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
             Tax certificate, business license, or incorporation documents
           </Text>
 
-          <TouchableOpacity className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
+          <TouchableOpacity
+            className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50"
+            onPress={() => showUploadOptions("businessDocuments")}
+          >
             <View className="items-center">
-              <Ionicons name="document-outline" size={40} color="#6b7280" />
-              <Text className="mt-2 text-gray-600">
-                Upload business documents
-              </Text>
-              <Text className="mt-1 text-xs text-gray-500">
-                PDF, JPG, PNG (Max 5MB each)
-              </Text>
+              {formData.businessDocuments ? (
+                <Text className="mt-2 text-gray-600">
+                  {formData.businessDocuments.name || "Uploaded"}
+                </Text>
+              ) : (
+                <>
+                  <Ionicons name="document-outline" size={40} color="#6b7280" />
+                  <Text className="mt-2 text-gray-600">
+                    Upload business documents
+                  </Text>
+                  <Text className="mt-1 text-xs text-gray-500">
+                    PDF, JPG, PNG (Max 5MB each)
+                  </Text>
+                </>
+              )}
             </View>
           </TouchableOpacity>
         </View>
@@ -450,11 +665,26 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           Recent bank statement for account verification
         </Text>
 
-        <TouchableOpacity className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
+        <TouchableOpacity
+          className="w-full p-4 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50"
+          onPress={() => showUploadOptions("bankStatement")}
+        >
           <View className="items-center">
-            <Ionicons name="receipt-outline" size={40} color="#6b7280" />
-            <Text className="mt-2 text-gray-600">Upload bank statement</Text>
-            <Text className="mt-1 text-xs text-gray-500">PDF (Max 5MB)</Text>
+            {formData.bankStatement ? (
+              <Text className="mt-2 text-gray-600">
+                {formData.bankStatement.name || "Uploaded"}
+              </Text>
+            ) : (
+              <>
+                <Ionicons name="receipt-outline" size={40} color="#6b7280" />
+                <Text className="mt-2 text-gray-600">
+                  Upload bank statement
+                </Text>
+                <Text className="mt-1 text-xs text-gray-500">
+                  PDF (Max 5MB)
+                </Text>
+              </>
+            )}
           </View>
         </TouchableOpacity>
       </View>
@@ -502,31 +732,52 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         <View className="mb-4">
           <Text className="mb-2 text-sm font-medium">Store Name *</Text>
           <TextInput
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className={`w-full p-3 border rounded-lg ${errors.storeName && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
             value={formData.storeName}
             onChangeText={(value) => updateFormData("storeName", value)}
             placeholder="Enter your store name"
           />
+          {errors.storeName && showErrors && (
+            <Text className="mt-1 text-sm text-red-500">
+              {errors.storeName}
+            </Text>
+          )}
         </View>
 
         <View className="mb-4">
           <Text className="mb-2 text-sm font-medium">Store Logo</Text>
-          <TouchableOpacity className="items-center justify-center w-24 h-24 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
-            <Ionicons name="image-outline" size={30} color="#6b7280" />
-            <Text className="mt-1 text-xs text-gray-500">Upload</Text>
+          <TouchableOpacity
+            className="items-center justify-center w-24 h-24 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50"
+            onPress={() => showUploadOptions("storeLogo", "image")}
+          >
+            {formData.storeLogo ? (
+              <Text className="mt-2 text-gray-600">
+                {formData.storeLogo.name || "Uploaded"}
+              </Text>
+            ) : (
+              <>
+                <Ionicons name="image-outline" size={30} color="#6b7280" />
+                <Text className="mt-1 text-xs text-gray-500">Upload</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
         <View className="mb-4">
           <Text className="mb-2 text-sm font-medium">Store Description *</Text>
           <TextInput
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className={`w-full p-3 border rounded-lg ${errors.storeDescription && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
             value={formData.storeDescription}
             onChangeText={(value) => updateFormData("storeDescription", value)}
             placeholder="Describe your store and what you sell..."
             multiline
             numberOfLines={4}
           />
+          {errors.storeDescription && showErrors && (
+            <Text className="mt-1 text-sm text-red-500">
+              {errors.storeDescription}
+            </Text>
+          )}
         </View>
 
         <View className="mb-4">
@@ -560,6 +811,11 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
               </TouchableOpacity>
             ))}
           </View>
+          {errors.categories && showErrors && (
+            <Text className="mt-1 text-sm text-red-500">
+              {errors.categories}
+            </Text>
+          )}
         </View>
 
         <View className="mb-4">
@@ -567,13 +823,18 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
             Return/Refund Policy *
           </Text>
           <TextInput
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className={`w-full p-3 border rounded-lg ${errors.returnPolicy && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
             value={formData.returnPolicy}
             onChangeText={(value) => updateFormData("returnPolicy", value)}
             placeholder="e.g., 30-day return policy, no questions asked..."
             multiline
             numberOfLines={3}
           />
+          {errors.returnPolicy && showErrors && (
+            <Text className="mt-1 text-sm text-red-500">
+              {errors.returnPolicy}
+            </Text>
+          )}
         </View>
 
         <View className="mb-6">
@@ -608,6 +869,11 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
               <Text className="flex-1">{option.name}</Text>
             </TouchableOpacity>
           ))}
+          {errors.shippingOptions && showErrors && (
+            <Text className="mt-1 text-sm text-red-500">
+              {errors.shippingOptions}
+            </Text>
+          )}
         </View>
 
         <View className="p-4 border border-purple-200 rounded-lg bg-purple-50">
@@ -630,11 +896,9 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
       case 2:
         return renderStep2();
       case 3:
-        return renderStep3();
+        return renderStep4(); // Document upload (was step 4)
       case 4:
-        return renderStep4();
-      case 5:
-        return renderStep5();
+        return renderStep5(); // Store profile (was step 5)
       default:
         return renderStep1();
     }

@@ -23,6 +23,7 @@ import SellerWelcomeScreen from "../screens/PartnershipOptions/Seller/SellerWelc
 import SellerAccountTypeScreen from "../screens/PartnershipOptions/Seller/SellerAccountTypeScreen";
 import SellerRegistrationFormScreen from "../screens/PartnershipOptions/Seller/SellerRegistrationFormScreen";
 import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/SellerReviewSubmitScreen";
+import SellerSubmissionSuccessScreen from "../screens/PartnershipOptions/Seller/SellerSubmissionSuccessScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -92,6 +93,10 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="SellerReviewSubmit"
         component={SellerReviewSubmitScreen}
+      />
+      <Stack.Screen
+        name="SellerSubmissionSuccess"
+        component={SellerSubmissionSuccessScreen}
       />
     </Stack.Navigator>
   );
