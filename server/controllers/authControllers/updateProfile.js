@@ -1,7 +1,7 @@
 const db = require("../../config/db");
 
 module.exports = updateProfile = async (req, res) => {
-  const { id, first_name, last_name, email, phone, birth_date, gender } =
+  let { id, first_name, last_name, email, phone, birth_date, gender } =
     req.body;
 
   console.log(req.body);
@@ -11,6 +11,16 @@ module.exports = updateProfile = async (req, res) => {
       .status(400)
       .json({ message: "Either email or phone is required!", success: false });
   }
+
+  ({ id, first_name, last_name, email, phone, birth_date, gender } = {
+    id: id ?? null,
+    first_name: first_name ?? null,
+    last_name: last_name ?? null,
+    email: email ?? null,
+    phone: phone ?? null,
+    birth_date: birth_date ?? null,
+    gender: gender ?? null,
+  });
 
   try {
     const [result] = await db.execute(

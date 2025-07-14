@@ -205,12 +205,6 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         newErrors.storeName = "Store name is required";
       if (!formData.storeDescription.trim())
         newErrors.storeDescription = "Store description is required";
-      if (formData.categories.length === 0)
-        newErrors.categories = "At least one category is required";
-      if (!formData.returnPolicy.trim())
-        newErrors.returnPolicy = "Return policy is required";
-      if (formData.shippingOptions.length === 0)
-        newErrors.shippingOptions = "At least one shipping option is required";
     }
 
     setErrors(newErrors);
@@ -702,31 +696,11 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
   );
 
   const renderStep5 = () => {
-    const categories = [
-      "Electronics",
-      "Fashion",
-      "Home & Garden",
-      "Sports",
-      "Books",
-      "Beauty",
-      "Automotive",
-      "Toys",
-      "Food",
-      "Health",
-    ];
-
-    const shippingOptions = [
-      { id: "standard", name: "Standard Shipping (3-5 days)", selected: false },
-      { id: "express", name: "Express Shipping (1-2 days)", selected: false },
-      { id: "overnight", name: "Overnight Shipping", selected: false },
-      { id: "pickup", name: "Customer Pickup", selected: false },
-    ];
-
     return (
       <View className="px-6 py-6">
         <Text className="mb-2 text-2xl font-bold">Store Profile</Text>
         <Text className="mb-6 text-gray-600">
-          Set up your store information and policies
+          Set up your basic store information
         </Text>
 
         <View className="mb-4">
@@ -751,9 +725,10 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
             onPress={() => showUploadOptions("storeLogo", "image")}
           >
             {formData.storeLogo ? (
-              <Text className="mt-2 text-gray-600">
-                {formData.storeLogo.name || "Uploaded"}
-              </Text>
+              <View className="items-center">
+                <Ionicons name="checkmark-circle" size={30} color="#10b981" />
+                <Text className="mt-1 text-xs text-green-600">Uploaded</Text>
+              </View>
             ) : (
               <>
                 <Ionicons name="image-outline" size={30} color="#6b7280" />
@@ -763,7 +738,7 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        <View className="mb-4">
+        <View className="mb-6">
           <Text className="mb-2 text-sm font-medium">Store Description *</Text>
           <TextInput
             className={`w-full p-3 border rounded-lg ${errors.storeDescription && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
@@ -776,102 +751,6 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           {errors.storeDescription && showErrors && (
             <Text className="mt-1 text-sm text-red-500">
               {errors.storeDescription}
-            </Text>
-          )}
-        </View>
-
-        <View className="mb-4">
-          <Text className="mb-2 text-sm font-medium">Product Categories *</Text>
-          <Text className="mb-3 text-xs text-gray-500">
-            Select categories you plan to sell in
-          </Text>
-          <View className="flex flex-row flex-wrap gap-2">
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category}
-                className={`px-3 py-2 border rounded-full ${
-                  formData.categories.includes(category)
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300 bg-white"
-                }`}
-                onPress={() => {
-                  const updatedCategories = formData.categories.includes(
-                    category
-                  )
-                    ? formData.categories.filter((c) => c !== category)
-                    : [...formData.categories, category];
-                  updateFormData("categories", updatedCategories);
-                }}
-              >
-                <Text
-                  className={`text-sm ${formData.categories.includes(category) ? "text-blue-600" : "text-gray-700"}`}
-                >
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {errors.categories && showErrors && (
-            <Text className="mt-1 text-sm text-red-500">
-              {errors.categories}
-            </Text>
-          )}
-        </View>
-
-        <View className="mb-4">
-          <Text className="mb-2 text-sm font-medium">
-            Return/Refund Policy *
-          </Text>
-          <TextInput
-            className={`w-full p-3 border rounded-lg ${errors.returnPolicy && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
-            value={formData.returnPolicy}
-            onChangeText={(value) => updateFormData("returnPolicy", value)}
-            placeholder="e.g., 30-day return policy, no questions asked..."
-            multiline
-            numberOfLines={3}
-          />
-          {errors.returnPolicy && showErrors && (
-            <Text className="mt-1 text-sm text-red-500">
-              {errors.returnPolicy}
-            </Text>
-          )}
-        </View>
-
-        <View className="mb-6">
-          <Text className="mb-2 text-sm font-medium">Shipping Options *</Text>
-          <Text className="mb-3 text-xs text-gray-500">
-            Select shipping methods you'll offer
-          </Text>
-          {shippingOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              className="flex flex-row items-center p-3 mb-2 border border-gray-200 rounded-lg"
-              onPress={() => {
-                const updatedOptions = formData.shippingOptions.includes(
-                  option.id
-                )
-                  ? formData.shippingOptions.filter((o) => o !== option.id)
-                  : [...formData.shippingOptions, option.id];
-                updateFormData("shippingOptions", updatedOptions);
-              }}
-            >
-              <View
-                className={`w-5 h-5 border-2 rounded mr-3 ${
-                  formData.shippingOptions.includes(option.id)
-                    ? "border-blue-500 bg-blue-500"
-                    : "border-gray-300"
-                }`}
-              >
-                {formData.shippingOptions.includes(option.id) && (
-                  <Ionicons name="checkmark" size={12} color="white" />
-                )}
-              </View>
-              <Text className="flex-1">{option.name}</Text>
-            </TouchableOpacity>
-          ))}
-          {errors.shippingOptions && showErrors && (
-            <Text className="mt-1 text-sm text-red-500">
-              {errors.shippingOptions}
             </Text>
           )}
         </View>

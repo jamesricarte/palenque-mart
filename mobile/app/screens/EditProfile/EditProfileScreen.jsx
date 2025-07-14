@@ -41,18 +41,14 @@ const EditProfileScreen = ({ navigation }) => {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [genderPickerVisible, setGenderPickerVisible] = useState(false);
 
-  const [keyboardHeight] = useState(new Animated.Value(0));
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
   const handleSave = async () => {
     const { profile_picture, ...newProfileData } = profileData;
 
-    if (
-      Object.values(newProfileData).includes("") |
-      Object.values(newProfileData).includes(null) |
-      Object.values(newProfileData).includes(undefined)
-    ) {
-      setMessage({ message: "All fields required!" });
+    if (!profileData.first_name || !profileData.last_name) {
+      setMessage({ message: "These fields are required!" });
+      console.log("These fields are required!");
       return;
     }
 

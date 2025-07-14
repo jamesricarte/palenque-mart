@@ -5,10 +5,14 @@ import { useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import axios from "axios";
+import { API_URL } from "../../../config/apiConfig";
+import { useAuth } from "../../../context/AuthContext";
 
 const SellerReviewSubmitScreen = ({ navigation, route }) => {
   const { formData, accountType } = route.params;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, token } = useAuth();
 
   const handleSubmit = () => {
     Alert.alert(
@@ -21,15 +25,54 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
     );
   };
 
-  const submitApplication = () => {
-    setIsSubmitting(true);
-    console.log(formData);
+  const submitApplication = async () => {
+    try {
+      setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+      const applicationData = {
+        accountType,
+        businessName: formData.businessName,
+        businessRegNumber: formData.businessRegNumber,
+        contactPerson: formData.contactPerson,
+        businessAddress: formData.businessAddress,
+        pickupAddress: formData.pickupAddress,
+        returnAddress: formData.returnAddress,
+        storeLocation: formData.storeLocation,
+        storeName: formData.storeName,
+        storeDescription: formData.storeDescription,
+        documents: [], // File uploads would be handled separately
+      };
+
+      const response = await axios.post(
+        `${API_URL}/api/seller/submit-application`,
+        applicationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        navigation.navigate("SellerSubmissionSuccess", {
+          applicationId: response.data.data.applicationId,
+        });
+      } else {
+        Alert.alert(
+          "Error",
+          response.data.message || "Failed to submit application"
+        );
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to submit application"
+      );
+    } finally {
       setIsSubmitting(false);
-      navigation.navigate("SellerSubmissionSuccess");
-    }, 2000);
+    }
   };
 
   const handleEdit = (section) => {

@@ -7,6 +7,7 @@ require("dotenv").config();
 
 require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const sellerRoutes = require("./routes/sellerRoutes");
 const getLocalIp = require("./utils/getLocalIp");
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api", authRoutes);
+app.use("/api/seller", sellerRoutes);
 
 const wss = new WebSocket.Server({ server });
 let sockets = [];
