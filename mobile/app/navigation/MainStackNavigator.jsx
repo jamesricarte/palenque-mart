@@ -24,6 +24,7 @@ import SellerAccountTypeScreen from "../screens/PartnershipOptions/Seller/Seller
 import SellerRegistrationFormScreen from "../screens/PartnershipOptions/Seller/SellerRegistrationFormScreen";
 import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/SellerReviewSubmitScreen";
 import SellerSubmissionSuccessScreen from "../screens/PartnershipOptions/Seller/SellerSubmissionSuccessScreen";
+import SellerApplicationStatusScreen from "../screens/PartnershipOptions/Seller/SellerApplicationStatusScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -97,6 +98,10 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="SellerSubmissionSuccess"
         component={SellerSubmissionSuccessScreen}
+      />
+      <Stack.Screen
+        name="SellerApplicationStatus"
+        component={SellerApplicationStatusScreen}
       />
     </Stack.Navigator>
   );

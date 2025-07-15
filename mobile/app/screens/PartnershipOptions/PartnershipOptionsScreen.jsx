@@ -1,36 +1,89 @@
+"use client";
+
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import axios from "axios";
+import { API_URL } from "../../config/apiConfig";
+import { useAuth } from "../../context/AuthContext";
 
 const PartnershipOptionsScreen = ({ navigation }) => {
   const [selectedOption, setSelectedOption] = useState(null);
+  const [hasSellerApplication, setHasSellerApplication] = useState(false);
+  const [sellerApplicationStatus, setSellerApplicationStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
+
+  useEffect(() => {
+    checkSellerApplicationStatus();
+  }, []);
+
+  const checkSellerApplicationStatus = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/seller/application-status`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success && response.data.hasApplication) {
+        setHasSellerApplication(true);
+        setSellerApplicationStatus(response.data.data.status);
+      }
+    } catch (error) {
+      // No application found or error - user can apply
+      setHasSellerApplication(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const partnershipOptions = [
     {
       id: 1,
-      title: "Become a Seller",
-      subtitle: "Start selling your products",
-      description:
-        "Join thousands of sellers and start your online business with Palenque Mart. Sell your products to millions of customers.",
+      title: hasSellerApplication ? "Seller Application" : "Become a Seller",
+      subtitle: hasSellerApplication
+        ? `Status: ${sellerApplicationStatus ? sellerApplicationStatus.replace("_", " ").toUpperCase() : "PENDING"}`
+        : "Start selling your products",
+      description: hasSellerApplication
+        ? "View your seller application status and track the review progress."
+        : "Join thousands of sellers and start your online business with Palenque Mart. Sell your products to millions of customers.",
       icon: "store",
-      benefits: [
-        "Zero listing fees for first 100 products",
-        "24/7 seller support",
-        "Marketing tools and analytics",
-        "Secure payment processing",
-        "Nationwide shipping network",
-      ],
-      requirements: [
-        "Valid business registration",
-        "Tax identification number",
-        "Bank account for payments",
-        "Product catalog ready",
-      ],
-      color: "bg-blue-500",
+      benefits: hasSellerApplication
+        ? [
+            "Track application progress",
+            "View document verification status",
+            "Get updates on review process",
+            "Contact support if needed",
+          ]
+        : [
+            "Zero listing fees for first 100 products",
+            "24/7 seller support",
+            "Marketing tools and analytics",
+            "Secure payment processing",
+            "Nationwide shipping network",
+          ],
+      requirements: hasSellerApplication
+        ? [
+            "Application submitted successfully",
+            "Documents under review",
+            "Waiting for admin approval",
+          ]
+        : [
+            "Valid business registration",
+            "Tax identification number",
+            "Bank account for payments",
+            "Product catalog ready",
+          ],
+      color: hasSellerApplication ? "bg-orange-500" : "bg-blue-500",
+      actionText: hasSellerApplication ? "View Status" : "Apply Now",
     },
     {
       id: 2,
@@ -53,6 +106,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
         "Clean background check",
       ],
       color: "bg-green-500",
+      actionText: "Apply Now",
     },
   ];
 
@@ -68,18 +122,40 @@ const PartnershipOptionsScreen = ({ navigation }) => {
   };
 
   const handleApplyNow = (option) => {
-    // Temporary functionality - would navigate to application form
-    console.log(`Applying for: ${option.title}`);
-    // navigation.navigate('PartnershipApplication', { partnershipType: option.id })
-
     if (option.id === 1) {
-      navigation.navigate("SellerWelcome");
+      if (hasSellerApplication) {
+        // Navigate to application status screen
+        navigation.navigate("SellerApplicationStatus");
+      } else {
+        // Navigate to seller registration
+        navigation.navigate("SellerWelcome");
+      }
+    } else {
+      // Handle delivery partner application
+      console.log(`Applying for: ${option.title}`);
     }
   };
 
   const handleLearnMore = (option) => {
     setSelectedOption(selectedOption === option.id ? null : option.id);
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white">
+        <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-300">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="text-xl font-semibold">Partnership Options</Text>
+          <View className="w-6" />
+        </View>
+        <View className="items-center justify-center flex-1">
+          <Text className="text-gray-500">Loading partnership options...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -129,7 +205,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                     onPress={() => handleApplyNow(option)}
                   >
                     <Text className="font-semibold text-center text-white">
-                      Apply Now
+                      {option.actionText}
                     </Text>
                   </TouchableOpacity>
 
@@ -150,7 +226,11 @@ const PartnershipOptionsScreen = ({ navigation }) => {
               {selectedOption === option.id && (
                 <View className="px-6 pb-6 border-t border-gray-100">
                   <View className="mt-4">
-                    <Text className="mb-3 text-lg font-semibold">Benefits</Text>
+                    <Text className="mb-3 text-lg font-semibold">
+                      {hasSellerApplication && option.id === 1
+                        ? "Features"
+                        : "Benefits"}
+                    </Text>
                     {option.benefits.map((benefit, index) => (
                       <View
                         key={index}
@@ -168,7 +248,9 @@ const PartnershipOptionsScreen = ({ navigation }) => {
 
                   <View className="mt-4">
                     <Text className="mb-3 text-lg font-semibold">
-                      Requirements
+                      {hasSellerApplication && option.id === 1
+                        ? "Current Status"
+                        : "Requirements"}
                     </Text>
                     {option.requirements.map((requirement, index) => (
                       <View
