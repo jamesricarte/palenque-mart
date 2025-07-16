@@ -24,15 +24,15 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
   // Form state
   const [formData, setFormData] = useState({
     // Personal/Business Details
-    firstName: user.first_name,
-    lastName: user.last_name,
+    firstName: user.first_name || "",
+    lastName: user.last_name || "",
     businessName: "",
     businessRegNumber: "",
     businessType: "",
     contactPerson: "",
-    email: user.email,
-    phone: user.phone,
-    dateOfBirth: user.birth_date,
+    email: user.email || "",
+    phone: user.phone || "",
+    dateOfBirth: user.birth_date || "",
     businessAddress: "",
 
     // Address Details

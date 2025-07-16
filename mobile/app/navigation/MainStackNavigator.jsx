@@ -26,6 +26,9 @@ import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/Selle
 import SellerSubmissionSuccessScreen from "../screens/PartnershipOptions/Seller/SellerSubmissionSuccessScreen";
 import SellerApplicationStatusScreen from "../screens/PartnershipOptions/Seller/SellerApplicationStatusScreen";
 
+import AdminDashboardScreen from "../screens/Admin/AdminDashboardScreen";
+import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApplicationDetailsScreen";
+
 const Stack = createNativeStackNavigator();
 
 const MainStackNavigator = () => {
@@ -102,6 +105,13 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="SellerApplicationStatus"
         component={SellerApplicationStatusScreen}
+      />
+
+      {/* Admin */}
+      <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+      <Stack.Screen
+        name="AdminSellerApplicationDetails"
+        component={AdminSellerApplicationDetailsScreen}
       />
     </Stack.Navigator>
   );

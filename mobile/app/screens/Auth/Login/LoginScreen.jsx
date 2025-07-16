@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import {
@@ -40,7 +42,7 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    let formData = {
+    const formData = {
       phoneEmail: phoneEmail,
       password: password,
       twoFA: twoFA,
@@ -130,24 +132,35 @@ const LoginScreen = ({ navigation }) => {
 
             if (!responseData?.twoFA) {
               login(responseData.data.token);
-              navigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [
-                    {
-                      name: "Dashboard",
-                      state: {
-                        routes: [
-                          {
-                            name: "Account",
-                            params: { message: responseData?.message },
-                          },
-                        ],
+
+              // Check if user is admin and redirect accordingly
+              if (responseData.data.isAdmin) {
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: "AdminDashboard" }],
+                  })
+                );
+              } else {
+                navigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [
+                      {
+                        name: "Dashboard",
+                        state: {
+                          routes: [
+                            {
+                              name: "Account",
+                              params: { message: responseData?.message },
+                            },
+                          ],
+                        },
                       },
-                    },
-                  ],
-                })
-              );
+                    ],
+                  })
+                );
+              }
               return;
             } else {
               if (responseData?.data?.email) {

@@ -7,7 +7,7 @@ const formValidator = require("../../utils/formValidator");
 const sendVerificationEmail = require("../../utils/sendVerificationEmail");
 const sendOTP = require("../../utils/sendOTP");
 
-module.exports = login = async (req, res) => {
+const login = async (req, res) => {
   const { phoneEmail, password, twoFA } = req.body;
 
   const formValidation = formValidator.validate(req.body);
@@ -22,7 +22,6 @@ module.exports = login = async (req, res) => {
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const mobileRegex = /^\+[1-9]\d{7,14}$/;
-  const usernameRegex = /^[a-zA-Z0-9._]{3,20}$/;
 
   let column;
 
@@ -39,9 +38,10 @@ module.exports = login = async (req, res) => {
   }
 
   try {
-    const [rows] = await db.execute(`SELECT * FROM users WHERE ${column} = ?`, [
-      phoneEmail,
-    ]);
+    const [rows] = await db.execute(
+      `SELECT * FROM users WHERE ${column} = ? AND is_active = TRUE`,
+      [phoneEmail]
+    );
 
     if (rows.length === 0) {
       let data;
@@ -57,13 +57,14 @@ module.exports = login = async (req, res) => {
       });
     }
 
-    const userPassword = rows[0].password;
-    const userId = rows[0].id;
-
-    const passwordMatch = await bcrypt.compare(password, userPassword);
+    const user = rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (passwordMatch) {
-      const token = jwt.sign({ id: userId }, process.env.JWT_SECRET);
+      const token = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET
+      );
 
       if (twoFA) {
         if (emailRegex.test(phoneEmail)) {
@@ -99,9 +100,13 @@ module.exports = login = async (req, res) => {
       }
 
       res.status(200).json({
-        message: "Login successfull!",
+        message: "Login successful!",
         success: true,
-        data: { token: token },
+        data: {
+          token: token,
+          role: user.role,
+          isAdmin: user.role === "admin" || user.role === "super_admin",
+        },
         twoFA: false,
         exists: true,
       });
@@ -119,3 +124,5 @@ module.exports = login = async (req, res) => {
     res.status(500).json({ message: "Something went wrong", success: false });
   }
 };
+
+module.exports = login;

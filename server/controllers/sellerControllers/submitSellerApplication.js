@@ -2,7 +2,7 @@ const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 
 const submitSellerApplication = async (req, res) => {
-  const userId = req.userData.id;
+  const userId = req.user.id;
   const {
     accountType,
     businessName,

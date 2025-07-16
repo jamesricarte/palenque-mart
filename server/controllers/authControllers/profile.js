@@ -2,9 +2,9 @@ const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 
 module.exports = profile = async (req, res) => {
-  const { id } = req.userData;
+  const { id } = req.user;
 
-  const formValidation = formValidator.validate(req.userData);
+  const formValidation = formValidator.validate(req.user);
 
   if (!formValidation.validation) {
     return res
@@ -21,10 +21,7 @@ module.exports = profile = async (req, res) => {
         .json({ message: "user account is not present", succes: false });
     }
 
-    console.log("User's details fetched!");
-
     const { password, ...userData } = rows[0];
-    console.log(userData.birth_date);
 
     res
       .status(200)

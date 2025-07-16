@@ -1,7 +1,7 @@
 const db = require("../../config/db");
 
 const getApplicationStatus = async (req, res) => {
-  const userId = req.userData.id;
+  const userId = req.user.id;
 
   try {
     // Get the latest seller application for this user

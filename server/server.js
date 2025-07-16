@@ -9,6 +9,7 @@ require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const sellerRoutes = require("./routes/sellerRoutes");
 const getLocalIp = require("./utils/getLocalIp");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -19,6 +20,7 @@ app.use(cors());
 
 app.use("/api", authRoutes);
 app.use("/api/seller", sellerRoutes);
+app.use("/api/admin", adminRoutes);
 
 const wss = new WebSocket.Server({ server });
 let sockets = [];
