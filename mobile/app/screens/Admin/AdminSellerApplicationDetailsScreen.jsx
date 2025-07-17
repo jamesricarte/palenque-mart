@@ -1,8 +1,19 @@
 "use client";
 
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  Image,
+  ActivityIndicator,
+  TextInput,
+} from "react-native";
 import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
 import { API_URL } from "../../config/apiConfig";
 import { useAuth } from "../../context/AuthContext";
@@ -13,6 +24,16 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
   const [applicationData, setApplicationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+
+  // State for document viewer modal
+  const [isDocumentModalVisible, setDocumentModalVisible] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [signedUrl, setSignedUrl] = useState(null);
+
+  // State for rejection modal
+  const [isRejectionModalVisible, setRejectionModalVisible] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const fetchApplicationDetails = async () => {
     try {
@@ -42,28 +63,8 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
   }, []);
 
   const handleReview = (action) => {
-    const actionText = action === "approve" ? "approve" : "reject";
-
     if (action === "reject") {
-      Alert.prompt(
-        "Reject Application",
-        "Please provide a reason for rejection:",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Reject",
-            style: "destructive",
-            onPress: (reason) => {
-              if (reason && reason.trim()) {
-                submitReview(action, reason.trim());
-              } else {
-                Alert.alert("Error", "Rejection reason is required");
-              }
-            },
-          },
-        ],
-        "plain-text"
-      );
+      setRejectionModalVisible(true); // Open our custom modal instead of Alert.prompt
     } else {
       Alert.alert(
         "Approve Application",
@@ -76,14 +77,24 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     }
   };
 
-  const submitReview = async (action, rejectionReason = null) => {
+  const handleRejectSubmit = () => {
+    if (rejectionReason && rejectionReason.trim()) {
+      submitReview("reject", rejectionReason.trim());
+      setRejectionModalVisible(false);
+      setRejectionReason("");
+    } else {
+      Alert.alert("Error", "Rejection reason is required");
+    }
+  };
+
+  const submitReview = async (action, reason = null) => {
     try {
       setProcessing(true);
       const response = await axios.post(
         `${API_URL}/api/admin/seller-applications/${applicationId}/review`,
         {
           action,
-          rejectionReason,
+          rejectionReason: reason,
         },
         {
           headers: {
@@ -93,7 +104,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
       );
 
       if (response.data.success) {
-        Alert.alert("Success", `Application ${action}d successfully`, [
+        Alert.alert("Success", `Application ${action}ed successfully`, [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       }
@@ -105,6 +116,40 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
       );
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const viewDocument = async (document) => {
+    try {
+      setSelectedDocument(document);
+      setSignedUrl(null);
+      setDocumentModalVisible(true);
+      setImageLoading(true);
+
+      const response = await axios.post(
+        `${API_URL}/api/admin/documents/signed-url`,
+        {
+          bucket: "seller-documents",
+          path: document.storage_key,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setSignedUrl(response.data.data.signedUrl);
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error getting signed URL:", error);
+      Alert.alert("Error", "Could not load document.");
+      setDocumentModalVisible(false);
+    } finally {
+      setImageLoading(false);
     }
   };
 
@@ -159,7 +204,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
           <View className="w-6" />
         </View>
         <View className="items-center justify-center flex-1">
-          <Text className="text-gray-500">Loading application details...</Text>
+          <ActivityIndicator size="large" color="#0000ff" />
         </View>
       </View>
     );
@@ -187,6 +232,91 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
 
   return (
     <View className="flex-1 bg-gray-50">
+      {/* Document Viewer Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isDocumentModalVisible}
+        onRequestClose={() => setDocumentModalVisible(false)}
+      >
+        <View className="items-center justify-center flex-1 p-4 bg-black/80">
+          <View className="relative w-full p-4 bg-white rounded-lg h-4/5">
+            <TouchableOpacity
+              onPress={() => setDocumentModalVisible(false)}
+              className="absolute z-10 p-1 bg-gray-200 rounded-full top-2 right-2"
+            >
+              <Ionicons name="close" size={24} color="black" />
+            </TouchableOpacity>
+            {selectedDocument && (
+              <>
+                <Text className="mb-2 text-lg font-bold capitalize">
+                  {selectedDocument.document_type.replace(/_/g, " ")}
+                </Text>
+                <View className="items-center justify-center flex-1">
+                  {(imageLoading || !signedUrl) && (
+                    <ActivityIndicator size="large" color="#0000ff" />
+                  )}
+                  {signedUrl && (
+                    <Image
+                      source={{ uri: signedUrl }}
+                      className="flex-1 w-full"
+                      resizeMode="contain"
+                      onLoadStart={() => setImageLoading(true)}
+                      onLoadEnd={() => setImageLoading(false)}
+                    />
+                  )}
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Rejection Reason Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isRejectionModalVisible}
+        onRequestClose={() => setRejectionModalVisible(false)}
+      >
+        <View className="items-center justify-center flex-1 p-4 bg-black/50">
+          <View className="w-full p-6 bg-white rounded-lg">
+            <Text className="mb-4 text-lg font-bold">Reject Application</Text>
+            <Text className="mb-2 text-gray-600">
+              Please provide a reason for rejection:
+            </Text>
+            <TextInput
+              className="w-full h-24 p-3 mb-4 border border-gray-300 rounded-lg"
+              placeholder="Enter rejection reason"
+              value={rejectionReason}
+              onChangeText={setRejectionReason}
+              multiline
+              textAlignVertical="top"
+            />
+            <View className="flex flex-row gap-3">
+              <TouchableOpacity
+                className="flex-1 py-3 border border-gray-300 rounded-lg"
+                onPress={() => {
+                  setRejectionModalVisible(false);
+                  setRejectionReason("");
+                }}
+              >
+                <Text className="font-semibold text-center">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 py-3 bg-red-500 rounded-lg"
+                onPress={handleRejectSubmit}
+                disabled={processing}
+              >
+                <Text className="font-semibold text-center text-white">
+                  {processing ? "Submitting..." : "Submit Rejection"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Header */}
       <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -301,35 +431,21 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
         {documents && documents.length > 0 && (
           <InfoSection title="Documents">
             {documents.map((doc, index) => (
-              <View
+              <TouchableOpacity
                 key={index}
-                className="flex flex-row items-center justify-between p-3 mb-2 rounded-lg bg-gray-50"
+                className="flex flex-row items-center justify-between p-3 mb-2 border border-gray-200 rounded-lg bg-gray-50"
+                onPress={() => viewDocument(doc)}
               >
                 <Text className="flex-1 font-medium capitalize">
                   {doc.document_type.replace(/_/g, " ")}
                 </Text>
-                <View
-                  className={`px-2 py-1 rounded-full border ${
-                    doc.verification_status === "verified"
-                      ? "border-green-200 bg-green-50"
-                      : doc.verification_status === "rejected"
-                        ? "border-red-200 bg-red-50"
-                        : "border-yellow-200 bg-yellow-50"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-medium capitalize ${
-                      doc.verification_status === "verified"
-                        ? "text-green-600"
-                        : doc.verification_status === "rejected"
-                          ? "text-red-600"
-                          : "text-yellow-600"
-                    }`}
-                  >
-                    {doc.verification_status}
+                <View className="flex-row items-center">
+                  <Text className="mr-2 font-semibold text-blue-600">
+                    View Document
                   </Text>
+                  <Feather name="external-link" size={16} color="#3b82f6" />
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </InfoSection>
         )}

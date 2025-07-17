@@ -1,7 +1,9 @@
 const db = require("../../config/db");
+const supabase = require("../../config/supabase");
 const formValidator = require("../../utils/formValidator");
 const path = require("path");
-const fs = require("fs").promises;
+
+const BUCKET_NAME = "seller-documents";
 
 const submitSellerApplication = async (req, res) => {
   const userId = req.user.id;
@@ -18,7 +20,6 @@ const submitSellerApplication = async (req, res) => {
     storeDescription,
   } = req.body;
 
-  // Get uploaded files
   const files = req.files || {};
 
   // Basic validation
@@ -30,20 +31,17 @@ const submitSellerApplication = async (req, res) => {
     storeDescription,
   };
 
-  // Add business fields validation for business accounts
   if (accountType === "business") {
-    requiredFields.businessName = businessName;
-    requiredFields.businessRegNumber = businessRegNumber;
-    requiredFields.contactPerson = contactPerson;
-    requiredFields.businessAddress = businessAddress;
+    Object.assign(requiredFields, {
+      businessName,
+      businessRegNumber,
+      contactPerson,
+      businessAddress,
+    });
   }
 
   const formValidation = formValidator.validate(requiredFields);
-
   if (!formValidation.validation) {
-    // Clean up uploaded files if validation fails
-    await cleanupUploadedFiles(files);
-
     return res.status(400).json({
       message: formValidation.message,
       success: false,
@@ -56,10 +54,7 @@ const submitSellerApplication = async (req, res) => {
   const missingDocuments = requiredDocuments.filter(
     (docType) => !files[docType]
   );
-
   if (missingDocuments.length > 0) {
-    await cleanupUploadedFiles(files);
-
     return res.status(400).json({
       message: `Missing required documents: ${missingDocuments.join(", ")}`,
       success: false,
@@ -67,7 +62,6 @@ const submitSellerApplication = async (req, res) => {
     });
   }
 
-  // Check if user already has a pending or approved application
   try {
     const [existingApplication] = await db.execute(
       "SELECT * FROM seller_applications WHERE user_id = ? AND status IN ('pending', 'approved', 'under_review')",
@@ -75,8 +69,6 @@ const submitSellerApplication = async (req, res) => {
     );
 
     if (existingApplication.length > 0) {
-      await cleanupUploadedFiles(files);
-
       return res.status(400).json({
         message: "You already have an active seller application",
         success: false,
@@ -84,23 +76,38 @@ const submitSellerApplication = async (req, res) => {
       });
     }
 
-    // Generate unique application ID
     const applicationId = `APP${Date.now().toString().slice(-8)}`;
-
-    // Start transaction
     const connection = await db.getConnection();
     await connection.beginTransaction();
 
+    const uploadedFilePaths = {};
+
     try {
-      // Insert seller application
       const [applicationResult] = await connection.execute(
         "INSERT INTO seller_applications (user_id, application_id, account_type, status) VALUES (?, ?, ?, 'pending')",
         [userId, applicationId, accountType]
       );
-
       const dbApplicationId = applicationResult.insertId;
 
-      // Insert business details if business account
+      // Upload files to Supabase and collect paths
+      for (const fieldName in files) {
+        const file = files[fieldName][0];
+        const fileExt = path.extname(file.originalname);
+        const filePath = `user_${userId}/${applicationId}/${fieldName}-${Date.now()}${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(BUCKET_NAME)
+          .upload(filePath, file.buffer, { contentType: file.mimetype });
+
+        if (uploadError) {
+          throw new Error(
+            `Supabase upload failed for ${fieldName}: ${uploadError.message}`
+          );
+        }
+        uploadedFilePaths[fieldName] = filePath;
+      }
+
+      // Insert business details
       if (accountType === "business") {
         await connection.execute(
           "INSERT INTO seller_business_details (application_id, business_name, business_registration_number, contact_person, business_address) VALUES (?, ?, ?, ?, ?)",
@@ -122,34 +129,26 @@ const submitSellerApplication = async (req, res) => {
 
       // Insert store profile
       await connection.execute(
-        "INSERT INTO seller_store_profiles (application_id, store_name, store_description, store_logo_path) VALUES (?, ?, ?, ?)",
+        "INSERT INTO seller_store_profiles (application_id, store_name, store_description, store_logo_key) VALUES (?, ?, ?, ?)",
         [
           dbApplicationId,
           storeName,
           storeDescription,
-          files.store_logo ? files.store_logo[0].path : null,
+          uploadedFilePaths.store_logo || null,
         ]
       );
 
       // Insert document records
-      const documentTypes = {
-        government_id: "government_id",
-        selfie_with_id: "selfie_with_id",
-        business_documents: "business_documents",
-        bank_statement: "bank_statement",
-      };
-
-      for (const [fieldName, documentType] of Object.entries(documentTypes)) {
-        if (files[fieldName] && files[fieldName][0]) {
-          const file = files[fieldName][0];
-
+      for (const fieldName in files) {
+        const file = files[fieldName][0];
+        if (uploadedFilePaths[fieldName]) {
           await connection.execute(
-            "INSERT INTO seller_documents (application_id, document_type, file_name, file_path, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO seller_documents (application_id, document_type, storage_key, file_name, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?)",
             [
               dbApplicationId,
-              documentType,
+              fieldName,
+              uploadedFilePaths[fieldName],
               file.originalname,
-              file.path,
               file.size,
               file.mimetype,
             ]
@@ -157,71 +156,30 @@ const submitSellerApplication = async (req, res) => {
         }
       }
 
-      // Commit transaction
       await connection.commit();
       connection.release();
 
       res.status(201).json({
         message: "Seller application submitted successfully!",
         success: true,
-        data: {
-          applicationId: applicationId,
-          status: "pending",
-        },
+        data: { applicationId, status: "pending" },
       });
     } catch (error) {
-      // Rollback transaction
       await connection.rollback();
       connection.release();
-
-      // Clean up uploaded files on error
-      await cleanupUploadedFiles(files);
-
+      // Attempt to clean up files from Supabase if DB transaction fails
+      for (const path of Object.values(uploadedFilePaths)) {
+        await supabase.storage.from(BUCKET_NAME).remove([path]);
+      }
       throw error;
     }
   } catch (error) {
     console.error("Error submitting seller application:", error);
-
-    // Clean up uploaded files on error
-    await cleanupUploadedFiles(files);
-
     return res.status(500).json({
       message: "Something went wrong while submitting your application.",
       success: false,
       error: { code: "SUBMISSION_ERROR" },
     });
-  }
-};
-
-// Helper function to clean up uploaded files (now async)
-const cleanupUploadedFiles = async (files) => {
-  try {
-    const deletePromises = [];
-
-    Object.values(files).forEach((fileArray) => {
-      if (Array.isArray(fileArray)) {
-        fileArray.forEach((file) => {
-          // Add each file deletion to promises array
-          deletePromises.push(
-            fs
-              .access(file.path)
-              .then(() => fs.unlink(file.path))
-              .catch((error) => {
-                // File doesn't exist or can't be deleted, log but don't throw
-                console.warn(
-                  `Could not delete file ${file.path}:`,
-                  error.message
-                );
-              })
-          );
-        });
-      }
-    });
-
-    // Wait for all file deletions to complete
-    await Promise.allSettled(deletePromises);
-  } catch (error) {
-    console.error("Error cleaning up files:", error);
   }
 };
 

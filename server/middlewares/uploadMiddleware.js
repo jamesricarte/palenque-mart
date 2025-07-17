@@ -1,46 +1,8 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs").promises;
 const { isAllowedFileType } = require("../utils/fileUtils");
 
-// Create upload directory if it doesn't exist
-const createUploadDir = async () => {
-  const uploadDir = path.join(__dirname, "../uploads/seller-documents");
-  try {
-    await fs.access(uploadDir);
-  } catch (error) {
-    // Directory doesn't exist, create it
-    await fs.mkdir(uploadDir, { recursive: true });
-  }
-};
-
-// Initialize upload directory
-createUploadDir().catch(console.error);
-
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "../uploads/seller-documents");
-    try {
-      await fs.access(uploadDir);
-      cb(null, uploadDir);
-    } catch (error) {
-      // Directory doesn't exist, create it
-      try {
-        await fs.mkdir(uploadDir, { recursive: true });
-        cb(null, uploadDir);
-      } catch (mkdirError) {
-        cb(mkdirError);
-      }
-    }
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const extension = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${extension}`);
-  },
-});
+// Use memory storage to handle files as buffers before uploading to Supabase
+const storage = multer.memoryStorage();
 
 // File filter function
 const fileFilter = (req, file, cb) => {
