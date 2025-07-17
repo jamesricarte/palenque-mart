@@ -1,4 +1,7 @@
+"use client";
+
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useAuth } from "../context/AuthContext";
 
 import LoginScreen from "../screens/Auth/Login/LoginScreen";
 
@@ -32,20 +35,24 @@ import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApp
 const Stack = createNativeStackNavigator();
 
 const MainStackNavigator = () => {
+  const { user } = useAuth();
+
+  // Determine the initial route based on user role
+  const initialRouteName =
+    user?.role === "admin" ? "AdminDashboard" : "Dashboard";
+
   return (
     <Stack.Navigator
-      initialRouteName="Dashboard"
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
       }}
     >
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
 
       {/* Auth */}
-      {/* Login */}
       <Stack.Screen name="Login" component={LoginScreen} />
-
-      {/* Sign up */}
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen
         name="MobileNumberRegistration"
@@ -84,7 +91,6 @@ const MainStackNavigator = () => {
       />
 
       {/* Partnership */}
-      {/* Seller */}
       <Stack.Screen name="SellerWelcome" component={SellerWelcomeScreen} />
       <Stack.Screen
         name="SellerAccountType"
@@ -108,7 +114,6 @@ const MainStackNavigator = () => {
       />
 
       {/* Admin */}
-      <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
       <Stack.Screen
         name="AdminSellerApplicationDetails"
         component={AdminSellerApplicationDetailsScreen}

@@ -1,3 +1,5 @@
+"use client";
+
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -20,7 +22,7 @@ const DashboardScreen = () => {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#F16B44",
-        tabBarStyle: !user && { display: "none" },
+        tabBarStyle: !user ? { display: "none" } : {},
       }}
     >
       <Tab.Screen
