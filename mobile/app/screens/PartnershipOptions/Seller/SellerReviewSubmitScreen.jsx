@@ -1,10 +1,18 @@
 "use client";
 
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Image,
+} from "react-native";
 import { useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import axios from "axios";
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -72,32 +80,32 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
         }
       }
 
-      const response = await fetch(`${API_URL}/api/seller/submit-application`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-        body: formDataToSend,
-      });
+      const response = await axios.post(
+        `${API_URL}/api/seller/submit-application`,
+        formDataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
-      const responseData = await response.json();
-
-      if (responseData.success) {
+      if (response.data.success) {
         navigation.navigate("SellerSubmissionSuccess", {
-          applicationId: responseData.data.applicationId,
+          applicationId: response.data.data.applicationId,
         });
       } else {
         Alert.alert(
           "Error",
-          responseData.message || "Failed to submit application"
+          response.data.message || "Failed to submit application"
         );
       }
     } catch (error) {
       console.error("Error submitting application:", error);
       Alert.alert(
         "Error",
-        "Failed to submit application. Please check your connection and try again."
+        error.response?.data?.message || "Failed to submit application"
       );
     } finally {
       setIsSubmitting(false);
@@ -132,6 +140,38 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
     </View>
   );
 
+  const renderDocumentPreview = (docType, document) => {
+    if (!document) return null;
+    return (
+      <View
+        key={docType}
+        className="p-3 mb-3 bg-white border border-gray-200 rounded-lg"
+      >
+        <View className="flex-row items-center mb-2">
+          <Ionicons name="document-text" size={20} color="#007AFF" />
+          <Text className="ml-2 text-xs font-semibold text-blue-600 uppercase">
+            {docType.replace(/_/g, " ")}
+          </Text>
+        </View>
+        {document.uri && (
+          <Image
+            source={{ uri: document.uri }}
+            className="w-full h-24 mb-2 rounded"
+            resizeMode="cover"
+          />
+        )}
+        <Text className="text-sm font-medium text-gray-900">
+          {document.name || "Document"}
+        </Text>
+        <Text className="text-xs text-gray-500">
+          {document.size
+            ? `${(document.size / 1024 / 1024).toFixed(2)} MB`
+            : "Size unknown"}
+        </Text>
+      </View>
+    );
+  };
+
   const renderDocumentSection = () => (
     <View className="p-4 mb-6 rounded-lg bg-gray-50">
       <View className="flex flex-row items-center justify-between mb-3">
@@ -140,57 +180,15 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
           <Feather name="edit-2" size={18} color="#3b82f6" />
         </TouchableOpacity>
       </View>
-
-      <View className="space-y-2">
-        {formData.governmentId && (
-          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
-            <Text className="text-gray-600">Government ID</Text>
-            <View className="flex flex-row items-center">
-              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
-            </View>
-          </View>
+      <View>
+        {renderDocumentPreview("government_id", formData.governmentId)}
+        {renderDocumentPreview("selfie_with_id", formData.selfieWithId)}
+        {renderDocumentPreview(
+          "business_documents",
+          formData.businessDocuments
         )}
-
-        {formData.selfieWithId && (
-          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
-            <Text className="text-gray-600">Selfie with ID</Text>
-            <View className="flex flex-row items-center">
-              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
-            </View>
-          </View>
-        )}
-
-        {formData.businessDocuments && (
-          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
-            <Text className="text-gray-600">Business Documents</Text>
-            <View className="flex flex-row items-center">
-              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
-            </View>
-          </View>
-        )}
-
-        {formData.bankStatement && (
-          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
-            <Text className="text-gray-600">Bank Statement</Text>
-            <View className="flex flex-row items-center">
-              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
-            </View>
-          </View>
-        )}
-
-        {formData.storeLogo && (
-          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
-            <Text className="text-gray-600">Store Logo</Text>
-            <View className="flex flex-row items-center">
-              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
-            </View>
-          </View>
-        )}
+        {renderDocumentPreview("bank_statement", formData.bankStatement)}
+        {renderDocumentPreview("store_logo", formData.storeLogo)}
       </View>
     </View>
   );
@@ -261,7 +259,12 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
         )}
 
         {/* Documents */}
-        {renderDocumentSection()}
+        {(formData.governmentId ||
+          formData.selfieWithId ||
+          formData.businessDocuments ||
+          formData.bankStatement ||
+          formData.storeLogo) &&
+          renderDocumentSection()}
 
         {/* Terms and Conditions */}
         <View className="p-4 mb-6 border border-gray-200 rounded-lg">

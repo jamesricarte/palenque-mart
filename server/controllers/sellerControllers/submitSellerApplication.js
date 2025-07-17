@@ -1,7 +1,7 @@
 const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs").promises;
 
 const submitSellerApplication = async (req, res) => {
   const userId = req.user.id;
@@ -42,7 +42,7 @@ const submitSellerApplication = async (req, res) => {
 
   if (!formValidation.validation) {
     // Clean up uploaded files if validation fails
-    cleanupUploadedFiles(files);
+    await cleanupUploadedFiles(files);
 
     return res.status(400).json({
       message: formValidation.message,
@@ -58,7 +58,7 @@ const submitSellerApplication = async (req, res) => {
   );
 
   if (missingDocuments.length > 0) {
-    cleanupUploadedFiles(files);
+    await cleanupUploadedFiles(files);
 
     return res.status(400).json({
       message: `Missing required documents: ${missingDocuments.join(", ")}`,
@@ -75,7 +75,7 @@ const submitSellerApplication = async (req, res) => {
     );
 
     if (existingApplication.length > 0) {
-      cleanupUploadedFiles(files);
+      await cleanupUploadedFiles(files);
 
       return res.status(400).json({
         message: "You already have an active seller application",
@@ -175,7 +175,7 @@ const submitSellerApplication = async (req, res) => {
       connection.release();
 
       // Clean up uploaded files on error
-      cleanupUploadedFiles(files);
+      await cleanupUploadedFiles(files);
 
       throw error;
     }
@@ -183,7 +183,7 @@ const submitSellerApplication = async (req, res) => {
     console.error("Error submitting seller application:", error);
 
     // Clean up uploaded files on error
-    cleanupUploadedFiles(files);
+    await cleanupUploadedFiles(files);
 
     return res.status(500).json({
       message: "Something went wrong while submitting your application.",
@@ -193,18 +193,33 @@ const submitSellerApplication = async (req, res) => {
   }
 };
 
-// Helper function to clean up uploaded files
-const cleanupUploadedFiles = (files) => {
+// Helper function to clean up uploaded files (now async)
+const cleanupUploadedFiles = async (files) => {
   try {
+    const deletePromises = [];
+
     Object.values(files).forEach((fileArray) => {
       if (Array.isArray(fileArray)) {
         fileArray.forEach((file) => {
-          if (fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-          }
+          // Add each file deletion to promises array
+          deletePromises.push(
+            fs
+              .access(file.path)
+              .then(() => fs.unlink(file.path))
+              .catch((error) => {
+                // File doesn't exist or can't be deleted, log but don't throw
+                console.warn(
+                  `Could not delete file ${file.path}:`,
+                  error.message
+                );
+              })
+          );
         });
       }
     });
+
+    // Wait for all file deletions to complete
+    await Promise.allSettled(deletePromises);
   } catch (error) {
     console.error("Error cleaning up files:", error);
   }
