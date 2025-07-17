@@ -1,5 +1,7 @@
 const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
+const path = require("path");
+const fs = require("fs");
 
 const submitSellerApplication = async (req, res) => {
   const userId = req.user.id;
@@ -14,8 +16,10 @@ const submitSellerApplication = async (req, res) => {
     storeLocation,
     storeName,
     storeDescription,
-    documents,
   } = req.body;
+
+  // Get uploaded files
+  const files = req.files || {};
 
   // Basic validation
   const requiredFields = {
@@ -37,11 +41,29 @@ const submitSellerApplication = async (req, res) => {
   const formValidation = formValidator.validate(requiredFields);
 
   if (!formValidation.validation) {
-    console.log(formValidation);
+    // Clean up uploaded files if validation fails
+    cleanupUploadedFiles(files);
+
     return res.status(400).json({
       message: formValidation.message,
       success: false,
       error: formValidation?.error,
+    });
+  }
+
+  // Validate required documents
+  const requiredDocuments = ["government_id", "selfie_with_id"];
+  const missingDocuments = requiredDocuments.filter(
+    (docType) => !files[docType]
+  );
+
+  if (missingDocuments.length > 0) {
+    cleanupUploadedFiles(files);
+
+    return res.status(400).json({
+      message: `Missing required documents: ${missingDocuments.join(", ")}`,
+      success: false,
+      error: { code: "MISSING_DOCUMENTS" },
     });
   }
 
@@ -53,12 +75,12 @@ const submitSellerApplication = async (req, res) => {
     );
 
     if (existingApplication.length > 0) {
+      cleanupUploadedFiles(files);
+
       return res.status(400).json({
         message: "You already have an active seller application",
         success: false,
-        error: {
-          code: "APPLICATION_EXISTS",
-        },
+        error: { code: "APPLICATION_EXISTS" },
       });
     }
 
@@ -100,22 +122,36 @@ const submitSellerApplication = async (req, res) => {
 
       // Insert store profile
       await connection.execute(
-        "INSERT INTO seller_store_profiles (application_id, store_name, store_description) VALUES (?, ?, ?)",
-        [dbApplicationId, storeName, storeDescription]
+        "INSERT INTO seller_store_profiles (application_id, store_name, store_description, store_logo_path) VALUES (?, ?, ?, ?)",
+        [
+          dbApplicationId,
+          storeName,
+          storeDescription,
+          files.store_logo ? files.store_logo[0].path : null,
+        ]
       );
 
-      // Insert document records (files would be uploaded separately)
-      if (documents && Array.isArray(documents)) {
-        for (const doc of documents) {
+      // Insert document records
+      const documentTypes = {
+        government_id: "government_id",
+        selfie_with_id: "selfie_with_id",
+        business_documents: "business_documents",
+        bank_statement: "bank_statement",
+      };
+
+      for (const [fieldName, documentType] of Object.entries(documentTypes)) {
+        if (files[fieldName] && files[fieldName][0]) {
+          const file = files[fieldName][0];
+
           await connection.execute(
             "INSERT INTO seller_documents (application_id, document_type, file_name, file_path, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?)",
             [
               dbApplicationId,
-              doc.type,
-              doc.fileName,
-              doc.filePath,
-              doc.fileSize,
-              doc.mimeType,
+              documentType,
+              file.originalname,
+              file.path,
+              file.size,
+              file.mimetype,
             ]
           );
         }
@@ -137,17 +173,40 @@ const submitSellerApplication = async (req, res) => {
       // Rollback transaction
       await connection.rollback();
       connection.release();
+
+      // Clean up uploaded files on error
+      cleanupUploadedFiles(files);
+
       throw error;
     }
   } catch (error) {
     console.error("Error submitting seller application:", error);
+
+    // Clean up uploaded files on error
+    cleanupUploadedFiles(files);
+
     return res.status(500).json({
       message: "Something went wrong while submitting your application.",
       success: false,
-      error: {
-        code: "SUBMISSION_ERROR",
-      },
+      error: { code: "SUBMISSION_ERROR" },
     });
+  }
+};
+
+// Helper function to clean up uploaded files
+const cleanupUploadedFiles = (files) => {
+  try {
+    Object.values(files).forEach((fileArray) => {
+      if (Array.isArray(fileArray)) {
+        fileArray.forEach((file) => {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Error cleaning up files:", error);
   }
 };
 

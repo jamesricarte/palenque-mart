@@ -5,7 +5,6 @@ import { useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import axios from "axios";
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -29,46 +28,76 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
     try {
       setIsSubmitting(true);
 
-      const applicationData = {
-        accountType,
-        businessName: formData.businessName,
-        businessRegNumber: formData.businessRegNumber,
-        contactPerson: formData.contactPerson,
-        businessAddress: formData.businessAddress,
-        pickupAddress: formData.pickupAddress,
-        returnAddress: formData.returnAddress,
-        storeLocation: formData.storeLocation,
-        storeName: formData.storeName,
-        storeDescription: formData.storeDescription,
-        documents: [], // File uploads would be handled separately
+      // Create FormData for multipart/form-data submission
+      const formDataToSend = new FormData();
+
+      // Add basic application data
+      formDataToSend.append("accountType", accountType);
+      formDataToSend.append("storeName", formData.storeName);
+      formDataToSend.append("storeDescription", formData.storeDescription);
+      formDataToSend.append("pickupAddress", formData.pickupAddress);
+      formDataToSend.append("returnAddress", formData.returnAddress);
+
+      if (formData.storeLocation) {
+        formDataToSend.append("storeLocation", formData.storeLocation);
+      }
+
+      // Add business details if business account
+      if (accountType === "business") {
+        formDataToSend.append("businessName", formData.businessName);
+        formDataToSend.append("businessRegNumber", formData.businessRegNumber);
+        formDataToSend.append("contactPerson", formData.contactPerson);
+        formDataToSend.append("businessAddress", formData.businessAddress);
+      }
+
+      // Add document files
+      const documentFields = {
+        government_id: formData.governmentId,
+        selfie_with_id: formData.selfieWithId,
+        business_documents: formData.businessDocuments,
+        bank_statement: formData.bankStatement,
+        store_logo: formData.storeLogo,
       };
 
-      const response = await axios.post(
-        `${API_URL}/api/seller/submit-application`,
-        applicationData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      for (const [fieldName, file] of Object.entries(documentFields)) {
+        if (file) {
+          // Create file object for FormData
+          const fileToUpload = {
+            uri: file.uri,
+            type: file.mimeType || file.type || "application/octet-stream",
+            name: file.name || `${fieldName}.${file.uri.split(".").pop()}`,
+          };
 
-      if (response.data.success) {
+          formDataToSend.append(fieldName, fileToUpload);
+        }
+      }
+
+      const response = await fetch(`${API_URL}/api/seller/submit-application`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+        body: formDataToSend,
+      });
+
+      const responseData = await response.json();
+
+      if (responseData.success) {
         navigation.navigate("SellerSubmissionSuccess", {
-          applicationId: response.data.data.applicationId,
+          applicationId: responseData.data.applicationId,
         });
       } else {
         Alert.alert(
           "Error",
-          response.data.message || "Failed to submit application"
+          responseData.message || "Failed to submit application"
         );
       }
     } catch (error) {
       console.error("Error submitting application:", error);
       Alert.alert(
         "Error",
-        error.response?.data?.message || "Failed to submit application"
+        "Failed to submit application. Please check your connection and try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -100,6 +129,69 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
             </View>
           )
       )}
+    </View>
+  );
+
+  const renderDocumentSection = () => (
+    <View className="p-4 mb-6 rounded-lg bg-gray-50">
+      <View className="flex flex-row items-center justify-between mb-3">
+        <Text className="text-lg font-semibold">Documents</Text>
+        <TouchableOpacity onPress={() => handleEdit("documents")}>
+          <Feather name="edit-2" size={18} color="#3b82f6" />
+        </TouchableOpacity>
+      </View>
+
+      <View className="space-y-2">
+        {formData.governmentId && (
+          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
+            <Text className="text-gray-600">Government ID</Text>
+            <View className="flex flex-row items-center">
+              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
+            </View>
+          </View>
+        )}
+
+        {formData.selfieWithId && (
+          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
+            <Text className="text-gray-600">Selfie with ID</Text>
+            <View className="flex flex-row items-center">
+              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
+            </View>
+          </View>
+        )}
+
+        {formData.businessDocuments && (
+          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
+            <Text className="text-gray-600">Business Documents</Text>
+            <View className="flex flex-row items-center">
+              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
+            </View>
+          </View>
+        )}
+
+        {formData.bankStatement && (
+          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
+            <Text className="text-gray-600">Bank Statement</Text>
+            <View className="flex flex-row items-center">
+              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
+            </View>
+          </View>
+        )}
+
+        {formData.storeLogo && (
+          <View className="flex flex-row items-center justify-between p-2 bg-white rounded">
+            <Text className="text-gray-600">Store Logo</Text>
+            <View className="flex flex-row items-center">
+              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+              <Text className="ml-1 text-sm text-green-600">Uploaded</Text>
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 
@@ -146,6 +238,30 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
           },
           "details"
         )}
+
+        {/* Address Details */}
+        {renderSection(
+          "Address Information",
+          {
+            pickupAddress: formData.pickupAddress,
+            returnAddress: formData.returnAddress,
+            storeLocation: formData.storeLocation,
+          },
+          "address"
+        )}
+
+        {/* Store Profile */}
+        {renderSection(
+          "Store Profile",
+          {
+            storeName: formData.storeName,
+            storeDescription: formData.storeDescription,
+          },
+          "store"
+        )}
+
+        {/* Documents */}
+        {renderDocumentSection()}
 
         {/* Terms and Conditions */}
         <View className="p-4 mb-6 border border-gray-200 rounded-lg">
