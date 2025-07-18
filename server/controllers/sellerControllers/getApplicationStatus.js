@@ -53,7 +53,7 @@ const getApplicationStatus = async (req, res) => {
 
     // Get document status
     const [documents] = await db.execute(
-      "SELECT document_type, verification_status FROM seller_documents WHERE application_id = ?",
+      "SELECT id, document_type, verification_status, rejection_reason FROM seller_documents WHERE application_id = ?",
       [application.id]
     );
 

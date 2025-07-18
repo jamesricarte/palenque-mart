@@ -7,7 +7,8 @@ const getSellerApplications = require("../controllers/adminControllers/getSeller
 const getSellerApplicationDetails = require("../controllers/adminControllers/getSellerApplicationDetails");
 const reviewSellerApplication = require("../controllers/adminControllers/reviewSellerApplication");
 const getDeliveryPartnerApplications = require("../controllers/adminControllers/getDeliveryPartnerApplications");
-const getSignedDocumentUrl = require("../controllers/adminControllers/getSignedDocumentUrl"); // Add this import
+const getSignedDocumentUrl = require("../controllers/adminControllers/getSignedDocumentUrl");
+const reviewSellerDocument = require("../controllers/adminControllers/reviewSellerDocument"); // Add this import
 
 const router = express.Router();
 
@@ -30,6 +31,7 @@ router.post(
 router.get("/delivery-partner-applications", getDeliveryPartnerApplications);
 
 // Document handling
-router.post("/documents/signed-url", getSignedDocumentUrl); // Add this route
+router.post("/documents/signed-url", getSignedDocumentUrl);
+router.post("/seller-documents/:documentId/review", reviewSellerDocument); // Add this route
 
 module.exports = router;

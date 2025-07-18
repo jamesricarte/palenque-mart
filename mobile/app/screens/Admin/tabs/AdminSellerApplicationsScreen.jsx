@@ -30,6 +30,7 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
     { value: "all", label: "All", color: "bg-gray-100" },
     { value: "pending", label: "Pending", color: "bg-yellow-100" },
     { value: "under_review", label: "Review", color: "bg-blue-100" },
+    { value: "needs_resubmission", label: "Resubmit", color: "bg-orange-100" },
     { value: "approved", label: "Approved", color: "bg-green-100" },
     { value: "rejected", label: "Rejected", color: "bg-red-100" },
   ];
@@ -89,6 +90,8 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
         return "text-yellow-600 bg-yellow-50 border-yellow-200";
       case "under_review":
         return "text-blue-600 bg-blue-50 border-blue-200";
+      case "needs_resubmission":
+        return "text-orange-600 bg-orange-50 border-orange-200";
       case "approved":
         return "text-green-600 bg-green-50 border-green-200";
       case "rejected":
@@ -108,7 +111,7 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
 
   const ApplicationCard = ({ application }) => (
     <TouchableOpacity
-      className="p-4 mb-3 bg-white border border-gray-200 rounded-lg"
+      className="p-4 mb-3 bg-white rounded-lg border border-gray-200"
       onPress={() =>
         navigation.navigate("AdminSellerApplicationDetails", {
           applicationId: application.application_id,
@@ -117,7 +120,7 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
     >
       <View className="flex flex-row items-start justify-between mb-2">
         <View className="flex-1">
-          <Text className="text-base font-semibold">
+          <Text className="font-semibold text-base">
             {application.store_name ||
               application.business_name ||
               `${application.first_name} ${application.last_name}`}
@@ -130,7 +133,7 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
           className={`px-2 py-1 rounded-full border ${getStatusColor(application.status)}`}
         >
           <Text className="text-xs font-medium capitalize">
-            {application.status.replace("_", " ")}
+            {application.status.replace(/_/g, " ")}
           </Text>
         </View>
       </View>
@@ -230,16 +233,16 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
         }
       >
         {loading ? (
-          <View className="items-center justify-center flex-1 py-20">
+          <View className="flex-1 items-center justify-center py-20">
             <Text className="text-gray-500">Loading applications...</Text>
           </View>
         ) : filteredApplications.length === 0 ? (
-          <View className="items-center justify-center flex-1 py-20">
+          <View className="flex-1 items-center justify-center py-20">
             <Feather name="inbox" size={48} color="#d1d5db" />
-            <Text className="mt-4 mb-2 text-lg font-medium">
+            <Text className="text-lg font-medium mt-4 mb-2">
               No Applications Found
             </Text>
-            <Text className="text-center text-gray-500">
+            <Text className="text-gray-500 text-center">
               {searchQuery
                 ? "No applications match your search."
                 : "No seller applications available."}

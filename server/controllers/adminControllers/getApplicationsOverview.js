@@ -35,9 +35,17 @@ const getApplicationsOverview = async (req, res) => {
 
     // Format statistics
     const formatStats = (stats) => {
-      const result = { pending: 0, under_review: 0, approved: 0, rejected: 0 };
+      const result = {
+        pending: 0,
+        under_review: 0,
+        approved: 0,
+        rejected: 0,
+        needs_resubmission: 0,
+      };
       stats.forEach((stat) => {
-        result[stat.status] = stat.count;
+        if (result.hasOwnProperty(stat.status)) {
+          result[stat.status] = stat.count;
+        }
       });
       return result;
     };

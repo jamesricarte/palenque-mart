@@ -59,36 +59,42 @@ const AdminOverviewScreen = ({ navigation }) => {
         <Text className="text-lg font-semibold">{title}</Text>
         {icon}
       </View>
-      <Text className="mb-1 text-2xl font-bold">{value}</Text>
+      <Text className="text-2xl font-bold mb-1">{value}</Text>
       {subtitle && <Text className="text-sm text-gray-600">{subtitle}</Text>}
     </TouchableOpacity>
   );
 
   const StatusCard = ({ title, stats, color }) => (
     <View className={`p-4 rounded-lg border ${color} mb-4`}>
-      <Text className="mb-3 text-lg font-semibold">{title}</Text>
-      <View className="flex flex-row justify-between">
+      <Text className="text-lg font-semibold mb-3">{title}</Text>
+      <View className="flex flex-row justify-around">
         <View className="items-center">
           <Text className="text-xl font-bold text-yellow-600">
-            {stats.pending}
+            {stats.pending || 0}
           </Text>
           <Text className="text-xs text-gray-600">Pending</Text>
         </View>
         <View className="items-center">
           <Text className="text-xl font-bold text-blue-600">
-            {stats.under_review}
+            {stats.under_review || 0}
           </Text>
           <Text className="text-xs text-gray-600">Review</Text>
         </View>
         <View className="items-center">
+          <Text className="text-xl font-bold text-orange-500">
+            {stats.needs_resubmission || 0}
+          </Text>
+          <Text className="text-xs text-gray-600">Resubmit</Text>
+        </View>
+        <View className="items-center">
           <Text className="text-xl font-bold text-green-600">
-            {stats.approved}
+            {stats.approved || 0}
           </Text>
           <Text className="text-xs text-gray-600">Approved</Text>
         </View>
         <View className="items-center">
           <Text className="text-xl font-bold text-red-600">
-            {stats.rejected}
+            {stats.rejected || 0}
           </Text>
           <Text className="text-xs text-gray-600">Rejected</Text>
         </View>
@@ -103,7 +109,7 @@ const AdminOverviewScreen = ({ navigation }) => {
           <Text className="text-xl font-semibold">Admin Overview</Text>
           <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
-        <View className="items-center justify-center flex-1">
+        <View className="flex-1 items-center justify-center">
           <Text className="text-gray-500">Loading overview...</Text>
         </View>
       </View>
@@ -131,7 +137,7 @@ const AdminOverviewScreen = ({ navigation }) => {
       >
         {/* Quick Stats */}
         <View className="p-4">
-          <Text className="mb-4 text-lg font-semibold">Quick Stats</Text>
+          <Text className="text-lg font-semibold mb-4">Quick Stats</Text>
           <View className="flex flex-row mb-4">
             <StatCard
               title="Total Sellers"
@@ -167,15 +173,15 @@ const AdminOverviewScreen = ({ navigation }) => {
 
           {/* Quick Actions */}
           <View className="mt-4">
-            <Text className="mb-4 text-lg font-semibold">Quick Actions</Text>
+            <Text className="text-lg font-semibold mb-4">Quick Actions</Text>
             <View className="space-y-3">
               <TouchableOpacity
-                className="flex flex-row items-center p-4 bg-white border border-gray-200 rounded-lg"
+                className="flex flex-row items-center p-4 bg-white rounded-lg border border-gray-200"
                 onPress={() =>
                   navigation.navigate("Sellers", { filter: "pending" })
                 }
               >
-                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-yellow-100 rounded-lg">
+                <View className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
                   <Ionicons name="time-outline" size={20} color="#d97706" />
                 </View>
                 <View className="flex-1">
@@ -189,21 +195,25 @@ const AdminOverviewScreen = ({ navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="flex flex-row items-center p-4 bg-white border border-gray-200 rounded-lg"
+                className="flex flex-row items-center p-4 bg-white rounded-lg border border-gray-200"
                 onPress={() =>
-                  navigation.navigate("Delivery", { filter: "pending" })
+                  navigation.navigate("Sellers", {
+                    filter: "needs_resubmission",
+                  })
                 }
               >
-                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-yellow-100 rounded-lg">
-                  <Ionicons name="time-outline" size={20} color="#d97706" />
+                <View className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={20}
+                    color="#f97316"
+                  />
                 </View>
                 <View className="flex-1">
-                  <Text className="font-medium">
-                    Review Pending Delivery Partners
-                  </Text>
+                  <Text className="font-medium">Seller Resubmissions</Text>
                   <Text className="text-sm text-gray-600">
-                    {overviewData?.deliveryPartner?.stats?.pending || 0}{" "}
-                    applications waiting
+                    {overviewData?.seller?.stats?.needs_resubmission || 0}{" "}
+                    applications need action
                   </Text>
                 </View>
                 <Feather name="chevron-right" size={20} color="#6b7280" />
