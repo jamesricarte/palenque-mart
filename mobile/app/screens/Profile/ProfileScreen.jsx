@@ -27,7 +27,7 @@ import GenderPicker from "./components/GenderPicker";
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
 
-const EditProfileScreen = ({ navigation }) => {
+const ProfileScreen = ({ navigation }) => {
   const { user, setUser, token } = useAuth();
 
   const [profileChanges, setProfileChanges] = useState(false);
@@ -373,4 +373,4 @@ const EditProfileScreen = ({ navigation }) => {
   );
 };
 
-export default EditProfileScreen;
+export default ProfileScreen;

@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { useRoute } from "@react-navigation/native";
@@ -79,9 +81,7 @@ const AccountScreen = ({ navigation }) => {
 
           {/* Profile Section */}
           {user ? (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("EditProfile")}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
               <View className="flex flex-row items-center gap-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
                 <MaterialIcons name="account-circle" size={50} color="black" />
                 <View className="flex-1">

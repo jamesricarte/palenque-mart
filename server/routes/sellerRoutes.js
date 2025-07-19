@@ -1,36 +1,39 @@
 const express = require("express");
 const router = express.Router();
-
-// Import middlewares
 const authenticateToken = require("../middlewares/authenticateToken");
 const {
   upload,
-  uploadFields,
   handleUploadError,
 } = require("../middlewares/uploadMiddleware");
 
 // Import controllers
 const submitSellerApplication = require("../controllers/sellerControllers/submitSellerApplication");
+
 const getApplicationStatus = require("../controllers/sellerControllers/getApplicationStatus");
 const resubmitDocuments = require("../controllers/sellerControllers/resubmitDocuments");
+const addProduct = require("../controllers/sellerControllers/addProduct");
 
 // Routes
 router.post(
   "/submit-application",
   authenticateToken,
-  uploadFields,
+  upload,
   handleUploadError,
   submitSellerApplication
 );
+
+// Route to get the status of a seller's application
 router.get("/application-status", authenticateToken, getApplicationStatus);
 
-// Route for resubmitting multiple documents
+// Route for resubmitting documents
 router.post(
   "/resubmit-documents",
   authenticateToken,
-  upload.any(), // Use upload.any() to accept files with various field names
-  handleUploadError,
+  upload,
   resubmitDocuments
 );
+
+// Route for adding a new product
+router.post("/add-product", authenticateToken, upload, addProduct);
 
 module.exports = router;

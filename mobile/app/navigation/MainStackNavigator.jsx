@@ -18,9 +18,9 @@ import PartnershipOptionsScreen from "../screens/PartnershipOptions/PartnershipO
 import NotificationsScreen from "../screens/Dashboard/tabs/NotificationsScreen";
 import SettingsScreen from "../screens/Settings/SettingsScreen";
 
-import EditProfileScreen from "../screens/EditProfile/EditProfileScreen";
-import EditEmailScreen from "../screens/EditProfile/EditEmailScreen";
-import EditMobileNumberScreen from "../screens/EditProfile/EditMobileNumberScreen";
+import ProfileScreen from "../screens/Profile/ProfileScreen";
+import EditEmailScreen from "../screens/Profile/EditEmailScreen";
+import EditMobileNumberScreen from "../screens/Profile/EditMobileNumberScreen";
 
 import SellerWelcomeScreen from "../screens/PartnershipOptions/Seller/SellerWelcomeScreen";
 import SellerAccountTypeScreen from "../screens/PartnershipOptions/Seller/SellerAccountTypeScreen";
@@ -31,6 +31,11 @@ import SellerApplicationStatusScreen from "../screens/PartnershipOptions/Seller/
 
 import AdminDashboardScreen from "../screens/Admin/AdminDashboardScreen";
 import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApplicationDetailsScreen";
+
+import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
+import SellerProductsScreen from "../screens/SellerDashboard/SellerProductsScreen";
+import SellerOrdersScreen from "../screens/SellerDashboard/SellerOrdersScreen";
+import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -83,7 +88,7 @@ const MainStackNavigator = () => {
       <Stack.Screen name="Settings" component={SettingsScreen} />
 
       {/* Profile */}
-      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="EditEmail" component={EditEmailScreen} />
       <Stack.Screen
         name="EditMobileNumber"
@@ -118,6 +123,12 @@ const MainStackNavigator = () => {
         name="AdminSellerApplicationDetails"
         component={AdminSellerApplicationDetailsScreen}
       />
+
+      {/* Seller Dashboard */}
+      <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} />
+      <Stack.Screen name="SellerProducts" component={SellerProductsScreen} />
+      <Stack.Screen name="SellerOrders" component={SellerOrdersScreen} />
+      <Stack.Screen name="AddProduct" component={AddProductScreen} />
     </Stack.Navigator>
   );
 };

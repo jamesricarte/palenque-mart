@@ -36,6 +36,8 @@ export default function useWebSocket(url) {
   };
 
   useEffect(() => {
+    if (!url) return;
+
     connect();
 
     return () => {

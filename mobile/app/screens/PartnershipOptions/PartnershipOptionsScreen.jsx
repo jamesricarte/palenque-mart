@@ -15,6 +15,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [hasSellerApplication, setHasSellerApplication] = useState(false);
   const [sellerApplicationStatus, setSellerApplicationStatus] = useState(null);
+  const [sellerData, setSellerData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
 
@@ -36,6 +37,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
       if (response.data.success && response.data.hasApplication) {
         setHasSellerApplication(true);
         setSellerApplicationStatus(response.data.data.status);
+        setSellerData(response.data.data);
       }
     } catch (error) {
       // No application found or error - user can apply
@@ -46,45 +48,6 @@ const PartnershipOptionsScreen = ({ navigation }) => {
   };
 
   const partnershipOptions = [
-    {
-      id: 1,
-      title: hasSellerApplication ? "Seller Application" : "Become a Seller",
-      subtitle: hasSellerApplication
-        ? `Status: ${sellerApplicationStatus ? sellerApplicationStatus.replace("_", " ").toUpperCase() : "PENDING"}`
-        : "Start selling your products",
-      description: hasSellerApplication
-        ? "View your seller application status and track the review progress."
-        : "Join thousands of sellers and start your online business with Palenque Mart. Sell your products to millions of customers.",
-      icon: "store",
-      benefits: hasSellerApplication
-        ? [
-            "Track application progress",
-            "View document verification status",
-            "Get updates on review process",
-            "Contact support if needed",
-          ]
-        : [
-            "Zero listing fees for first 100 products",
-            "24/7 seller support",
-            "Marketing tools and analytics",
-            "Secure payment processing",
-            "Nationwide shipping network",
-          ],
-      requirements: hasSellerApplication
-        ? [
-            "Application submitted successfully",
-            "Documents under review",
-            "Waiting for admin approval",
-          ]
-        : [
-            "Valid business registration",
-            "Tax identification number",
-            "Bank account for payments",
-            "Product catalog ready",
-          ],
-      color: hasSellerApplication ? "bg-orange-500" : "bg-blue-500",
-      actionText: hasSellerApplication ? "View Status" : "Apply Now",
-    },
     {
       id: 2,
       title: "Delivery Partner",
@@ -122,15 +85,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
   };
 
   const handleApplyNow = (option) => {
-    if (option.id === 1) {
-      if (hasSellerApplication) {
-        // Navigate to application status screen
-        navigation.navigate("SellerApplicationStatus");
-      } else {
-        // Navigate to seller registration
-        navigation.navigate("SellerWelcome");
-      }
-    } else {
+    if (option.id === 2) {
       // Handle delivery partner application
       console.log(`Applying for: ${option.title}`);
     }
@@ -138,6 +93,20 @@ const PartnershipOptionsScreen = ({ navigation }) => {
 
   const handleLearnMore = (option) => {
     setSelectedOption(selectedOption === option.id ? null : option.id);
+  };
+
+  const handleGoToSellerDashboard = () => {
+    navigation.replace("SellerDashboard");
+  };
+
+  const handleSellerAction = () => {
+    if (hasSellerApplication) {
+      // Navigate to application status screen
+      navigation.navigate("SellerApplicationStatus");
+    } else {
+      // Navigate to seller registration
+      navigation.navigate("SellerWelcome");
+    }
   };
 
   if (loading) {
@@ -169,8 +138,169 @@ const PartnershipOptionsScreen = ({ navigation }) => {
       </View>
 
       <ScrollView className="flex-1 bg-gray-50">
-        {/* Partnership Options */}
         <View className="p-4">
+          {/* Approved Seller Dashboard Access - Show img 1.png design */}
+          {hasSellerApplication && sellerApplicationStatus === "approved" && (
+            <View className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <View className="p-6">
+                <View className="flex flex-row items-center mb-4">
+                  <View className="flex items-center justify-center w-16 h-16 mr-4 bg-blue-500 rounded-lg">
+                    <FontAwesome6 name="store" size={40} color="white" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xl font-semibold">Your Store</Text>
+                    <Text className="text-sm text-gray-600">
+                      {sellerData?.storeName || "James store"}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text className="mb-4 text-base text-gray-700">
+                  Welcome to your seller dashboard! Manage your products, track
+                  orders, and grow your business.
+                </Text>
+
+                <View className="flex flex-row items-center mb-4">
+                  <View className="w-3 h-3 mr-2 bg-green-500 rounded-full" />
+                  <Text className="font-medium text-green-600">
+                    Store Active
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  className="w-full py-3 bg-blue-600 rounded-lg"
+                  onPress={handleGoToSellerDashboard}
+                >
+                  <Text className="font-semibold text-center text-white">
+                    Go to Seller Dashboard
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Non-approved Seller Application or New Application */}
+          {(!hasSellerApplication ||
+            sellerApplicationStatus !== "approved") && (
+            <View className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <View className="p-6">
+                <View className="flex flex-row items-center mb-4">
+                  <View className="flex items-center justify-center w-16 h-16 mr-4 bg-orange-500 rounded-lg">
+                    <FontAwesome6 name="store" size={40} color="white" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xl font-semibold">
+                      {hasSellerApplication
+                        ? "Seller Application"
+                        : "Become a Seller"}
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      {hasSellerApplication
+                        ? `Status: ${sellerApplicationStatus ? sellerApplicationStatus.replace("_", " ").toUpperCase() : "PENDING"}`
+                        : "Start selling your products"}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text className="mb-4 text-base text-gray-700">
+                  {hasSellerApplication
+                    ? "View your seller application status and track the review progress."
+                    : "Join thousands of sellers and start your online business with Palenque Mart. Sell your products to millions of customers."}
+                </Text>
+
+                <View className="flex flex-row gap-3">
+                  <TouchableOpacity
+                    className="flex-1 py-3 bg-black rounded-lg"
+                    onPress={handleSellerAction}
+                  >
+                    <Text className="font-semibold text-center text-white">
+                      {hasSellerApplication ? "View Status" : "Apply Now"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="flex-1 py-3 border border-gray-300 rounded-lg"
+                    onPress={() =>
+                      setSelectedOption(selectedOption === 1 ? null : 1)
+                    }
+                  >
+                    <Text className="font-semibold text-center text-black">
+                      {selectedOption === 1 ? "Hide Details" : "Learn More"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Expandable Details for Seller */}
+              {selectedOption === 1 && (
+                <View className="px-6 pb-6 border-t border-gray-100">
+                  <View className="mt-4">
+                    <Text className="mb-3 text-lg font-semibold">
+                      {hasSellerApplication ? "Features" : "Benefits"}
+                    </Text>
+                    {(hasSellerApplication
+                      ? [
+                          "Track application progress",
+                          "View document verification status",
+                          "Get updates on review process",
+                          "Contact support if needed",
+                        ]
+                      : [
+                          "Zero listing fees for first 100 products",
+                          "24/7 seller support",
+                          "Marketing tools and analytics",
+                          "Secure payment processing",
+                          "Nationwide shipping network",
+                        ]
+                    ).map((benefit, index) => (
+                      <View
+                        key={index}
+                        className="flex flex-row items-center mb-2"
+                      >
+                        <AntDesign
+                          name="checkcircle"
+                          size={16}
+                          color="#10b981"
+                        />
+                        <Text className="ml-3 text-gray-700">{benefit}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View className="mt-4">
+                    <Text className="mb-3 text-lg font-semibold">
+                      {hasSellerApplication ? "Current Status" : "Requirements"}
+                    </Text>
+                    {(hasSellerApplication
+                      ? [
+                          "Application submitted successfully",
+                          "Documents under review",
+                          "Waiting for admin approval",
+                        ]
+                      : [
+                          "Valid business registration",
+                          "Tax identification number",
+                          "Bank account for payments",
+                          "Product catalog ready",
+                        ]
+                    ).map((requirement, index) => (
+                      <View
+                        key={index}
+                        className="flex flex-row items-center mb-2"
+                      >
+                        <Feather name="circle" size={16} color="#6b7280" />
+                        <Text className="ml-3 text-gray-700">
+                          {requirement}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Other Partnership Options */}
           {partnershipOptions.map((option) => (
             <View
               key={option.id}
@@ -226,11 +356,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
               {selectedOption === option.id && (
                 <View className="px-6 pb-6 border-t border-gray-100">
                   <View className="mt-4">
-                    <Text className="mb-3 text-lg font-semibold">
-                      {hasSellerApplication && option.id === 1
-                        ? "Features"
-                        : "Benefits"}
-                    </Text>
+                    <Text className="mb-3 text-lg font-semibold">Benefits</Text>
                     {option.benefits.map((benefit, index) => (
                       <View
                         key={index}
@@ -248,9 +374,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
 
                   <View className="mt-4">
                     <Text className="mb-3 text-lg font-semibold">
-                      {hasSellerApplication && option.id === 1
-                        ? "Current Status"
-                        : "Requirements"}
+                      Requirements
                     </Text>
                     {option.requirements.map((requirement, index) => (
                       <View

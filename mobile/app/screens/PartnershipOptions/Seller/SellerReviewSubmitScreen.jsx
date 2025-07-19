@@ -102,7 +102,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
         );
       }
     } catch (error) {
-      console.error("Error submitting application:", error);
+      console.error("Error submitting application:", error.response.data);
       Alert.alert(
         "Error",
         error.response?.data?.message || "Failed to submit application"

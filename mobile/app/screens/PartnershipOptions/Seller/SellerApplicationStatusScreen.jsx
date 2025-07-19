@@ -24,6 +24,7 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stagedFiles, setStagedFiles] = useState({});
+  const [switchingToSeller, setSwitchingToSeller] = useState(false);
 
   const fetchApplicationStatus = async (isRefresh = false) => {
     try {
@@ -195,6 +196,10 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
     navigation.navigate("SellerWelcome");
   };
 
+  const handleGoToSellerDashboard = () => {
+    navigation.replace("SellerDashboard");
+  };
+
   const rejectedDocs = useMemo(
     () =>
       applicationData?.documents.filter(
@@ -286,6 +291,43 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
         return <Ionicons name="time-outline" size={16} color="#d97706" />;
     }
   };
+
+  if (applicationData && applicationData.status === "approved") {
+    return (
+      <View className="flex-1 bg-white">
+        {/* Header */}
+        <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="text-xl font-semibold">Application Approved!</Text>
+          <View className="w-6" />
+        </View>
+        {/* Content */}
+        <View className="items-center justify-center flex-1 px-6">
+          <View className="flex items-center justify-center w-24 h-24 mb-6 bg-green-100 rounded-full">
+            <Ionicons name="checkmark-circle" size={60} color="#10b981" />
+          </View>
+          <Text className="mb-4 text-3xl font-bold text-center">
+            Congratulations!
+          </Text>
+          <Text className="mb-8 text-lg text-center text-gray-600">
+            Your seller application for{" "}
+            <Text className="font-bold">{applicationData.storeName}</Text> has
+            been approved.
+          </Text>
+          <TouchableOpacity
+            className="w-full py-4 bg-blue-500 rounded-lg"
+            onPress={handleGoToSellerDashboard}
+          >
+            <Text className="text-lg font-semibold text-center text-white">
+              Go to Seller Dashboard
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   if (loading) {
     return (

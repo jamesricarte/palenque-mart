@@ -3,7 +3,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { API_URL } from "../config/apiConfig";
+import { API_URL, WEBSOCKET_URL } from "../config/apiConfig";
+import { Alert } from "react-native";
+import useWebSocket from "../hooks/useWebSocket";
 
 const AuthContext = createContext();
 
@@ -37,6 +39,39 @@ export const AuthProvider = ({ children }) => {
 
     loadAuthData();
   }, []);
+
+  const { socket, isConnected } = useWebSocket(
+    token && user ? WEBSOCKET_URL : null
+  );
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleMessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log("WebSocket message received:", message);
+
+        if (
+          message.type === "SELLER_APP_APPROVED" &&
+          message.targetUserId === user.id
+        ) {
+          Alert.alert(message.title, message.body);
+          // You could trigger a data refresh here
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
+    };
+
+    socket.onmessage = handleMessage;
+
+    return () => {
+      if (socket) {
+        socket.onmessage = null;
+      }
+    };
+  }, [socket, isConnected, user]);
 
   const login = async (newToken) => {
     setToken(newToken);

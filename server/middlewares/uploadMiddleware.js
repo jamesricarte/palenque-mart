@@ -22,19 +22,22 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10 MB file size limit
     files: 10, // Maximum 10 files
   },
   fileFilter: fileFilter,
-});
-
-// Define upload fields
-const uploadFields = upload.fields([
+}).fields([
   { name: "government_id", maxCount: 1 },
   { name: "selfie_with_id", maxCount: 1 },
   { name: "business_documents", maxCount: 3 },
   { name: "bank_statement", maxCount: 1 },
   { name: "store_logo", maxCount: 1 },
+  { name: "businessPermit", maxCount: 1 },
+  { name: "dtiPermit", maxCount: 1 },
+  { name: "birPermit", maxCount: 1 },
+  { name: "validId", maxCount: 1 },
+  { name: "proofOfAddress", maxCount: 1 },
+  { name: "productImage", maxCount: 1 }, // Added for product uploads
 ]);
 
 // Error handling middleware
@@ -42,7 +45,7 @@ const handleUploadError = (error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
-        message: "File too large. Maximum size is 5MB.",
+        message: "File too large. Maximum size is 10MB.",
         success: false,
         error: { code: "FILE_TOO_LARGE" },
       });
@@ -73,6 +76,5 @@ const handleUploadError = (error, req, res, next) => {
 
 module.exports = {
   upload,
-  uploadFields,
   handleUploadError,
 };
