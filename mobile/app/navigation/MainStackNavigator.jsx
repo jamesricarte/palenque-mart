@@ -33,9 +33,8 @@ import AdminDashboardScreen from "../screens/Admin/AdminDashboardScreen";
 import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApplicationDetailsScreen";
 
 import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
-import SellerProductsScreen from "../screens/SellerDashboard/SellerProductsScreen";
-import SellerOrdersScreen from "../screens/SellerDashboard/SellerOrdersScreen";
 import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
+import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -126,9 +125,11 @@ const MainStackNavigator = () => {
 
       {/* Seller Dashboard */}
       <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} />
-      <Stack.Screen name="SellerProducts" component={SellerProductsScreen} />
-      <Stack.Screen name="SellerOrders" component={SellerOrdersScreen} />
       <Stack.Screen name="AddProduct" component={AddProductScreen} />
+      <Stack.Screen
+        name="EditStoreProfile"
+        component={EditStoreProfileScreen}
+      />
     </Stack.Navigator>
   );
 };

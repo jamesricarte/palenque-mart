@@ -18,6 +18,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
   const [sellerData, setSellerData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
+  const [storeProfile, setStoreProfile] = useState(null);
 
   useEffect(() => {
     checkSellerApplicationStatus();
@@ -38,12 +39,32 @@ const PartnershipOptionsScreen = ({ navigation }) => {
         setHasSellerApplication(true);
         setSellerApplicationStatus(response.data.data.status);
         setSellerData(response.data.data);
+
+        if (response.data.data.status === "approved") {
+          fetchStoreProfile();
+        }
       }
     } catch (error) {
       // No application found or error - user can apply
       setHasSellerApplication(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStoreProfile = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/seller/store-profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setStoreProfile(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching store profile:", error);
     }
   };
 
@@ -150,7 +171,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                   <View className="flex-1">
                     <Text className="text-xl font-semibold">Your Store</Text>
                     <Text className="text-sm text-gray-600">
-                      {sellerData?.storeName || "James store"}
+                      {storeProfile?.storeName || "Loading..."}
                     </Text>
                   </View>
                 </View>
@@ -161,9 +182,13 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                 </Text>
 
                 <View className="flex flex-row items-center mb-4">
-                  <View className="w-3 h-3 mr-2 bg-green-500 rounded-full" />
-                  <Text className="font-medium text-green-600">
-                    Store Active
+                  <View
+                    className={`w-3 h-3 mr-2 rounded-full ${storeProfile?.isActive ? "bg-green-500" : "bg-red-500"}`}
+                  />
+                  <Text
+                    className={`font-medium ${storeProfile?.isActive ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {storeProfile?.isActive ? "Store Active" : "Store Inactive"}
                   </Text>
                 </View>
 
