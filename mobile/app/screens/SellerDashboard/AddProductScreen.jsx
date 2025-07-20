@@ -80,7 +80,10 @@ const AddProductScreen = () => {
       );
 
       Alert.alert("Success", "Product added successfully!");
-      navigation.goBack();
+      navigation.navigate("SellerDashboard", {
+        screen: "SellerProducts",
+        params: { newProductAdded: true },
+      });
     } catch (error) {
       console.error(
         "Error adding product:",

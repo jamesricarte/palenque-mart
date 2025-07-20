@@ -133,17 +133,6 @@ const SellerStoreAccountScreen = ({ navigation }) => {
           <Text className="mb-4 text-lg font-semibold">Quick Actions</Text>
 
           <TouchableOpacity className="flex flex-row items-center gap-4 p-4 mb-3 border border-gray-200 rounded-lg">
-            <Feather name="edit-3" size={20} color="black" />
-            <View className="flex-1">
-              <Text className="font-medium">Edit Store Profile</Text>
-              <Text className="text-sm text-gray-600">
-                Update store information
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={20} color="gray" />
-          </TouchableOpacity>
-
-          <TouchableOpacity className="flex flex-row items-center gap-4 p-4 mb-3 border border-gray-200 rounded-lg">
             <Feather name="settings" size={20} color="black" />
             <View className="flex-1">
               <Text className="font-medium">Store Settings</Text>

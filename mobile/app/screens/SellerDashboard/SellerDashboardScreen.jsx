@@ -3,6 +3,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import SellerOverviewScreen from "./tabs/SellerOverviewScreen";
 import SellerProductsScreen from "./tabs/SellerProductsScreen";
@@ -60,7 +61,11 @@ const SellerDashboard = () => {
         options={{
           title: "Store Account",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="storefront-outline" size={size} color={color} />
+            <MaterialCommunityIcons
+              name="storefront-outline"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

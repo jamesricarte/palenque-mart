@@ -14,6 +14,7 @@ const resubmitDocuments = require("../controllers/sellerControllers/resubmitDocu
 const addProduct = require("../controllers/sellerControllers/addProduct");
 const getStoreProfile = require("../controllers/sellerControllers/getStoreProfile");
 const updateStoreProfile = require("../controllers/sellerControllers/updateStoreProfile");
+const getProducts = require("../controllers/sellerControllers/getProducts");
 
 // Routes
 router.post(
@@ -43,5 +44,8 @@ router.get("/store-profile", authenticateToken, getStoreProfile);
 
 // Route to update store profile
 router.put("/store-profile", authenticateToken, updateStoreProfile);
+
+// Route to get seller's products
+router.get("/products", authenticateToken, getProducts);
 
 module.exports = router;

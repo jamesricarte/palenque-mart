@@ -1,23 +1,205 @@
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+"use client";
+
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  Image,
+  RefreshControl,
+} from "react-native";
+import { useState, useEffect } from "react";
 import Feather from "@expo/vector-icons/Feather";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import axios from "axios";
 
 import { useAuth } from "../../../context/AuthContext";
+import { API_URL } from "../../../config/apiConfig";
+import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
 
 const HomeScreen = ({ navigation }) => {
   const { user } = useAuth();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/products/all`);
+
+      if (response.data.success) {
+        setProducts(response.data.data.products);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error.response.data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchProducts();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.store_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.category &&
+        product.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.description &&
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Helper function to format address
+  const formatAddress = (product) => {
+    const addressParts = [];
+    if (product.city) addressParts.push(product.city);
+    if (product.province) addressParts.push(product.province);
+    return addressParts.join(", ");
+  };
+
+  const ProductCard = ({ product }) => (
+    <TouchableOpacity className="flex-1 mx-2 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+      <View className="relative">
+        {product.image_keys ? (
+          <Image
+            source={{ uri: product.image_keys }}
+            className="w-full h-40 rounded-t-lg"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="flex items-center justify-center w-full h-40 bg-gray-200 rounded-t-lg">
+            <Feather name="image" size={32} color="#9CA3AF" />
+          </View>
+        )}
+        {product.stock_quantity === 0 && (
+          <View className="absolute px-2 py-1 bg-red-500 rounded top-2 right-2">
+            <Text className="text-xs font-medium text-white">Out of Stock</Text>
+          </View>
+        )}
+        {product.stock_quantity > 0 && product.stock_quantity <= 10 && (
+          <View className="absolute px-2 py-1 bg-orange-500 rounded top-2 right-2">
+            <Text className="text-xs font-medium text-white">Low Stock</Text>
+          </View>
+        )}
+      </View>
+
+      <View className="p-3">
+        <Text
+          className="mb-1 text-lg font-semibold text-gray-900"
+          numberOfLines={2}
+        >
+          {product.name}
+        </Text>
+
+        <Text className="mb-2 text-sm text-gray-600" numberOfLines={1}>
+          by {product.store_name}
+        </Text>
+
+        {(product.city || product.province) && (
+          <View className="flex-row items-center mb-2">
+            <Feather name="map-pin" size={12} color="#6B7280" />
+            <Text className="ml-1 text-xs text-gray-500" numberOfLines={1}>
+              {formatAddress(product)}
+            </Text>
+          </View>
+        )}
+
+        {product.description && (
+          <Text className="mb-2 text-sm text-gray-700" numberOfLines={2}>
+            {product.description}
+          </Text>
+        )}
+
+        <View className="flex-row items-center justify-between mb-2">
+          <Text className="text-xl font-bold text-orange-600">
+            ₱{Number.parseFloat(product.price).toFixed(2)}
+          </Text>
+          <Text className="text-sm text-gray-500">
+            Stock: {product.stock_quantity}
+          </Text>
+        </View>
+
+        {product.category && (
+          <View className="mb-2">
+            <Text className="self-start px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded">
+              {product.category}
+            </Text>
+          </View>
+        )}
+
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <MaterialCommunityIcons
+              name="storefront-outline"
+              size={12}
+              color="#6B7280"
+            />
+            <Text className="ml-1 text-xs text-gray-500 capitalize">
+              {product.account_type}
+            </Text>
+          </View>
+          <Text className="text-xs text-gray-400">
+            {new Date(product.created_at).toLocaleDateString()}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white">
+        {/* Top Nav */}
+        <View className="flex gap-3 px-4 pt-16 pb-5 border-b border-gray-300">
+          <Text className="text-2xl font-semibold">Palenque Mart</Text>
+          <View className="flex flex-row items-center justify-between">
+            <View>
+              <TextInput
+                className="p-3 border-2 border-gray-800 rounded-lg w-60"
+                placeholder="Search item"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+            <View className="flex flex-row gap-4">
+              <TouchableOpacity onPress={() => navigation.push("Cart")}>
+                <Feather name="shopping-cart" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <View className="items-center justify-center flex-1">
+          <PersonalizedLoadingAnimation />
+          <Text className="mt-4 text-gray-600">Loading products...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <>
+    <View className="flex-1 bg-gray-50">
       {/* Top Nav */}
-      <View className="flex gap-3 px-4 pt-16 pb-5 border-b border-gray-300">
+      <View className="flex gap-3 px-4 pt-16 pb-5 bg-white border-b border-gray-300">
         <Text className="text-2xl font-semibold">Palenque Mart</Text>
         <View className="flex flex-row items-center justify-between">
           <View>
             <TextInput
               className="p-3 border-2 border-gray-800 rounded-lg w-60"
               placeholder="Search item"
-            ></TextInput>
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
           <View className="flex flex-row gap-4">
             <TouchableOpacity onPress={() => navigation.push("Cart")}>
@@ -27,24 +209,92 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {!user && (
-        <View className="flex flex-row justify-center gap-8 px-6 py-20 mt-auto border-t border-gray-300">
-          <TouchableOpacity
-            className="px-3 py-2 border border-black rounded-xl"
-            onPress={() => navigation.push("Login")}
-          >
-            <Text className="text-xl">Login</Text>
-          </TouchableOpacity>
+      <ScrollView
+        className="flex-1"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {/* Header Section */}
+        <View className="px-4 py-6 bg-white border-b border-gray-200">
+          <Text className="mb-2 text-xl font-semibold text-gray-900">
+            Fresh Products from Local Sellers
+          </Text>
+          <Text className="text-gray-600">
+            Discover quality products from trusted sellers in your area
+          </Text>
+        </View>
 
-          <TouchableOpacity
-            className="px-3 py-2 bg-black rounded-xl"
-            onPress={() => navigation.push("SignUp")}
-          >
-            <Text className="text-xl text-white">Sign up</Text>
-          </TouchableOpacity>
+        {/* Products Section */}
+        <View className="px-2 py-4">
+          {filteredProducts.length > 0 ? (
+            <>
+              <View className="flex-row items-center justify-between px-2 mb-4">
+                <Text className="text-lg font-semibold text-gray-900">
+                  {searchQuery
+                    ? `Search Results (${filteredProducts.length})`
+                    : `All Products (${filteredProducts.length})`}
+                </Text>
+              </View>
+
+              <View className="flex-row flex-wrap">
+                {filteredProducts.map((product) => (
+                  <View key={product.id} className="w-1/2">
+                    <ProductCard product={product} />
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <View className="items-center justify-center flex-1 py-20">
+              <Feather name="package" size={64} color="#9CA3AF" />
+              <Text className="mt-4 mb-2 text-xl font-semibold text-gray-600">
+                {searchQuery ? "No products found" : "No products available"}
+              </Text>
+              <Text className="px-8 text-center text-gray-500">
+                {searchQuery
+                  ? "Try adjusting your search terms"
+                  : "Check back later for new products from our sellers"}
+              </Text>
+              {searchQuery && (
+                <TouchableOpacity
+                  className="px-6 py-2 mt-4 bg-orange-500 rounded-lg"
+                  onPress={() => setSearchQuery("")}
+                >
+                  <Text className="font-medium text-white">Clear Search</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* Bottom spacing for auth buttons */}
+        <View className="h-32" />
+      </ScrollView>
+
+      {/* Authentication Buttons - Fixed at bottom */}
+      {!user && (
+        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300">
+          <View className="flex flex-row justify-center gap-8 px-6 py-6">
+            <TouchableOpacity
+              className="flex-1 px-6 py-3 border border-black rounded-xl max-w-32"
+              onPress={() => navigation.push("Login")}
+            >
+              <Text className="text-lg font-medium text-center">Login</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-1 px-6 py-3 bg-black rounded-xl max-w-32"
+              onPress={() => navigation.push("SignUp")}
+            >
+              <Text className="text-lg font-medium text-center text-white">
+                Sign up
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
-    </>
+    </View>
   );
 };
 

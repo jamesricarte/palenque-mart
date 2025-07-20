@@ -46,6 +46,7 @@ const EditStoreProfileScreen = ({ navigation }) => {
   const [message, setMessage] = useState(null);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const accountTypes = ["individual", "business"];
 
@@ -246,7 +247,16 @@ const EditStoreProfileScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-lg font-semibold">Edit Store Profile</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity
+          onPress={() => {
+            setIsEditing(!isEditing);
+            if (isEditing) {
+              setStoreData(originalData);
+            }
+          }}
+        >
+          <Feather name={isEditing ? "x" : "edit-2"} size={20} color="black" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1 bg-gray-50">
@@ -274,10 +284,11 @@ const EditStoreProfileScreen = ({ navigation }) => {
               Store Name *
             </Text>
             <TextInput
-              className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
               value={storeData.storeName}
               onChangeText={(text) => handleInputChange("storeName", text)}
               placeholder="Enter your store name"
+              editable={isEditing}
             />
           </View>
 
@@ -286,7 +297,7 @@ const EditStoreProfileScreen = ({ navigation }) => {
               Store Description
             </Text>
             <TextInput
-              className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
               value={storeData.storeDescription}
               onChangeText={(text) =>
                 handleInputChange("storeDescription", text)
@@ -295,6 +306,7 @@ const EditStoreProfileScreen = ({ navigation }) => {
               multiline
               numberOfLines={4}
               textAlignVertical="top"
+              editable={isEditing}
             />
           </View>
 
@@ -348,13 +360,14 @@ const EditStoreProfileScreen = ({ navigation }) => {
               Pickup Address
             </Text>
             <TextInput
-              className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
               value={storeData.pickupAddress}
               onChangeText={(text) => handleInputChange("pickupAddress", text)}
               placeholder="Enter pickup address"
               multiline
               numberOfLines={2}
               textAlignVertical="top"
+              editable={isEditing}
             />
           </View>
 
@@ -363,13 +376,14 @@ const EditStoreProfileScreen = ({ navigation }) => {
               Return Address
             </Text>
             <TextInput
-              className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
               value={storeData.returnAddress}
               onChangeText={(text) => handleInputChange("returnAddress", text)}
               placeholder="Enter return address"
               multiline
               numberOfLines={2}
               textAlignVertical="top"
+              editable={isEditing}
             />
           </View>
 
@@ -378,13 +392,14 @@ const EditStoreProfileScreen = ({ navigation }) => {
               Store Location (Optional)
             </Text>
             <TextInput
-              className="p-3 text-base bg-white border border-gray-300 rounded-lg"
+              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
               value={storeData.storeLocation}
               onChangeText={(text) => handleInputChange("storeLocation", text)}
               placeholder="Enter store location"
               multiline
               numberOfLines={2}
               textAlignVertical="top"
+              editable={isEditing}
             />
           </View>
         </View>
@@ -392,7 +407,7 @@ const EditStoreProfileScreen = ({ navigation }) => {
         <View className="h-20" />
       </ScrollView>
 
-      {hasChanges && (
+      {hasChanges && isEditing && (
         <View className="flex flex-row gap-3 p-4 bg-white border-t border-gray-300">
           <TouchableOpacity
             className="flex-1 py-3 bg-gray-200 rounded-lg"
