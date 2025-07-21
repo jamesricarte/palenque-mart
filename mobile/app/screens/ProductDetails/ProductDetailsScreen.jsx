@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -28,6 +29,11 @@ const ProductDetailsScreen = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [showPreferenceModal, setShowPreferenceModal] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [selectedPreparations, setSelectedPreparations] = useState({});
+  const [cartCount, setCartCount] = useState(0);
+  const [actionType, setActionType] = useState(""); // 'cart' or 'buy'
 
   const fetchProduct = async () => {
     try {
@@ -36,8 +42,6 @@ const ProductDetailsScreen = () => {
       if (response.data.success) {
         setProduct(response.data.data.product);
       }
-
-      console.log(response.data.data.product);
     } catch (error) {
       console.error("Error fetching product:", error);
       Alert.alert("Error", "Failed to load product details");
@@ -47,8 +51,21 @@ const ProductDetailsScreen = () => {
     }
   };
 
+  const fetchCartCount = async () => {
+    if (!user) return;
+    try {
+      const response = await axios.get(`${API_URL}/api/cart/count`);
+      if (response.data.success) {
+        setCartCount(response.data.data.totalItems);
+      }
+    } catch (error) {
+      console.error("Error fetching cart count:", error);
+    }
+  };
+
   useEffect(() => {
     fetchProduct();
+    fetchCartCount();
   }, [productId]);
 
   const formatUnitType = (unitType) => {
@@ -70,6 +87,10 @@ const ProductDetailsScreen = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const isOwnProduct = () => {
+    return user && product && product.seller_user_id === user.id;
+  };
+
   const handleAddToCart = async () => {
     if (!user) {
       Alert.alert("Login Required", "Please login to add items to cart", [
@@ -79,12 +100,16 @@ const ProductDetailsScreen = () => {
       return;
     }
 
-    setAddingToCart(true);
-    // TODO: Implement add to cart functionality
-    setTimeout(() => {
-      setAddingToCart(false);
-      Alert.alert("Success", "Product added to cart!");
-    }, 1000);
+    if (isOwnProduct()) {
+      Alert.alert(
+        "Cannot Add to Cart",
+        "You cannot add your own product to cart"
+      );
+      return;
+    }
+
+    setActionType("cart");
+    setShowPreferenceModal(true);
   };
 
   const handleBuyNow = async () => {
@@ -96,18 +121,71 @@ const ProductDetailsScreen = () => {
       return;
     }
 
-    // TODO: Implement buy now functionality
-    Alert.alert("Buy Now", "This feature will be implemented soon!");
+    if (isOwnProduct()) {
+      Alert.alert("Cannot Purchase", "You cannot purchase your own product");
+      return;
+    }
+
+    setActionType("buy");
+    setShowPreferenceModal(true);
+  };
+
+  const handleConfirmAction = async () => {
+    setAddingToCart(true);
+    setShowPreferenceModal(false);
+
+    try {
+      if (actionType === "cart") {
+        const response = await axios.post(`${API_URL}/api/cart/add`, {
+          productId: product.id,
+          quantity: selectedQuantity,
+        });
+
+        if (response.data.success) {
+          Alert.alert("Success", response.data.message);
+          fetchCartCount(); // Refresh cart count
+        }
+      } else {
+        // TODO: Implement buy now functionality
+        Alert.alert("Buy Now", "This feature will be implemented soon!");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        `Failed to ${actionType === "cart" ? "add to cart" : "purchase"}`;
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setAddingToCart(false);
+      // Reset preferences
+      setSelectedQuantity(1);
+      setSelectedPreparations({});
+    }
   };
 
   if (loading) {
     return (
       <View className="flex-1 bg-white">
-        <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={24} color="black" />
+        <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Feather name="arrow-left" size={24} color="black" />
+            </TouchableOpacity>
+            <Text className="ml-4 text-xl font-semibold">Product Details</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Cart")}
+            className="relative"
+          >
+            <Feather name="shopping-cart" size={24} color="black" />
+            {cartCount > 0 && (
+              <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
+                <Text className="text-xs font-bold text-white">
+                  {cartCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
-          <Text className="ml-4 text-xl font-semibold">Product Details</Text>
         </View>
 
         <View className="items-center justify-center flex-1">
@@ -121,11 +199,26 @@ const ProductDetailsScreen = () => {
   if (!product) {
     return (
       <View className="flex-1 bg-white">
-        <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={24} color="black" />
+        <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Feather name="arrow-left" size={24} color="black" />
+            </TouchableOpacity>
+            <Text className="ml-4 text-xl font-semibold">Product Details</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Cart")}
+            className="relative"
+          >
+            <Feather name="shopping-cart" size={24} color="black" />
+            {cartCount > 0 && (
+              <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
+                <Text className="text-xs font-bold text-white">
+                  {cartCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
-          <Text className="ml-4 text-xl font-semibold">Product Details</Text>
         </View>
 
         <View className="items-center justify-center flex-1">
@@ -141,11 +234,24 @@ const ProductDetailsScreen = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color="black" />
+      <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <View className="flex-row items-center">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Feather name="arrow-left" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="ml-4 text-xl font-semibold">Product Details</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Cart")}
+          className="relative"
+        >
+          <Feather name="shopping-cart" size={24} color="black" />
+          {cartCount > 0 && (
+            <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
+              <Text className="text-xs font-bold text-white">{cartCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
-        <Text className="ml-4 text-xl font-semibold">Product Details</Text>
       </View>
 
       <ScrollView
@@ -268,6 +374,20 @@ const ProductDetailsScreen = () => {
               </Text>
             </View>
           )}
+
+          {!isOwnProduct() && (
+            <TouchableOpacity
+              className="flex-row items-center justify-center p-3 mt-3 border border-orange-600 rounded-lg"
+              onPress={() =>
+                Alert.alert("Chat", "Chat feature will be implemented soon!")
+              }
+            >
+              <Feather name="message-circle" size={20} color="#EA580C" />
+              <Text className="ml-2 font-medium text-orange-600">
+                Chat with Store
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Product Details */}
@@ -362,35 +482,172 @@ const ProductDetailsScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
-        <View className="flex-row gap-3">
-          <TouchableOpacity
-            className={`flex-1 items-center justify-center p-4 border-2 border-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
-            onPress={handleAddToCart}
-            disabled={product.stock_quantity === 0 || addingToCart}
-          >
-            {addingToCart ? (
-              <ActivityIndicator color="#EA580C" />
-            ) : (
-              <>
-                <Feather name="shopping-cart" size={20} color="#EA580C" />
-                <Text className="mt-1 font-semibold text-orange-600">
-                  Add to Cart
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+      {!isOwnProduct() && (
+        <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              className={`flex-1 items-center justify-center p-4 border-2 border-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
+              onPress={handleAddToCart}
+              disabled={product.stock_quantity === 0 || addingToCart}
+            >
+              {addingToCart ? (
+                <ActivityIndicator color="#EA580C" />
+              ) : (
+                <>
+                  <Feather name="shopping-cart" size={20} color="#EA580C" />
+                  <Text className="mt-1 font-semibold text-orange-600">
+                    Add to Cart
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            className={`flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
-            onPress={handleBuyNow}
-            disabled={product.stock_quantity === 0}
-          >
-            <Feather name="zap" size={20} color="white" />
-            <Text className="mt-1 font-semibold text-white">Buy Now</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              className={`flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
+              onPress={handleBuyNow}
+              disabled={product.stock_quantity === 0}
+            >
+              <Feather name="zap" size={20} color="white" />
+              <Text className="mt-1 font-semibold text-white">Buy Now</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
+
+      {/* Preference Modal */}
+      <Modal
+        transparent
+        visible={showPreferenceModal}
+        animationType="slide"
+        onRequestClose={() => setShowPreferenceModal(false)}
+      >
+        <View
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="justify-end flex-1">
+            <View className="p-6 bg-white rounded-t-3xl max-h-96">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-semibold">
+                  Select Preferences
+                </Text>
+                <TouchableOpacity onPress={() => setShowPreferenceModal(false)}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Quantity Selection */}
+                <View className="mb-4">
+                  <Text className="mb-2 text-lg font-medium">Quantity</Text>
+                  <View className="flex-row items-center justify-between p-3 bg-gray-100 rounded-lg">
+                    <TouchableOpacity
+                      className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                      onPress={() =>
+                        setSelectedQuantity(Math.max(1, selectedQuantity - 1))
+                      }
+                    >
+                      <Feather name="minus" size={20} color="black" />
+                    </TouchableOpacity>
+                    <Text className="text-xl font-semibold">
+                      {selectedQuantity}
+                    </Text>
+                    <TouchableOpacity
+                      className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                      onPress={() =>
+                        setSelectedQuantity(
+                          Math.min(product.stock_quantity, selectedQuantity + 1)
+                        )
+                      }
+                    >
+                      <Feather name="plus" size={20} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                  <Text className="mt-1 text-sm text-gray-500">
+                    Max: {product.stock_quantity} available
+                  </Text>
+                </View>
+
+                {/* Preparation Options */}
+                {product.preparation_options &&
+                  Object.keys(product.preparation_options).length > 0 && (
+                    <View className="mb-4">
+                      <Text className="mb-2 text-lg font-medium">
+                        Preparation Options
+                      </Text>
+                      {Object.entries(product.preparation_options).map(
+                        ([option, available]) =>
+                          available && (
+                            <TouchableOpacity
+                              key={option}
+                              className={`flex-row items-center p-3 mb-2 rounded-lg border ${
+                                selectedPreparations[option]
+                                  ? "bg-orange-50 border-orange-600"
+                                  : "bg-gray-50 border-gray-200"
+                              }`}
+                              onPress={() =>
+                                setSelectedPreparations((prev) => ({
+                                  ...prev,
+                                  [option]: !prev[option],
+                                }))
+                              }
+                            >
+                              <View
+                                className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
+                                  selectedPreparations[option]
+                                    ? "bg-orange-600 border-orange-600"
+                                    : "border-gray-300"
+                                }`}
+                              >
+                                {selectedPreparations[option] && (
+                                  <Feather
+                                    name="check"
+                                    size={12}
+                                    color="white"
+                                  />
+                                )}
+                              </View>
+                              <Text className="flex-1 capitalize">
+                                {option.replace("_", " ")}
+                              </Text>
+                            </TouchableOpacity>
+                          )
+                      )}
+                    </View>
+                  )}
+
+                {/* Total Price */}
+                <View className="p-4 mb-4 bg-gray-100 rounded-lg">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-lg font-medium">Total Price:</Text>
+                    <Text className="text-2xl font-bold text-orange-600">
+                      ₱
+                      {(
+                        Number.parseFloat(product.price) * selectedQuantity
+                      ).toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              </ScrollView>
+
+              {/* Action Button */}
+              <TouchableOpacity
+                className="items-center p-4 bg-orange-600 rounded-lg"
+                onPress={handleConfirmAction}
+                disabled={addingToCart}
+              >
+                {addingToCart ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-lg font-semibold text-white">
+                    {actionType === "cart" ? "Add to Cart" : "Buy Now"}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

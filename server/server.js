@@ -11,6 +11,7 @@ const sellerRoutes = require("./routes/sellerRoutes");
 const getLocalIp = require("./utils/getLocalIp");
 const adminRoutes = require("./routes/adminRoutes");
 const productRoutes = require("./routes/productRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +24,7 @@ app.use("/api", authRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
 
 const wss = new WebSocket.Server({ server });
 let sockets = [];

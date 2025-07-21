@@ -24,6 +24,7 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [cartCount, setCartCount] = useState(0);
 
   const fetchProducts = async () => {
     try {
@@ -39,6 +40,18 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  const fetchCartCount = async () => {
+    if (!user) return;
+    try {
+      const response = await axios.get(`${API_URL}/api/cart/count`);
+      if (response.data.success) {
+        setCartCount(response.data.data.totalItems);
+      }
+    } catch (error) {
+      console.error("Error fetching cart count:", error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchProducts();
@@ -47,7 +60,10 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+    if (user) {
+      fetchCartCount();
+    }
+  }, [user]);
 
   const filteredProducts = products.filter(
     (product) =>
@@ -196,8 +212,18 @@ const HomeScreen = ({ navigation }) => {
               />
             </View>
             <View className="flex flex-row gap-4">
-              <TouchableOpacity onPress={() => navigation.push("Cart")}>
+              <TouchableOpacity
+                onPress={() => navigation.push("Cart")}
+                className="relative"
+              >
                 <Feather name="shopping-cart" size={24} color="black" />
+                {cartCount > 0 && (
+                  <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
+                    <Text className="text-xs font-bold text-white">
+                      {cartCount}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -226,8 +252,18 @@ const HomeScreen = ({ navigation }) => {
             />
           </View>
           <View className="flex flex-row gap-4">
-            <TouchableOpacity onPress={() => navigation.push("Cart")}>
+            <TouchableOpacity
+              onPress={() => navigation.push("Cart")}
+              className="relative"
+            >
               <Feather name="shopping-cart" size={24} color="black" />
+              {cartCount > 0 && (
+                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
+                  <Text className="text-xs font-bold text-white">
+                    {cartCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>

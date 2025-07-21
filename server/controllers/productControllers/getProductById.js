@@ -35,6 +35,7 @@ const getProductById = async (req, res) => {
         s.store_description,
         s.account_type,
         s.store_logo_key,
+        s.user_id as seller_user_id,
         sa.pickup_address,
         sa.return_address,
         sa.store_location

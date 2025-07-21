@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   timezone: "Z",
-  dateStrings: ["DATE"],
+  dateStrings: true,
 });
 
 (async () => {

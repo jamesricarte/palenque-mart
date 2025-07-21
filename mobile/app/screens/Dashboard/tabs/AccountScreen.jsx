@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import axios from "axios";
+import { API_URL } from "../../../config/apiConfig";
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -20,6 +22,7 @@ const AccountScreen = ({ navigation }) => {
 
   const [loading, setLoading] = useState(false);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   const orderCategories = [
     { icon: "package", label: "To Pay", count: 2 },
@@ -59,6 +62,26 @@ const AccountScreen = ({ navigation }) => {
     }, 3000);
   };
 
+  const fetchCartCount = async () => {
+    if (!user) return;
+    try {
+      const response = await axios.get(`${API_URL}/api/cart/count`);
+      if (response.data.success) {
+        setCartCount(response.data.data.totalItems);
+      }
+    } catch (error) {
+      console.error("Error fetching cart count:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchCartCount();
+    } else {
+      setCartCount(0);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (route.params?.message) {
       setSnackBarVisible(true);
@@ -71,8 +94,18 @@ const AccountScreen = ({ navigation }) => {
         {/* Header */}
         <View className="flex gap-5 px-6 pt-16 pb-5 bg-white border-b border-gray-300">
           <View className="flex flex-row justify-end gap-5">
-            <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Cart")}
+              className="relative"
+            >
               <Feather name="shopping-cart" size={22} color="black" />
+              {cartCount > 0 && (
+                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
+                  <Text className="text-xs font-bold text-white">
+                    {cartCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
               <Feather name="settings" size={22} color="black" />
