@@ -68,7 +68,12 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const ProductCard = ({ product }) => (
-    <TouchableOpacity className="flex-1 mx-2 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+    <TouchableOpacity
+      className="flex-1 mx-2 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm"
+      onPress={() =>
+        navigation.navigate("ProductDetails", { productId: product.id })
+      }
+    >
       <View className="relative">
         {product.image_keys ? (
           <Image
@@ -101,9 +106,28 @@ const HomeScreen = ({ navigation }) => {
           {product.name}
         </Text>
 
-        <Text className="mb-2 text-sm text-gray-600" numberOfLines={1}>
-          by {product.store_name}
-        </Text>
+        <View className="flex-row items-center mb-2">
+          {product.store_logo_key ? (
+            <Image
+              source={{
+                uri: product.store_logo_key,
+              }}
+              className="w-4 h-4 mr-2 rounded-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="flex items-center justify-center w-4 h-4 mr-2 bg-gray-300 rounded-full">
+              <MaterialCommunityIcons
+                name="storefront-outline"
+                size={8}
+                color="#6B7280"
+              />
+            </View>
+          )}
+          <Text className="flex-1 text-sm text-gray-600" numberOfLines={1}>
+            by {product.store_name}
+          </Text>
+        </View>
 
         {(product.city || product.province) && (
           <View className="flex-row items-center mb-2">

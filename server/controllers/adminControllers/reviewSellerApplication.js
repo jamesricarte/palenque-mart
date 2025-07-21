@@ -81,11 +81,11 @@ const reviewSellerApplication = async (req, res) => {
 
           await connection.execute(
             `
-        INSERT INTO sellers (
-          user_id, application_id, seller_id, account_type, 
-          store_name, store_description, store_logo_key
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      `,
+INSERT INTO sellers (
+  user_id, application_id, seller_id, account_type, 
+  store_name, store_description, store_logo_key
+) VALUES (?, ?, ?, ?, ?, ?, ?)
+`,
             [
               application.user_id,
               application.id,
@@ -93,9 +93,84 @@ const reviewSellerApplication = async (req, res) => {
               application.account_type,
               storeProfile.store_name,
               storeProfile.store_description,
-              storeProfile.store_logo_key || null, // Corrected property and ensures null if undefined
+              null, // Will be updated after logo migration
             ]
           );
+
+          // Handle store logo migration if it exists
+          const [storeLogoDocuments] = await connection.execute(
+            "SELECT * FROM seller_documents WHERE application_id = ? AND document_type = 'store_logo'",
+            [application.id]
+          );
+
+          let publicStoreLogoKey = null;
+
+          if (storeLogoDocuments.length > 0) {
+            const storeLogoDoc = storeLogoDocuments[0];
+
+            try {
+              // Download the file from seller-documents bucket
+              const { data: fileData, error: downloadError } =
+                await supabase.storage
+                  .from("seller-documents")
+                  .download(storeLogoDoc.storage_key);
+
+              if (downloadError) {
+                console.error("Error downloading store logo:", downloadError);
+              } else {
+                // Create new path in vendor-assets bucket
+                const fileExtension = storeLogoDoc.file_name.split(".").pop();
+                const newFileName = `store_logo_${Date.now()}.${fileExtension}`;
+                publicStoreLogoKey = `sellers/${sellerId}/store_logos/${newFileName}`;
+
+                // Upload to vendor-assets bucket (public)
+                const { error: uploadError } = await supabase.storage
+                  .from("vendor-assets")
+                  .upload(publicStoreLogoKey, fileData, {
+                    contentType: storeLogoDoc.mime_type,
+                    upsert: false,
+                  });
+
+                if (uploadError) {
+                  console.error(
+                    "Error uploading to vendor-assets:",
+                    uploadError
+                  );
+                  publicStoreLogoKey = null;
+                } else {
+                  // Delete from seller-documents bucket
+                  await supabase.storage
+                    .from("seller-documents")
+                    .remove([storeLogoDoc.storage_key]);
+
+                  // Delete store logo record from seller_documents table
+                  await connection.execute(
+                    "DELETE FROM seller_documents WHERE application_id = ? AND document_type = 'store_logo'",
+                    [application.id]
+                  );
+
+                  // Update seller_store_profiles with new public path
+                  await connection.execute(
+                    "UPDATE seller_store_profiles SET store_logo_key = ? WHERE application_id = ?",
+                    [publicStoreLogoKey, application.id]
+                  );
+
+                  // Update sellers table with new public path
+                  await connection.execute(
+                    "UPDATE sellers SET store_logo_key = ? WHERE application_id = ?",
+                    [publicStoreLogoKey, application.id]
+                  );
+
+                  console.log(
+                    `Store logo migrated successfully for seller ${sellerId}`
+                  );
+                }
+              }
+            } catch (error) {
+              console.error("Error during store logo migration:", error);
+              // Continue with approval even if logo migration fails
+            }
+          }
 
           // Fetch user details for notification
           const [users] = await connection.execute(

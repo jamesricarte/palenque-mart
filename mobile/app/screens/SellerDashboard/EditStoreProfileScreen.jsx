@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Alert,
+  Image,
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -37,6 +38,7 @@ const EditStoreProfileScreen = ({ navigation }) => {
     pickupAddress: "",
     returnAddress: "",
     storeLocation: "",
+    storeLogoUrl: null,
   });
 
   const [originalData, setOriginalData] = useState({});
@@ -263,9 +265,17 @@ const EditStoreProfileScreen = ({ navigation }) => {
         {/* Store Logo Section */}
         <View className="items-center py-8 bg-white border-b border-gray-200">
           <View className="relative">
-            <View className="flex items-center justify-center w-24 h-24 bg-blue-100 rounded-full">
-              <FontAwesome6 name="store" size={32} color="#3b82f6" />
-            </View>
+            {storeData.storeLogoUrl ? (
+              <Image
+                source={{ uri: storeData.storeLogoUrl }}
+                className="w-24 h-24 rounded-full"
+                style={{ width: 96, height: 96, borderRadius: 48 }}
+              />
+            ) : (
+              <View className="flex items-center justify-center w-24 h-24 bg-blue-100 rounded-full">
+                <FontAwesome6 name="store" size={32} color="#3b82f6" />
+              </View>
+            )}
             <TouchableOpacity className="absolute bottom-0 right-0 p-2 bg-black rounded-full">
               <Feather name="camera" size={16} color="white" />
             </TouchableOpacity>

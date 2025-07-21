@@ -1,4 +1,5 @@
 const db = require("../../config/db");
+const supabase = require("../../config/supabase");
 
 const getAllProducts = async (req, res) => {
   try {
@@ -31,12 +32,40 @@ const getAllProducts = async (req, res) => {
 
     const [results] = await db.execute(query);
 
+    // Generate public URLs for images
+    const productsWithUrls = results.map((product) => {
+      let productImageUrl = null;
+      let storeLogoUrl = null;
+
+      // Generate product image URL if image_keys exists
+      if (product.image_keys) {
+        const { data } = supabase.storage
+          .from("products")
+          .getPublicUrl(product.image_keys);
+        productImageUrl = data?.publicUrl || null;
+      }
+
+      // Generate store logo URL if store_logo_key exists
+      if (product.store_logo_key) {
+        const { data } = supabase.storage
+          .from("vendor-assets")
+          .getPublicUrl(product.store_logo_key);
+        storeLogoUrl = data?.publicUrl || null;
+      }
+
+      return {
+        ...product,
+        image_keys: productImageUrl,
+        store_logo_key: storeLogoUrl,
+      };
+    });
+
     res.status(200).json({
       success: true,
       message: "Products fetched successfully",
       data: {
-        products: results,
-        count: results.length,
+        products: productsWithUrls,
+        count: productsWithUrls.length,
       },
     });
   } catch (error) {

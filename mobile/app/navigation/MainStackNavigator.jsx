@@ -36,6 +36,8 @@ import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScr
 import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
 import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
 
+import ProductDetailsScreen from "../screens/ProductDetails/ProductDetailsScreen";
+
 const Stack = createNativeStackNavigator();
 
 const MainStackNavigator = () => {
@@ -130,6 +132,9 @@ const MainStackNavigator = () => {
         name="EditStoreProfile"
         component={EditStoreProfileScreen}
       />
+
+      {/* Product Details */}
+      <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
     </Stack.Navigator>
   );
 };

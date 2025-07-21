@@ -111,7 +111,14 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
 
       if (response.data.success) {
         Alert.alert("Success", `Application ${action}ed successfully`, [
-          { text: "OK", onPress: () => navigation.goBack() },
+          {
+            text: "OK",
+            onPress: () =>
+              navigation.navigate("AdminDashboard", {
+                screen: "Sellers",
+                params: { newProductAdded: true },
+              }),
+          },
         ]);
       }
     } catch (error) {

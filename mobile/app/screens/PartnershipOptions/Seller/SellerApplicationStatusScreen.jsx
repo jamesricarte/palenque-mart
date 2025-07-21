@@ -18,7 +18,7 @@ import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
 
 const SellerApplicationStatusScreen = ({ navigation }) => {
-  const { token } = useAuth();
+  const { token, approvalStatusUpdated, resetApprovalStatus } = useAuth();
   const [applicationData, setApplicationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,6 +61,14 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
   useEffect(() => {
     fetchApplicationStatus();
   }, []);
+
+  useEffect(() => {
+    if (approvalStatusUpdated) {
+      fetchApplicationStatus();
+
+      resetApprovalStatus();
+    }
+  }, [approvalStatusUpdated]);
 
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -143,7 +151,7 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
           Alert.alert("File too large", "File size must be less than 5MB");
           return;
         }
-        setStagedFiles((prev) => ({ ...prev, [documentId]: file }));
+        setStagedFiles((prev) => ({ ...prev, [documentType]: file }));
       }
     } catch (error) {
       console.error("Error picking document/image:", error);
@@ -155,8 +163,9 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
     try {
       setIsSubmitting(true);
       const formData = new FormData();
-      Object.entries(stagedFiles).forEach(([docId, file]) => {
-        formData.append(docId, {
+
+      Object.entries(stagedFiles).forEach(([documentType, file]) => {
+        formData.append(documentType, {
           uri: file.uri,
           name: file.name || `upload.${file.uri.split(".").pop()}`,
           type: file.mimeType || file.type || "application/octet-stream",
@@ -211,7 +220,7 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
   const allFilesStaged = useMemo(
     () =>
       rejectedDocs.length > 0 &&
-      rejectedDocs.every((doc) => stagedFiles[doc.id]),
+      rejectedDocs.every((doc) => stagedFiles[doc.document_type]),
     [rejectedDocs, stagedFiles]
   );
 
@@ -474,23 +483,23 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
                             <Text className="font-semibold text-center text-white">
                               {getButtonText(
                                 doc.document_type,
-                                !!stagedFiles[doc.id]
+                                !!stagedFiles[doc.document_type]
                               )}
                             </Text>
                           </TouchableOpacity>
-                          {stagedFiles[doc.id] && (
+                          {stagedFiles[doc.document_type] && (
                             <View className="flex-row items-center justify-between p-2 mt-2 bg-blue-100 rounded-md">
                               <Text
                                 className="flex-1 text-xs text-blue-800"
                                 numberOfLines={1}
                               >
-                                {stagedFiles[doc.id].name}
+                                {stagedFiles[doc.document_type].name}
                               </Text>
                               <TouchableOpacity
                                 onPress={() =>
                                   setStagedFiles((prev) => {
                                     const newFiles = { ...prev };
-                                    delete newFiles[doc.id];
+                                    delete newFiles[doc.document_type];
                                     return newFiles;
                                   })
                                 }

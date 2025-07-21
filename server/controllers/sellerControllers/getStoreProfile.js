@@ -1,4 +1,5 @@
 const db = require("../../config/db");
+const supabase = require("../../config/supabase");
 
 const getStoreProfile = async (req, res) => {
   try {
@@ -64,6 +65,11 @@ const getStoreProfile = async (req, res) => {
       storeLocation: addressData.store_location || "",
       isActive: sellerData.is_active || 0,
       sellerId: sellerData.seller_id || "",
+      storeLogoUrl: sellerData.store_logo_key
+        ? supabase.storage
+            .from("vendor-assets")
+            .getPublicUrl(sellerData.store_logo_key).data.publicUrl
+        : null,
     };
 
     res.status(200).json({

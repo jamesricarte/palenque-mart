@@ -8,7 +8,8 @@ import {
   RefreshControl,
   TextInput,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useState, useEffect, useCallback } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
@@ -84,6 +85,14 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
     fetchApplications(false, selectedStatus, 1);
   }, [selectedStatus]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.newProductAdded) {
+        fetchApplications();
+      }
+    }, [route.params])
+  );
+
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
@@ -111,7 +120,7 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
 
   const ApplicationCard = ({ application }) => (
     <TouchableOpacity
-      className="p-4 mb-3 bg-white rounded-lg border border-gray-200"
+      className="p-4 mb-3 bg-white border border-gray-200 rounded-lg"
       onPress={() =>
         navigation.navigate("AdminSellerApplicationDetails", {
           applicationId: application.application_id,
@@ -120,7 +129,7 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
     >
       <View className="flex flex-row items-start justify-between mb-2">
         <View className="flex-1">
-          <Text className="font-semibold text-base">
+          <Text className="text-base font-semibold">
             {application.store_name ||
               application.business_name ||
               `${application.first_name} ${application.last_name}`}
@@ -233,16 +242,16 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
         }
       >
         {loading ? (
-          <View className="flex-1 items-center justify-center py-20">
+          <View className="items-center justify-center flex-1 py-20">
             <Text className="text-gray-500">Loading applications...</Text>
           </View>
         ) : filteredApplications.length === 0 ? (
-          <View className="flex-1 items-center justify-center py-20">
+          <View className="items-center justify-center flex-1 py-20">
             <Feather name="inbox" size={48} color="#d1d5db" />
-            <Text className="text-lg font-medium mt-4 mb-2">
+            <Text className="mt-4 mb-2 text-lg font-medium">
               No Applications Found
             </Text>
-            <Text className="text-gray-500 text-center">
+            <Text className="text-center text-gray-500">
               {searchQuery
                 ? "No applications match your search."
                 : "No seller applications available."}

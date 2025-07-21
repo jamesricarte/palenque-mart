@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [approvalStatusUpdated, setApprovalStatusUpdated] = useState(false);
 
   useEffect(() => {
     const loadAuthData = async () => {
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }) => {
           message.targetUserId === user.id
         ) {
           Alert.alert(message.title, message.body);
-          // You could trigger a data refresh here
+          setApprovalStatusUpdated(true);
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
@@ -72,6 +73,8 @@ export const AuthProvider = ({ children }) => {
       }
     };
   }, [socket, isConnected, user]);
+
+  const resetApprovalStatus = () => setApprovalStatusUpdated(false);
 
   const login = async (newToken) => {
     setToken(newToken);
@@ -96,7 +99,16 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoading, login, logout, setUser }}
+      value={{
+        user,
+        token,
+        isLoading,
+        login,
+        logout,
+        setUser,
+        approvalStatusUpdated,
+        resetApprovalStatus,
+      }}
     >
       {children}
     </AuthContext.Provider>

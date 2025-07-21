@@ -1,6 +1,13 @@
 "use client";
 
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  Image,
+} from "react-native";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Feather from "@expo/vector-icons/Feather";
@@ -102,9 +109,17 @@ const SellerStoreAccountScreen = ({ navigation }) => {
             onPress={() => navigation.navigate("EditStoreProfile")}
           >
             <View className="flex flex-row items-center gap-4 mb-4">
-              <View className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
-                <FontAwesome6 name="store" size={24} color="#3b82f6" />
-              </View>
+              {sellerData.storeLogoUrl ? (
+                <Image
+                  source={{ uri: sellerData.storeLogoUrl }}
+                  className="w-16 h-16 rounded-full"
+                  style={{ width: 64, height: 64, borderRadius: 32 }}
+                />
+              ) : (
+                <View className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
+                  <FontAwesome6 name="store" size={24} color="#3b82f6" />
+                </View>
+              )}
               <View className="flex-1">
                 <Text className="text-xl font-semibold">
                   {sellerData.storeName || "Your Store"}

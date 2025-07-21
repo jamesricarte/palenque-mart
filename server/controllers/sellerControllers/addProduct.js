@@ -5,12 +5,26 @@ const { v4: uuidv4 } = require("uuid");
 const BUCKET_NAME = "products";
 
 const addProduct = async (req, res) => {
-  const { name, description, price, stock_quantity, user_id } = req.body;
+  const {
+    name,
+    description,
+    price,
+    stock_quantity,
+    user_id,
+    category,
+    subcategory,
+    unit_type,
+    freshness_indicator,
+    harvest_date,
+    source_origin,
+    preparation_options,
+  } = req.body;
 
-  if (!name || !price || !stock_quantity) {
-    return res
-      .status(400)
-      .json({ error: "Name, price, and stock quantity are required." });
+  if (!name || !price || !stock_quantity || !category || !unit_type) {
+    return res.status(400).json({
+      error:
+        "Name, price, stock quantity, category, and unit type are required.",
+    });
   }
 
   if (!req.files || !req.files.productImage) {
@@ -34,16 +48,6 @@ const addProduct = async (req, res) => {
       return res.status(500).json({ error: "Failed to upload product image." });
     }
 
-    // 2. Get public URL for the uploaded image
-    const { data: urlData } = supabase.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(filePath);
-
-    if (!urlData || !urlData.publicUrl) {
-      return res.status(500).json({ error: "Failed to get image URL." });
-    }
-    const imageUrl = urlData.publicUrl;
-
     const [rows] = await pool.query(
       "SELECT id from sellers WHERE user_id = ?",
       [user_id]
@@ -57,10 +61,41 @@ const addProduct = async (req, res) => {
 
     const sellerId = rows[0].id;
 
-    // 3. Insert product data into the database
+    // Parse preparation options if provided
+    let preparationOptionsJson = null;
+    if (preparation_options) {
+      try {
+        preparationOptionsJson =
+          typeof preparation_options === "string"
+            ? JSON.parse(preparation_options)
+            : preparation_options;
+      } catch (error) {
+        console.error("Error parsing preparation options:", error);
+      }
+    }
+
+    // 3. Insert product data into the database with file path only
     const [result] = await pool.query(
-      "INSERT INTO products (seller_id, name, description, price, stock_quantity, image_keys) VALUES (?, ?, ?, ?, ?, ?)",
-      [sellerId, name, description, price, stock_quantity, imageUrl]
+      `INSERT INTO products (
+        seller_id, name, description, price, stock_quantity, category, subcategory,
+        unit_type, freshness_indicator, harvest_date, source_origin,
+        preparation_options, image_keys
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        sellerId,
+        name,
+        description,
+        price,
+        stock_quantity,
+        category,
+        subcategory || null,
+        unit_type,
+        freshness_indicator || null,
+        harvest_date || null,
+        source_origin || null,
+        preparationOptionsJson ? JSON.stringify(preparationOptionsJson) : null,
+        filePath, // Store only the file path, not the complete URL
+      ]
     );
 
     res.status(201).json({

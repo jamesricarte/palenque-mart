@@ -1,10 +1,5 @@
-CREATE DATABASE  IF NOT EXISTS `palenque_mart_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE IF NOT EXISTS `palenque_mart_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `palenque_mart_db`;
--- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
---
--- Host: localhost    Database: palenque_mart_db
--- ------------------------------------------------------
--- Server version	8.0.42
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -46,20 +41,8 @@ CREATE TABLE `delivery_partner_applications` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_application_id` (`application_id`),
   KEY `idx_status` (`status`),
-  KEY `idx_reviewed_by` (`reviewed_by`),
-  CONSTRAINT `delivery_partner_applications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `delivery_partner_applications_ibfk_2` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+  KEY `idx_reviewed_by` (`reviewed_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `delivery_partner_applications`
---
-
-LOCK TABLES `delivery_partner_applications` WRITE;
-/*!40000 ALTER TABLE `delivery_partner_applications` DISABLE KEYS */;
-/*!40000 ALTER TABLE `delivery_partner_applications` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `delivery_partner_documents`
@@ -82,19 +65,8 @@ CREATE TABLE `delivery_partner_documents` (
   PRIMARY KEY (`id`),
   KEY `idx_application_id` (`application_id`),
   KEY `idx_document_type` (`document_type`),
-  KEY `idx_verification_status` (`verification_status`),
-  CONSTRAINT `delivery_partner_documents_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `delivery_partner_applications` (`id`) ON DELETE CASCADE
+  KEY `idx_verification_status` (`verification_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `delivery_partner_documents`
---
-
-LOCK TABLES `delivery_partner_documents` WRITE;
-/*!40000 ALTER TABLE `delivery_partner_documents` DISABLE KEYS */;
-/*!40000 ALTER TABLE `delivery_partner_documents` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `products`
@@ -111,6 +83,12 @@ CREATE TABLE `products` (
   `price` decimal(10,2) NOT NULL,
   `stock_quantity` int NOT NULL DEFAULT '0',
   `category` varchar(100) DEFAULT NULL,
+  `subcategory` varchar(100) DEFAULT NULL,
+  `unit_type` enum('per_kilo','per_250g','per_500g','per_piece','per_bundle','per_pack','per_liter','per_dozen') DEFAULT 'per_piece',
+  `freshness_indicator` varchar(255) DEFAULT NULL,
+  `harvest_date` date DEFAULT NULL,
+  `source_origin` varchar(255) DEFAULT NULL,
+  `preparation_options` json DEFAULT NULL,
   `image_keys` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -118,19 +96,8 @@ CREATE TABLE `products` (
   PRIMARY KEY (`id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_is_active` (`is_active`),
-  CONSTRAINT `products_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `products`
---
-
-LOCK TABLES `products` WRITE;
-/*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Apple','',25.00,1000,NULL,'https://ipvbxclkwidxsjvdyolb.supabase.co/storage/v1/object/public/products/product-images/user_2/10cb3134-d0ee-4bdd-8c6a-68572933a9ab-photo.jpeg',1,'2025-07-18 17:36:51','2025-07-18 17:36:51');
-/*!40000 ALTER TABLE `products` ENABLE KEYS */;
-UNLOCK TABLES;
+  KEY `idx_category` (`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Table structure for table `seller_addresses`
@@ -148,20 +115,8 @@ CREATE TABLE `seller_addresses` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_application_id` (`application_id`),
-  CONSTRAINT `seller_addresses_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `seller_applications` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `seller_addresses`
---
-
-LOCK TABLES `seller_addresses` WRITE;
-/*!40000 ALTER TABLE `seller_addresses` DISABLE KEYS */;
-INSERT INTO `seller_addresses` VALUES (1,1,'Panal, Tabacp City, Albay','Panal, Tabaco City, Albay',NULL,'2025-07-18 16:42:10','2025-07-18 16:42:10');
-/*!40000 ALTER TABLE `seller_addresses` ENABLE KEYS */;
-UNLOCK TABLES;
+  KEY `idx_application_id` (`application_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Table structure for table `seller_applications`
@@ -186,21 +141,8 @@ CREATE TABLE `seller_applications` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_application_id` (`application_id`),
   KEY `idx_status` (`status`),
-  KEY `idx_reviewed_by` (`reviewed_by`),
-  CONSTRAINT `seller_applications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `seller_applications_ibfk_2` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `seller_applications`
---
-
-LOCK TABLES `seller_applications` WRITE;
-/*!40000 ALTER TABLE `seller_applications` DISABLE KEYS */;
-INSERT INTO `seller_applications` VALUES (1,2,'APP56926530','individual','approved',NULL,'2025-07-18 16:42:06','2025-07-18 16:43:08','2025-07-18 16:43:08',1);
-/*!40000 ALTER TABLE `seller_applications` ENABLE KEYS */;
-UNLOCK TABLES;
+  KEY `idx_reviewed_by` (`reviewed_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Table structure for table `seller_business_details`
@@ -219,19 +161,8 @@ CREATE TABLE `seller_business_details` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_application_id` (`application_id`),
-  CONSTRAINT `seller_business_details_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `seller_applications` (`id`) ON DELETE CASCADE
+  KEY `idx_application_id` (`application_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `seller_business_details`
---
-
-LOCK TABLES `seller_business_details` WRITE;
-/*!40000 ALTER TABLE `seller_business_details` DISABLE KEYS */;
-/*!40000 ALTER TABLE `seller_business_details` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `seller_documents`
@@ -255,20 +186,8 @@ CREATE TABLE `seller_documents` (
   PRIMARY KEY (`id`),
   KEY `idx_application_id` (`application_id`),
   KEY `idx_document_type` (`document_type`),
-  KEY `idx_verification_status` (`verification_status`),
-  CONSTRAINT `seller_documents_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `seller_applications` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `seller_documents`
---
-
-LOCK TABLES `seller_documents` WRITE;
-/*!40000 ALTER TABLE `seller_documents` DISABLE KEYS */;
-INSERT INTO `seller_documents` VALUES (1,1,'government_id','user_2/APP56926530/government_id-1752856926560.png','UMID_EMV_sample.png',3902179,'image/png','verified',NULL,'2025-07-18 16:42:10','2025-07-18 16:42:51'),(2,1,'selfie_with_id','user_2/APP56926530/selfie_with_id-1752856929919.jpeg','selfie_with_id.jpeg',19174,'image/jpeg','verified',NULL,'2025-07-18 16:42:10','2025-07-18 16:42:59');
-/*!40000 ALTER TABLE `seller_documents` ENABLE KEYS */;
-UNLOCK TABLES;
+  KEY `idx_verification_status` (`verification_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Table structure for table `seller_store_profiles`
@@ -286,20 +205,8 @@ CREATE TABLE `seller_store_profiles` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_application_id` (`application_id`),
-  CONSTRAINT `seller_store_profiles_ibfk_1` FOREIGN KEY (`application_id`) REFERENCES `seller_applications` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `seller_store_profiles`
---
-
-LOCK TABLES `seller_store_profiles` WRITE;
-/*!40000 ALTER TABLE `seller_store_profiles` DISABLE KEYS */;
-INSERT INTO `seller_store_profiles` VALUES (1,1,'James store','Selling meats',NULL,'2025-07-18 16:42:10','2025-07-18 16:42:10');
-/*!40000 ALTER TABLE `seller_store_profiles` ENABLE KEYS */;
-UNLOCK TABLES;
+  KEY `idx_application_id` (`application_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Table structure for table `sellers`
@@ -325,21 +232,8 @@ CREATE TABLE `sellers` (
   KEY `application_id` (`application_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_seller_id` (`seller_id`),
-  KEY `idx_is_active` (`is_active`),
-  CONSTRAINT `sellers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `sellers_ibfk_2` FOREIGN KEY (`application_id`) REFERENCES `seller_applications` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sellers`
---
-
-LOCK TABLES `sellers` WRITE;
-/*!40000 ALTER TABLE `sellers` DISABLE KEYS */;
-INSERT INTO `sellers` VALUES (1,2,1,'SELL56988383','individual','James store','Selling meats',NULL,1,'2025-07-18 16:43:08','2025-07-18 16:43:08');
-/*!40000 ALTER TABLE `sellers` ENABLE KEYS */;
-UNLOCK TABLES;
+  KEY `idx_is_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Table structure for table `users`
@@ -366,8 +260,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email_UNIQUE` (`email`),
   KEY `idx_role` (`role`),
   KEY `idx_is_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `users`
@@ -375,11 +268,11 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2a$12$fUYXFIMWIqLTACJ8.Qt5..Ku0JavZAlOv3BN9dLqB0jRbx87BawJu',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 22:43:52','2025-07-17 23:01:30'),(2,'James','Ricarte','uhenyou@gmail.com','$2b$10$QDJSH/XYM6U2Dqjga3DOyeITqsYx2S7qSBmpFTzka0R0lhsQli9ke','+639771495824',NULL,'2003-01-03','male','user',1,'2025-07-17 22:46:24','2025-07-17 22:47:16'),(3,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$9tvwV4nMfjGKuaq4OvplB.o6YYCm20qEBAH9v9teNN9aJRM21eR2W','+639771495822',NULL,'2003-01-03','male','user',1,'2025-07-17 22:48:49','2025-07-17 22:49:45');
+INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2a$12$fUYXFIMWIqLTACJ8.Qt5..Ku0JavZAlOv3BN9dLqB0jRbx87BawJu',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 14:43:52','2025-07-17 15:01:30'),(2,'James','Ricarte','uhenyou@gmail.com','$2b$10$QDJSH/XYM6U2Dqjga3DOyeITqsYx2S7qSBmpFTzka0R0lhsQli9ke','+639771495824',NULL,'2003-01-03','male','user',1,'2025-07-17 14:46:24','2025-07-17 14:47:16'),(3,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$9tvwV4nMfjGKuaq4OvplB.o6YYCm20qEBAH9v9teNN9aJRM21eR2W','+639771495822',NULL,'2003-01-03','male','user',1,'2025-07-17 14:48:49','2025-07-17 14:49:45'),(4,'Jessie','Melgar','07110972@dwc-legazpi.edu','$2b$10$krXrMEKGa0r8CFKNKrFE6ek1snEX9HJzMkr7wg1RjfFede4cqE0lq','+639771495823',NULL,'2003-01-03','male','user',1,'2025-07-20 15:34:19','2025-07-20 15:35:17');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
@@ -387,5 +280,3 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2025-07-19 16:06:51
