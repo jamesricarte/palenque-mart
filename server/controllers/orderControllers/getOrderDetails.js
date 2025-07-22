@@ -1,0 +1,118 @@
+const db = require("../../config/db");
+const supabase = require("../../config/supabase");
+
+const getOrderDetails = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { orderId } = req.params;
+
+    // Get order details
+    const [orderRows] = await db.execute(
+      `SELECT 
+        o.*,
+        ua.recipient_name,
+        ua.phone_number,
+        ua.street_address,
+        ua.barangay,
+        ua.city,
+        ua.province,
+        ua.postal_code,
+        ua.landmark,
+        v.code as voucher_code,
+        v.title as voucher_title,
+        v.discount_type,
+        v.discount_value
+      FROM orders o
+      LEFT JOIN user_addresses ua ON o.delivery_address_id = ua.id
+      LEFT JOIN vouchers v ON o.voucher_id = v.id
+      WHERE o.id = ? AND o.user_id = ?`,
+      [orderId, userId]
+    );
+
+    if (orderRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    const order = orderRows[0];
+
+    // Get order items
+    const [items] = await db.execute(
+      `SELECT 
+        oi.*,
+        p.name as product_name,
+        p.image_keys,
+        p.unit_type,
+        s.store_name,
+        s.store_logo_key
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id
+      JOIN sellers s ON oi.seller_id = s.id
+      WHERE oi.order_id = ?
+      ORDER BY oi.created_at`,
+      [orderId]
+    );
+
+    // Generate public URLs for images
+    const itemsWithImages = items.map((item) => {
+      let productImageUrl = null;
+      let storeLogoUrl = null;
+
+      // Generate product image URL
+      if (item.image_keys) {
+        const { data } = supabase.storage
+          .from("products")
+          .getPublicUrl(item.image_keys);
+        productImageUrl = data.publicUrl;
+      }
+
+      // Generate store logo URL
+      if (item.store_logo_key) {
+        const { data } = supabase.storage
+          .from("vendor-assets")
+          .getPublicUrl(item.store_logo_key);
+        storeLogoUrl = data.publicUrl;
+      }
+
+      return {
+        ...item,
+        image_keys: productImageUrl,
+        store_logo_key: storeLogoUrl,
+      };
+    });
+
+    // Get status history
+    const [statusHistory] = await db.execute(
+      `SELECT 
+        osh.*,
+        u.first_name,
+        u.last_name
+      FROM order_status_history osh
+      LEFT JOIN users u ON osh.updated_by = u.id
+      WHERE osh.order_id = ?
+      ORDER BY osh.created_at DESC`,
+      [orderId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        order: {
+          ...order,
+          items: itemsWithImages,
+          statusHistory,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching order details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch order details",
+    });
+  }
+};
+
+module.exports = getOrderDetails;

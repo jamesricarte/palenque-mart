@@ -38,6 +38,11 @@ import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileS
 
 import ProductDetailsScreen from "../screens/ProductDetails/ProductDetailsScreen";
 
+import CheckoutScreen from "../screens/Checkout/CheckoutScreen";
+import OrderConfirmationScreen from "../screens/Orders/OrderConfirmationScreen";
+import OrdersScreen from "../screens/Orders/OrdersScreen";
+import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
+
 const Stack = createNativeStackNavigator();
 
 const MainStackNavigator = () => {
@@ -135,6 +140,15 @@ const MainStackNavigator = () => {
 
       {/* Product Details */}
       <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+
+      {/* Order */}
+      <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen
+        name="OrderConfirmation"
+        component={OrderConfirmationScreen}
+      />
+      <Stack.Screen name="Orders" component={OrdersScreen} />
+      <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
     </Stack.Navigator>
   );
 };

@@ -15,32 +15,27 @@ const updateProfile = require("../controllers/authControllers/updateProfile");
 
 const router = express.Router();
 
-//Sign up with email
+// Sign up with email
 router.post("/sign-up-email", signUpEmail);
-
 router.get("/verify-email", verifyEmail);
-
 router.post("/send-email", sendEmail);
-
 router.post("/check-email", checkEmail);
 
-//Sign up with mobile
+// Sign up with mobile
 router.post("/sign-up-mobile", signUpMobile);
-
 router.post("/verify-phone", verifyPhone);
-
 router.post("/send-otp", sendOtp);
 
-//Creation of account
+// Creation of account
 router.post("/create-account", createAccount);
 
 // User info
 router.get("/profile", authenticateToken, profile);
 
-//Login
+// Login
 router.post("/login", login);
 
-//Edit profile
+// Edit profile
 router.post("/update-profile", authenticateToken, updateProfile);
 
 module.exports = router;

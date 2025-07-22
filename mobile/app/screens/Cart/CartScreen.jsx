@@ -479,10 +479,14 @@ const CartScreen = ({ navigation }) => {
                   );
                   return;
                 }
-                Alert.alert(
-                  "Checkout",
-                  `Proceed with ${selectedItems.size} selected item${selectedItems.size !== 1 ? "s" : ""}?`
+
+                const selectedCartItems = cartItems.filter((item) =>
+                  selectedItems.has(item.cart_id)
                 );
+                navigation.navigate("Checkout", {
+                  items: selectedCartItems,
+                  fromCart: true,
+                });
               }}
               disabled={selectedItems.size === 0}
             >

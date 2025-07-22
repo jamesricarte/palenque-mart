@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import { API_URL } from "../../../config/apiConfig";
 
@@ -74,13 +74,15 @@ const AccountScreen = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      fetchCartCount();
-    } else {
-      setCartCount(0);
-    }
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        fetchCartCount();
+      } else {
+        setCartCount(0);
+      }
+    }, [user])
+  );
 
   useEffect(() => {
     if (route.params?.message) {
@@ -151,7 +153,7 @@ const AccountScreen = ({ navigation }) => {
         <View className="p-6 mt-4 bg-white border-b border-gray-200">
           <View className="flex flex-row items-center justify-between mb-4">
             <Text className="text-xl font-semibold">My Orders</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Orders")}>
               <Text className="text-black">View All</Text>
             </TouchableOpacity>
           </View>

@@ -9,7 +9,8 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useState, useEffect, useCallback } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
@@ -60,10 +61,15 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchProducts();
-    if (user) {
-      fetchCartCount();
-    }
   }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        fetchCartCount();
+      }
+    }, [])
+  );
 
   const filteredProducts = products.filter(
     (product) =>

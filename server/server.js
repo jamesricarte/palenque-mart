@@ -12,6 +12,8 @@ const getLocalIp = require("./utils/getLocalIp");
 const adminRoutes = require("./routes/adminRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const addressRoutes = require("./routes/addressRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -25,6 +27,8 @@ app.use("/api/seller", sellerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/addresses", addressRoutes);
 
 const wss = new WebSocket.Server({ server });
 let sockets = [];

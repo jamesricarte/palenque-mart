@@ -146,8 +146,27 @@ const ProductDetailsScreen = () => {
           fetchCartCount(); // Refresh cart count
         }
       } else {
-        // TODO: Implement buy now functionality
-        Alert.alert("Buy Now", "This feature will be implemented soon!");
+        // Buy Now - navigate to checkout
+        const buyNowItem = {
+          id: product.id,
+          product_id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: selectedQuantity,
+          unit_type: product.unit_type,
+          image_keys: product.image_keys,
+          store_name: product.store_name,
+          store_logo_key: product.store_logo_key,
+          preparation_options: selectedPreparations,
+          total_price: (
+            Number.parseFloat(product.price) * selectedQuantity
+          ).toFixed(2),
+        };
+
+        navigation.navigate("Checkout", {
+          items: [buyNowItem],
+          fromCart: false,
+        });
       }
     } catch (error) {
       console.error("Error:", error);
