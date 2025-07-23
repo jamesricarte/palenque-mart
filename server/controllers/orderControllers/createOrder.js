@@ -38,9 +38,9 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // Verify address belongs to user
+    // Get and verify address belongs to user
     const [addressCheck] = await connection.execute(
-      `SELECT id FROM user_addresses WHERE id = ? AND user_id = ?`,
+      `SELECT * FROM user_addresses WHERE id = ? AND user_id = ?`,
       [deliveryAddressId, userId]
     );
 
@@ -50,6 +50,8 @@ const createOrder = async (req, res) => {
         message: "Invalid delivery address",
       });
     }
+
+    const deliveryAddress = addressCheck[0];
 
     await connection.beginTransaction();
 
@@ -103,7 +105,7 @@ const createOrder = async (req, res) => {
 
       const voucher = voucherRows[0];
 
-      if (subtotal < parseFloat(voucher.minimum_order_amount)) {
+      if (subtotal < Number.parseFloat(voucher.minimum_order_amount)) {
         throw new Error(
           `Minimum order amount of ₱${voucher.minimum_order_amount} required for this voucher`
         );
@@ -115,17 +117,17 @@ const createOrder = async (req, res) => {
 
       if (voucher.discount_type === "percentage") {
         voucherDiscount = round(
-          (subtotal * parseFloat(voucher.discount_value)) / 100
+          (subtotal * Number.parseFloat(voucher.discount_value)) / 100
         );
 
         if (voucher.maximum_discount_amount) {
           voucherDiscount = Math.min(
             voucherDiscount,
-            parseFloat(voucher.maximum_discount_amount)
+            Number.parseFloat(voucher.maximum_discount_amount)
           );
         }
       } else {
-        voucherDiscount = parseFloat(voucher.discount_value);
+        voucherDiscount = Number.parseFloat(voucher.discount_value);
       }
 
       voucherId = voucher.id;
@@ -141,11 +143,15 @@ const createOrder = async (req, res) => {
     const totalAmount = round(subtotal + deliveryFee - voucherDiscount);
     const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
+    // Create order with delivery address details stored directly
     const [orderResult] = await connection.execute(
       `INSERT INTO orders 
        (user_id, order_number, subtotal, delivery_fee, voucher_discount, 
-        total_amount, voucher_id, delivery_address_id, delivery_notes, payment_method) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        total_amount, voucher_id, delivery_address_id, delivery_recipient_name, 
+        delivery_phone_number, delivery_street_address, delivery_barangay, 
+        delivery_city, delivery_province, delivery_postal_code, delivery_landmark, 
+        delivery_notes, payment_method) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         orderNumber,
@@ -155,6 +161,14 @@ const createOrder = async (req, res) => {
         totalAmount,
         voucherId,
         deliveryAddressId,
+        deliveryAddress.recipient_name,
+        deliveryAddress.phone_number,
+        deliveryAddress.street_address,
+        deliveryAddress.barangay,
+        deliveryAddress.city,
+        deliveryAddress.province,
+        deliveryAddress.postal_code,
+        deliveryAddress.landmark,
         deliveryNotes,
         paymentMethod,
       ]

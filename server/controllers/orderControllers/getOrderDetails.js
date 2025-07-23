@@ -6,24 +6,15 @@ const getOrderDetails = async (req, res) => {
     const userId = req.user.id;
     const { orderId } = req.params;
 
-    // Get order details
+    // Get order details - now using stored delivery address fields
     const [orderRows] = await db.execute(
       `SELECT 
         o.*,
-        ua.recipient_name,
-        ua.phone_number,
-        ua.street_address,
-        ua.barangay,
-        ua.city,
-        ua.province,
-        ua.postal_code,
-        ua.landmark,
         v.code as voucher_code,
         v.title as voucher_title,
         v.discount_type,
         v.discount_value
       FROM orders o
-      LEFT JOIN user_addresses ua ON o.delivery_address_id = ua.id
       LEFT JOIN vouchers v ON o.voucher_id = v.id
       WHERE o.id = ? AND o.user_id = ?`,
       [orderId, userId]
@@ -96,14 +87,26 @@ const getOrderDetails = async (req, res) => {
       [orderId]
     );
 
+    // Format the order response with stored delivery address fields
+    const orderResponse = {
+      ...order,
+      // Map stored delivery fields to expected field names for backward compatibility
+      recipient_name: order.delivery_recipient_name,
+      phone_number: order.delivery_phone_number,
+      street_address: order.delivery_street_address,
+      barangay: order.delivery_barangay,
+      city: order.delivery_city,
+      province: order.delivery_province,
+      postal_code: order.delivery_postal_code,
+      landmark: order.delivery_landmark,
+      items: itemsWithImages,
+      statusHistory,
+    };
+
     res.json({
       success: true,
       data: {
-        order: {
-          ...order,
-          items: itemsWithImages,
-          statusHistory,
-        },
+        order: orderResponse,
       },
     });
   } catch (error) {
