@@ -1,4 +1,5 @@
 const db = require("../../config/db");
+const supabase = require("../../config/supabase");
 
 const getUserOrders = async (req, res) => {
   try {
@@ -7,14 +8,14 @@ const getUserOrders = async (req, res) => {
     const offset = (page - 1) * limit;
 
     let statusFilter = "";
-    let queryParams = [userId];
+    const queryParams = [userId];
 
     if (status && status !== "all") {
       statusFilter = "AND o.status = ?";
       queryParams.push(status);
     }
 
-    // Dont parametize limit and offset since MySQL itself sometimes rejects LIMIT and OFFSET placeholders in prepared statements
+    // Get orders with first store logo
     const [orders] = await db.execute(
       `SELECT 
         o.*,
@@ -28,7 +29,12 @@ const getUserOrders = async (req, res) => {
         v.code as voucher_code,
         v.title as voucher_title,
         COUNT(oi.id) as item_count,
-        GROUP_CONCAT(DISTINCT s.store_name) as store_names
+        GROUP_CONCAT(DISTINCT s.store_name) as store_names,
+        (SELECT s2.store_logo_key 
+         FROM order_items oi2 
+         JOIN sellers s2 ON oi2.seller_id = s2.id 
+         WHERE oi2.order_id = o.id 
+         LIMIT 1) as first_store_logo_key
       FROM orders o
       LEFT JOIN user_addresses ua ON o.delivery_address_id = ua.id
       LEFT JOIN vouchers v ON o.voucher_id = v.id
@@ -37,18 +43,34 @@ const getUserOrders = async (req, res) => {
       WHERE o.user_id = ? ${statusFilter}
       GROUP BY o.id
       ORDER BY o.created_at DESC
-      LIMIT ${parseInt(limit)} OFFSET ${offset}`,
+      LIMIT ${Number.parseInt(limit)} OFFSET ${offset}`,
       queryParams
     );
 
-    if (statusFilter === "AND o.status = ?") {
-    }
+    // Generate public URLs for store logos
+    const ordersWithLogos = orders.map((order) => {
+      let store_logo_url = null;
 
-    const countStatusFilter = status !== "all" ? "AND status = ?" : "";
+      if (order.first_store_logo_key) {
+        const { data } = supabase.storage
+          .from("vendor-assets")
+          .getPublicUrl(order.first_store_logo_key);
+
+        store_logo_url = data.publicUrl;
+      }
+
+      return {
+        ...order,
+        store_logo_url,
+      };
+    });
+
+    const totalCountStatusFilter =
+      statusFilter === "AND o.status = ?" ? "AND status = ?" : "";
 
     // Get total count
     const [countResult] = await db.execute(
-      `SELECT COUNT(*) as total FROM orders WHERE user_id = ? ${countStatusFilter}`,
+      `SELECT COUNT(*) as total FROM orders WHERE user_id = ? ${totalCountStatusFilter}`,
       status && status !== "all" ? [userId, status] : [userId]
     );
 
@@ -58,9 +80,9 @@ const getUserOrders = async (req, res) => {
     res.json({
       success: true,
       data: {
-        orders,
+        orders: ordersWithLogos,
         pagination: {
-          currentPage: parseInt(page),
+          currentPage: Number.parseInt(page),
           totalPages,
           totalItems: total,
           hasNextPage: page < totalPages,

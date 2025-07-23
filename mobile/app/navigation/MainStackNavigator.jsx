@@ -43,6 +43,8 @@ import OrderConfirmationScreen from "../screens/Orders/OrderConfirmationScreen";
 import OrdersScreen from "../screens/Orders/OrdersScreen";
 import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
 
+import AddressManagementScreen from "../screens/AddressManagement/AddressManagementScreen";
+
 const Stack = createNativeStackNavigator();
 
 const MainStackNavigator = () => {
@@ -149,6 +151,12 @@ const MainStackNavigator = () => {
       />
       <Stack.Screen name="Orders" component={OrdersScreen} />
       <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+
+      {/* Settings */}
+      <Stack.Screen
+        name="AddressManagement"
+        component={AddressManagementScreen}
+      />
     </Stack.Navigator>
   );
 };

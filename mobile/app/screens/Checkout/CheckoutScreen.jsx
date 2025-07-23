@@ -57,9 +57,12 @@ const CheckoutScreen = () => {
   const deliveryFee = 50.0;
 
   useEffect(() => {
-    if (fromCart) {
-      fetchCartItems();
-    } else if (routeItems) {
+    if (fromCart && routeItems) {
+      // Use the selected items passed from CartScreen
+      setItems(routeItems);
+      setLoading(false);
+    } else if (!fromCart && routeItems) {
+      // For Buy Now from product details
       setItems(routeItems);
       setLoading(false);
     } else {
@@ -67,23 +70,6 @@ const CheckoutScreen = () => {
     }
     fetchUserAddresses();
   }, []);
-
-  const fetchCartItems = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/cart`);
-      if (response.data.success) {
-        // Filter only selected items if coming from cart
-        const cartItems = response.data.data.items;
-        setItems(cartItems);
-      }
-    } catch (error) {
-      console.error("Error fetching cart items:", error);
-      Alert.alert("Error", "Failed to load cart items");
-      navigation.goBack();
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchUserAddresses = async () => {
     try {
@@ -604,20 +590,37 @@ const CheckoutScreen = () => {
                   </TouchableOpacity>
                 ))}
 
-                <TouchableOpacity
-                  className="p-4 mt-2 border-2 border-gray-300 border-dashed rounded-lg"
-                  onPress={() => {
-                    setShowAddressModal(false);
-                    setShowAddAddressModal(true);
-                  }}
-                >
-                  <View className="flex-row items-center justify-center">
-                    <Feather name="plus" size={20} color="#6B7280" />
-                    <Text className="ml-2 font-medium text-gray-600">
-                      Add New Address
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                {addresses.length > 0 ? (
+                  <TouchableOpacity
+                    className="p-4 mt-2 bg-white border border-gray-300 rounded-lg"
+                    onPress={() => {
+                      setShowAddressModal(false);
+                      navigation.navigate("AddressManagement");
+                    }}
+                  >
+                    <View className="flex-row items-center justify-center">
+                      <Feather name="settings" size={20} color="#6B7280" />
+                      <Text className="ml-2 font-medium text-gray-600">
+                        Manage Addresses
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    className="p-4 mt-2 border-2 border-gray-300 border-dashed rounded-lg"
+                    onPress={() => {
+                      setShowAddressModal(false);
+                      setShowAddAddressModal(true);
+                    }}
+                  >
+                    <View className="flex-row items-center justify-center">
+                      <Feather name="plus" size={20} color="#6B7280" />
+                      <Text className="ml-2 font-medium text-gray-600">
+                        Add New Address
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
               </ScrollView>
             </View>
           </View>

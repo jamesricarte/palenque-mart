@@ -1,3 +1,5 @@
+"use client";
+
 import {
   View,
   Text,
@@ -5,7 +7,6 @@ import {
   TouchableOpacity,
   Image,
   RefreshControl,
-  ActivityIndicator,
 } from "react-native";
 import { useState, useCallback } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -179,19 +180,11 @@ const OrdersScreen = () => {
             {statusOptions.map((option) => (
               <TouchableOpacity
                 key={option.key}
-                className={`px-4 py-2 rounded-full ${
-                  selectedStatus === option.key
-                    ? "bg-orange-600"
-                    : "bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-full ${selectedStatus === option.key ? "bg-orange-600" : "bg-gray-200"}`}
                 onPress={() => setSelectedStatus(option.key)}
               >
                 <Text
-                  className={`text-sm font-medium ${
-                    selectedStatus === option.key
-                      ? "text-white"
-                      : "text-gray-700"
-                  }`}
+                  className={`text-sm font-medium ${selectedStatus === option.key ? "text-white" : "text-gray-700"}`}
                 >
                   {option.label}
                 </Text>
@@ -256,12 +249,22 @@ const OrdersScreen = () => {
               </View>
 
               <View className="flex-row items-center mb-2">
-                <MaterialCommunityIcons
-                  name="storefront-outline"
-                  size={16}
-                  color="#6B7280"
-                />
-                <Text className="ml-2 text-sm text-gray-600">
+                {order.store_logo_url ? (
+                  <Image
+                    source={{ uri: order.store_logo_url }}
+                    className="w-6 h-6 mr-2 rounded-full"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="flex items-center justify-center w-6 h-6 mr-2 bg-gray-200 rounded-full">
+                    <MaterialCommunityIcons
+                      name="storefront-outline"
+                      size={12}
+                      color="#6B7280"
+                    />
+                  </View>
+                )}
+                <Text className="text-sm text-gray-600">
                   {order.store_names || "Multiple stores"}
                 </Text>
               </View>
@@ -271,7 +274,7 @@ const OrdersScreen = () => {
                   {order.item_count} item{order.item_count !== 1 ? "s" : ""}
                 </Text>
                 <Text className="text-lg font-semibold text-orange-600">
-                  ₱{parseFloat(order.total_amount).toFixed(2)}
+                  ₱{Number.parseFloat(order.total_amount).toFixed(2)}
                 </Text>
               </View>
 
