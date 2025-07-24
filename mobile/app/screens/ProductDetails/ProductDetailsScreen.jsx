@@ -155,6 +155,7 @@ const ProductDetailsScreen = () => {
           quantity: selectedQuantity,
           unit_type: product.unit_type,
           image_keys: product.image_keys,
+          seller_id: product.seller_id,
           store_name: product.store_name,
           store_logo_key: product.store_logo_key,
           preparation_options: selectedPreparations,

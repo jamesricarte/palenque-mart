@@ -6,7 +6,18 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 const OrderConfirmationScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { orderId, orderNumber, totalAmount } = route.params;
+  const { orders, totalAmount } = route.params;
+
+  // Handle both single order (legacy) and multiple orders (new)
+  const ordersList = Array.isArray(orders)
+    ? orders
+    : [
+        {
+          orderId: route.params.orderId,
+          orderNumber: route.params.orderNumber,
+        },
+      ];
+  const finalTotalAmount = totalAmount || route.params.totalAmount;
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -27,10 +38,12 @@ const OrderConfirmationScreen = () => {
             <Feather name="check" size={48} color="#059669" />
           </View>
           <Text className="mt-4 text-2xl font-bold text-gray-900">
-            Order Placed!
+            Order{ordersList.length > 1 ? "s" : ""} Placed!
           </Text>
           <Text className="mt-2 text-center text-gray-600">
-            Your order has been successfully placed and is being processed.
+            Your order{ordersList.length > 1 ? "s have" : " has"} been
+            successfully placed and {ordersList.length > 1 ? "are" : "is"} being
+            processed.
           </Text>
         </View>
 
@@ -41,15 +54,26 @@ const OrderConfirmationScreen = () => {
           </Text>
 
           <View className="space-y-3">
-            <View className="flex-row justify-between">
-              <Text className="text-gray-600">Order Number</Text>
-              <Text className="font-medium text-gray-900">{orderNumber}</Text>
-            </View>
+            {ordersList.length > 1 ? (
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Orders Created</Text>
+                <Text className="font-medium text-gray-900">
+                  {ordersList.length} orders
+                </Text>
+              </View>
+            ) : (
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Order Number</Text>
+                <Text className="font-medium text-gray-900">
+                  {ordersList[0].orderNumber}
+                </Text>
+              </View>
+            )}
 
             <View className="flex-row justify-between">
               <Text className="text-gray-600">Total Amount</Text>
               <Text className="text-lg font-semibold text-orange-600">
-                ₱{totalAmount.toFixed(2)}
+                ₱{finalTotalAmount.toFixed(2)}
               </Text>
             </View>
 
@@ -88,7 +112,9 @@ const OrderConfirmationScreen = () => {
                   Order Confirmation
                 </Text>
                 <Text className="text-sm text-gray-600">
-                  Seller will review and confirm your order
+                  Seller{ordersList.length > 1 ? "s" : ""} will review and
+                  confirm your order
+                  {ordersList.length > 1 ? "s" : ""}
                 </Text>
               </View>
             </View>
@@ -112,7 +138,8 @@ const OrderConfirmationScreen = () => {
               <View className="flex-1">
                 <Text className="font-medium text-gray-500">Delivery</Text>
                 <Text className="text-sm text-gray-400">
-                  Your order will be delivered to your address
+                  Your order{ordersList.length > 1 ? "s" : ""} will be delivered
+                  to your address
                 </Text>
               </View>
             </View>
@@ -128,7 +155,8 @@ const OrderConfirmationScreen = () => {
             </Text>
           </View>
           <Text className="text-blue-800">
-            Your order will be delivered within 1-2 hours after confirmation.
+            Your order{ordersList.length > 1 ? "s" : ""} will be delivered
+            within 1-2 hours after confirmation.
           </Text>
         </View>
 
@@ -138,7 +166,8 @@ const OrderConfirmationScreen = () => {
             Need Help?
           </Text>
           <Text className="mb-2 text-gray-600">
-            If you have any questions about your order, feel free to contact us.
+            If you have any questions about your order
+            {ordersList.length > 1 ? "s" : ""}, feel free to contact us.
           </Text>
           <TouchableOpacity className="flex-row items-center">
             <Feather name="phone" size={16} color="#059669" />
@@ -154,10 +183,10 @@ const OrderConfirmationScreen = () => {
         <View className="flex-row space-x-3">
           <TouchableOpacity
             className="items-center flex-1 p-4 border border-orange-600 rounded-lg"
-            onPress={() => navigation.navigate("OrderDetails", { orderId })}
+            onPress={() => navigation.navigate("Orders")}
           >
             <Text className="font-semibold text-orange-600">
-              View Order Details
+              View My Orders
             </Text>
           </TouchableOpacity>
 

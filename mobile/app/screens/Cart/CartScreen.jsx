@@ -168,6 +168,26 @@ const CartScreen = ({ navigation }) => {
     });
   };
 
+  const toggleStoreSelection = (sellerId) => {
+    const storeItems = groupedCartItems[sellerId] || [];
+    const storeItemIds = storeItems.map((item) => item.cart_id);
+    const allStoreItemsSelected = storeItemIds.every((id) =>
+      selectedItems.has(id)
+    );
+
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (allStoreItemsSelected) {
+        // Deselect all items from this store
+        storeItemIds.forEach((id) => newSet.delete(id));
+      } else {
+        // Select all items from this store
+        storeItemIds.forEach((id) => newSet.add(id));
+      }
+      return newSet;
+    });
+  };
+
   const selectAllItems = () => {
     if (selectedItems.size === cartItems.length) {
       setSelectedItems(new Set());
@@ -187,6 +207,16 @@ const CartScreen = ({ navigation }) => {
       .filter((item) => selectedItems.has(item.cart_id))
       .reduce((sum, item) => sum + item.quantity, 0);
   };
+
+  // Group cart items by seller
+  const groupedCartItems = cartItems.reduce((groups, item) => {
+    const sellerId = item.seller_id;
+    if (!groups[sellerId]) {
+      groups[sellerId] = [];
+    }
+    groups[sellerId].push(item);
+    return groups;
+  }, {});
 
   if (!user) {
     return (
@@ -311,149 +341,213 @@ const CartScreen = ({ navigation }) => {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           >
-            {cartItems.map((item) => (
-              <View
-                key={item.cart_id}
-                className="p-4 mx-4 mt-4 bg-white rounded-lg shadow-sm"
-              >
-                <View className="flex-row">
-                  {/* Selection Checkbox */}
-                  <TouchableOpacity
-                    className="mr-3"
-                    onPress={() => toggleItemSelection(item.cart_id)}
-                  >
-                    <View
-                      className={`w-6 h-6 rounded border-2 items-center justify-center ${
-                        selectedItems.has(item.cart_id)
-                          ? "bg-orange-600 border-orange-600"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      {selectedItems.has(item.cart_id) && (
-                        <Feather name="check" size={14} color="white" />
-                      )}
-                    </View>
-                  </TouchableOpacity>
+            {Object.entries(groupedCartItems).map(([sellerId, storeItems]) => {
+              const firstItem = storeItems[0];
+              const storeItemIds = storeItems.map((item) => item.cart_id);
+              const allStoreItemsSelected = storeItemIds.every((id) =>
+                selectedItems.has(id)
+              );
+              const someStoreItemsSelected = storeItemIds.some((id) =>
+                selectedItems.has(id)
+              );
 
-                  {/* Product Image */}
-                  <View className="mr-4">
-                    {item.image_keys ? (
-                      <Image
-                        source={{ uri: item.image_keys }}
-                        className="w-20 h-20 rounded-lg"
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View className="flex items-center justify-center w-20 h-20 bg-gray-200 rounded-lg">
-                        <Feather name="image" size={24} color="#9CA3AF" />
+              return (
+                <View
+                  key={sellerId}
+                  className="mx-4 mt-4 bg-white rounded-lg shadow-sm"
+                >
+                  {/* Store Header */}
+                  <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
+                    <View className="flex-row items-center flex-1">
+                      <TouchableOpacity
+                        className="mr-3"
+                        onPress={() => toggleStoreSelection(sellerId)}
+                      >
+                        <View
+                          className={`w-6 h-6 rounded border-2 items-center justify-center ${
+                            allStoreItemsSelected
+                              ? "bg-orange-600 border-orange-600"
+                              : someStoreItemsSelected
+                                ? "bg-orange-200 border-orange-600"
+                                : "border-gray-300"
+                          }`}
+                        >
+                          {allStoreItemsSelected && (
+                            <Feather name="check" size={14} color="white" />
+                          )}
+                          {someStoreItemsSelected && !allStoreItemsSelected && (
+                            <View className="w-2 h-2 bg-orange-600 rounded-full" />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+
+                      <View className="flex-row items-center flex-1">
+                        {firstItem.store_logo_key ? (
+                          <Image
+                            source={{ uri: firstItem.store_logo_key }}
+                            className="w-8 h-8 mr-3 rounded-full"
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View className="flex items-center justify-center w-8 h-8 mr-3 bg-gray-200 rounded-full">
+                            <MaterialCommunityIcons
+                              name="storefront-outline"
+                              size={16}
+                              color="#6B7280"
+                            />
+                          </View>
+                        )}
+                        <Text className="text-lg font-semibold text-gray-900">
+                          {firstItem.store_name}
+                        </Text>
                       </View>
-                    )}
+                    </View>
                   </View>
 
-                  {/* Product Details */}
-                  <View className="flex-1">
-                    <TouchableOpacity
-                      onPress={() =>
-                        navigation.navigate("ProductDetails", {
-                          productId: item.product_id,
-                        })
-                      }
+                  {/* Store Items */}
+                  {storeItems.map((item) => (
+                    <View
+                      key={item.cart_id}
+                      className="p-4 border-b border-gray-100 last:border-b-0"
                     >
-                      <Text className="text-lg font-semibold text-gray-900">
-                        {item.name}
-                      </Text>
-                    </TouchableOpacity>
-
-                    <View className="flex-row items-center mt-1">
-                      {item.store_logo_key ? (
-                        <Image
-                          source={{ uri: item.store_logo_key }}
-                          className="w-4 h-4 mr-2 rounded-full"
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <MaterialCommunityIcons
-                          name="storefront-outline"
-                          size={16}
-                          color="#6B7280"
-                          style={{ marginRight: 8 }}
-                        />
-                      )}
-                      <Text className="text-sm text-gray-600">
-                        {item.store_name}
-                      </Text>
-                    </View>
-
-                    <Text className="mt-1 text-sm text-gray-500">
-                      {formatUnitType(item.unit_type)}
-                    </Text>
-
-                    <View className="flex-row items-center justify-between mt-3">
-                      <Text className="text-lg font-bold text-orange-600">
-                        ₱{Number.parseFloat(item.total_price).toFixed(2)}
-                      </Text>
-
-                      {/* Quantity Controls */}
-                      <View className="flex-row items-center">
+                      <View className="flex-row">
+                        {/* Selection Checkbox */}
                         <TouchableOpacity
-                          className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full"
-                          onPress={() =>
-                            updateQuantity(item.cart_id, item.quantity - 1)
-                          }
-                          disabled={
-                            item.quantity <= 1 || updatingItems[item.cart_id]
-                          }
+                          className="mr-3"
+                          onPress={() => toggleItemSelection(item.cart_id)}
                         >
-                          <Feather name="minus" size={16} color="#374151" />
+                          <View
+                            className={`w-6 h-6 rounded border-2 items-center justify-center ${
+                              selectedItems.has(item.cart_id)
+                                ? "bg-orange-600 border-orange-600"
+                                : "border-gray-300"
+                            }`}
+                          >
+                            {selectedItems.has(item.cart_id) && (
+                              <Feather name="check" size={14} color="white" />
+                            )}
+                          </View>
                         </TouchableOpacity>
 
-                        <View className="flex items-center justify-center w-12 h-8 mx-0">
-                          {updatingItems[item.cart_id] ? (
-                            <ActivityIndicator size="small" color="#EA580C" />
+                        {/* Product Image */}
+                        <View className="mr-4">
+                          {item.image_keys ? (
+                            <Image
+                              source={{ uri: item.image_keys }}
+                              className="w-20 h-20 rounded-lg"
+                              resizeMode="cover"
+                            />
                           ) : (
-                            <Text className="font-semibold text-gray-900">
-                              {item.quantity}
+                            <View className="flex items-center justify-center w-20 h-20 bg-gray-200 rounded-lg">
+                              <Feather name="image" size={24} color="#9CA3AF" />
+                            </View>
+                          )}
+                        </View>
+
+                        {/* Product Details */}
+                        <View className="flex-1">
+                          <TouchableOpacity
+                            onPress={() =>
+                              navigation.navigate("ProductDetails", {
+                                productId: item.product_id,
+                              })
+                            }
+                          >
+                            <Text className="text-lg font-semibold text-gray-900">
+                              {item.name}
+                            </Text>
+                          </TouchableOpacity>
+
+                          <Text className="mt-1 text-sm text-gray-500">
+                            {formatUnitType(item.unit_type)}
+                          </Text>
+
+                          <View className="flex-row items-center justify-between mt-3">
+                            <Text className="text-lg font-bold text-orange-600">
+                              ₱{Number.parseFloat(item.total_price).toFixed(2)}
+                            </Text>
+
+                            {/* Quantity Controls */}
+                            <View className="flex-row items-center">
+                              <TouchableOpacity
+                                className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full"
+                                onPress={() =>
+                                  updateQuantity(
+                                    item.cart_id,
+                                    item.quantity - 1
+                                  )
+                                }
+                                disabled={
+                                  item.quantity <= 1 ||
+                                  updatingItems[item.cart_id]
+                                }
+                              >
+                                <Feather
+                                  name="minus"
+                                  size={16}
+                                  color="#374151"
+                                />
+                              </TouchableOpacity>
+
+                              <View className="flex items-center justify-center w-12 h-8 mx-0">
+                                {updatingItems[item.cart_id] ? (
+                                  <ActivityIndicator
+                                    size="small"
+                                    color="#EA580C"
+                                  />
+                                ) : (
+                                  <Text className="font-semibold text-gray-900">
+                                    {item.quantity}
+                                  </Text>
+                                )}
+                              </View>
+
+                              <TouchableOpacity
+                                className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full"
+                                onPress={() =>
+                                  updateQuantity(
+                                    item.cart_id,
+                                    item.quantity + 1
+                                  )
+                                }
+                                disabled={
+                                  item.quantity >= item.stock_quantity ||
+                                  updatingItems[item.cart_id]
+                                }
+                              >
+                                <Feather
+                                  name="plus"
+                                  size={16}
+                                  color="#374151"
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+
+                          {/* Stock Warning */}
+                          {item.quantity >= item.stock_quantity && (
+                            <Text className="mt-1 text-xs text-red-500">
+                              Maximum stock reached
                             </Text>
                           )}
                         </View>
 
-                        <TouchableOpacity
-                          className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full"
-                          onPress={() =>
-                            updateQuantity(item.cart_id, item.quantity + 1)
-                          }
-                          disabled={
-                            item.quantity >= item.stock_quantity ||
-                            updatingItems[item.cart_id]
-                          }
-                        >
-                          <Feather name="plus" size={16} color="#374151" />
-                        </TouchableOpacity>
+                        {/* Remove Button */}
+                        <View>
+                          <TouchableOpacity
+                            className="p-2 ml-2"
+                            onPress={() => removeItem(item.cart_id, item.name)}
+                            disabled={updatingItems[item.cart_id]}
+                          >
+                            <Feather name="trash-2" size={20} color="#EF4444" />
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     </View>
-
-                    {/* Stock Warning */}
-                    {item.quantity >= item.stock_quantity && (
-                      <Text className="mt-1 text-xs text-red-500">
-                        Maximum stock reached
-                      </Text>
-                    )}
-                  </View>
-
-                  {/*Keep this empty view to not overlap plus button in quantity */}
-                  <View>
-                    {/* Remove Button */}
-                    <TouchableOpacity
-                      className="p-2 ml-2 "
-                      onPress={() => removeItem(item.cart_id, item.name)}
-                      disabled={updatingItems[item.cart_id]}
-                    >
-                      <Feather name="trash-2" size={20} color="#EF4444" />
-                    </TouchableOpacity>
-                  </View>
+                  ))}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </ScrollView>
 
           {/* Checkout Section */}

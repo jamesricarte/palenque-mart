@@ -36,6 +36,7 @@ const getOrderDetails = async (req, res) => {
         p.name as product_name,
         p.image_keys,
         p.unit_type,
+        s.seller_id as seller_seller_id,
         s.store_name,
         s.store_logo_key
       FROM order_items oi

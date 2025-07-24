@@ -132,6 +132,16 @@ const CheckoutScreen = () => {
     }
   };
 
+  // Group items by store
+  const groupedItems = items.reduce((groups, item) => {
+    const sellerId = item.seller_id;
+    if (!groups[sellerId]) {
+      groups[sellerId] = [];
+    }
+    groups[sellerId].push(item);
+    return groups;
+  }, {});
+
   const calculateSubtotal = () => {
     return items.reduce(
       (sum, item) =>
@@ -143,7 +153,12 @@ const CheckoutScreen = () => {
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const discount = appliedVoucher ? appliedVoucher.calculated_discount : 0;
-    return subtotal + deliveryFee - discount;
+    const totalDeliveryFee = Object.keys(groupedItems).length * deliveryFee; // Delivery fee per store
+    return subtotal + totalDeliveryFee - discount;
+  };
+
+  const getTotalDeliveryFee = () => {
+    return Object.keys(groupedItems).length * deliveryFee;
   };
 
   const validateVoucher = async () => {
@@ -194,9 +209,12 @@ const CheckoutScreen = () => {
       return;
     }
 
+    const storeCount = Object.keys(groupedItems).length;
+    const totalAmount = calculateTotal();
+
     Alert.alert(
       "Confirm Order",
-      `Place order for ₱${calculateTotal().toFixed(2)}?`,
+      `Place ${storeCount} order${storeCount > 1 ? "s" : ""} for ₱${totalAmount.toFixed(2)}?`,
       [
         { text: "Cancel", style: "cancel" },
         { text: "Confirm", onPress: processOrder },
@@ -224,8 +242,7 @@ const CheckoutScreen = () => {
 
       if (response.data.success) {
         navigation.replace("OrderConfirmation", {
-          orderId: response.data.data.orderId,
-          orderNumber: response.data.data.orderNumber,
+          orders: response.data.data.orders,
           totalAmount: response.data.data.totalAmount,
         });
       }
@@ -308,7 +325,6 @@ const CheckoutScreen = () => {
                   {selectedAddress.recipient_name}
                 </Text>
 
-                {/* Adding === 1 in codition, for some reason,  error Text strings must be rendered within a <Text> component showing if checking if it is truthy*/}
                 {selectedAddress.is_default === 1 && (
                   <View className="px-2 py-1 ml-2 bg-orange-100 rounded-full">
                     <Text className="text-xs font-medium text-orange-600">
@@ -345,55 +361,78 @@ const CheckoutScreen = () => {
           )}
         </View>
 
-        {/* Order Items */}
-        <View className="p-4 mb-4 bg-white">
-          <Text className="mb-3 text-lg font-semibold text-gray-900">
-            Order Items
-          </Text>
-
-          {items.map((item, index) => (
-            <View
-              key={index}
-              className="flex-row pb-4 mb-4 border-b border-gray-200 last:border-b-0 last:mb-0"
-            >
-              <View className="mr-4">
-                {item.image_keys ? (
+        {/* Order Items Grouped by Store */}
+        {Object.entries(groupedItems).map(([sellerId, storeItems]) => {
+          const firstItem = storeItems[0];
+          return (
+            <View key={sellerId} className="p-4 mb-4 bg-white">
+              {/* Store Header */}
+              <View className="flex-row items-center pb-3 mb-3 border-b border-gray-200">
+                {firstItem.store_logo_key ? (
                   <Image
-                    source={{ uri: item.image_keys }}
-                    className="w-16 h-16 rounded-lg"
+                    source={{ uri: firstItem.store_logo_key }}
+                    className="w-8 h-8 mr-3 rounded-full"
                     resizeMode="cover"
                   />
                 ) : (
-                  <View className="flex items-center justify-center w-16 h-16 bg-gray-200 rounded-lg">
-                    <Feather name="image" size={20} color="#9CA3AF" />
+                  <View className="flex items-center justify-center w-8 h-8 mr-3 bg-gray-200 rounded-full">
+                    <MaterialCommunityIcons
+                      name="storefront-outline"
+                      size={16}
+                      color="#6B7280"
+                    />
                   </View>
                 )}
+                <Text className="text-lg font-semibold text-gray-900">
+                  {firstItem.store_name}
+                </Text>
               </View>
 
-              <View className="flex-1">
-                <Text className="text-base font-medium text-gray-900">
-                  {item.name}
-                </Text>
-                <Text className="text-sm text-gray-600">{item.store_name}</Text>
-                <Text className="text-sm text-gray-500">
-                  {formatUnitType(item.unit_type)}
-                </Text>
+              {/* Store Items */}
+              {storeItems.map((item, index) => (
+                <View
+                  key={index}
+                  className="flex-row pb-4 mb-4 border-b border-gray-200 last:border-b-0 last:mb-0"
+                >
+                  <View className="mr-4">
+                    {item.image_keys ? (
+                      <Image
+                        source={{ uri: item.image_keys }}
+                        className="w-16 h-16 rounded-lg"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View className="flex items-center justify-center w-16 h-16 bg-gray-200 rounded-lg">
+                        <Feather name="image" size={20} color="#9CA3AF" />
+                      </View>
+                    )}
+                  </View>
 
-                <View className="flex-row items-center justify-between mt-2">
-                  <Text className="text-sm text-gray-600">
-                    Qty: {item.quantity}
-                  </Text>
-                  <Text className="font-medium text-orange-600">
-                    ₱
-                    {Number.parseFloat(
-                      item.total_price || item.price * item.quantity
-                    ).toFixed(2)}
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="text-base font-medium text-gray-900">
+                      {item.name}
+                    </Text>
+                    <Text className="text-sm text-gray-500">
+                      {formatUnitType(item.unit_type)}
+                    </Text>
+
+                    <View className="flex-row items-center justify-between mt-2">
+                      <Text className="text-sm text-gray-600">
+                        Qty: {item.quantity}
+                      </Text>
+                      <Text className="font-medium text-orange-600">
+                        ₱
+                        {Number.parseFloat(
+                          item.total_price || item.price * item.quantity
+                        ).toFixed(2)}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
+              ))}
             </View>
-          ))}
-        </View>
+          );
+        })}
 
         {/* Voucher Section */}
         <View className="p-4 mb-4 bg-white">
@@ -488,8 +527,13 @@ const CheckoutScreen = () => {
             </View>
 
             <View className="flex-row justify-between">
-              <Text className="text-gray-600">Delivery Fee</Text>
-              <Text className="text-gray-900">₱{deliveryFee.toFixed(2)}</Text>
+              <Text className="text-gray-600">
+                Delivery Fee ({Object.keys(groupedItems).length} store
+                {Object.keys(groupedItems).length > 1 ? "s" : ""})
+              </Text>
+              <Text className="text-gray-900">
+                ₱{getTotalDeliveryFee().toFixed(2)}
+              </Text>
             </View>
 
             {appliedVoucher && (
@@ -571,7 +615,6 @@ const CheckoutScreen = () => {
                         {address.recipient_name}
                       </Text>
 
-                      {/* Adding === 1 in codition, for some reason,  error Text strings must be rendered within a <Text> component showing if checking if it is truthy*/}
                       {address.is_default === 1 && (
                         <View className="px-2 py-1 bg-orange-100 rounded-full">
                           <Text className="text-xs font-medium text-orange-600">

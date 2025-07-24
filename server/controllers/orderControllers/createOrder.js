@@ -4,20 +4,23 @@ const createOrder = async (req, res) => {
   const connection = await db.getConnection();
 
   try {
+    await connection.beginTransaction();
+
     const userId = req.user.id;
     const {
       items,
       deliveryAddressId,
-      deliveryNotes = null,
-      voucherCode,
+      deliveryNotes = "",
+      voucherCode = null,
       paymentMethod = "cash_on_delivery",
       clearCart = false,
     } = req.body;
 
+    // Validate required fields
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No items provided",
+        message: "Items are required",
       });
     }
 
@@ -28,69 +31,75 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Validate item structure
-    for (const item of items) {
-      if (!item.productId || !item.quantity || item.quantity <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Each item must have a valid productId and quantity > 0",
-        });
-      }
-    }
-
-    // Get and verify address belongs to user
-    const [addressCheck] = await connection.execute(
-      `SELECT * FROM user_addresses WHERE id = ? AND user_id = ?`,
+    // Get delivery address
+    const [addressRows] = await connection.execute(
+      "SELECT * FROM user_addresses WHERE id = ? AND user_id = ?",
       [deliveryAddressId, userId]
     );
 
-    if (addressCheck.length === 0) {
+    if (addressRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery address not found",
+      });
+    }
+
+    const deliveryAddress = addressRows[0];
+
+    // Get product details and group by seller
+    const productIds = items.map((item) => item.productId);
+    const placeholders = productIds.map(() => "?").join(",");
+
+    const [productRows] = await connection.execute(
+      `SELECT p.*, s.store_name, s.store_logo_key 
+       FROM products p 
+       JOIN sellers s ON p.seller_id = s.id 
+       WHERE p.id IN (${placeholders}) AND p.is_active = 1`,
+      productIds
+    );
+
+    if (productRows.length !== productIds.length) {
       return res.status(400).json({
         success: false,
-        message: "Invalid delivery address",
+        message: "Some products are not available",
       });
     }
 
-    const deliveryAddress = addressCheck[0];
-
-    await connection.beginTransaction();
-
-    let subtotal = 0;
-    const validatedItems = [];
+    // Group items by seller
+    const itemsBySeller = {};
 
     for (const item of items) {
-      // Lock row to prevent race condition
-      const [productRows] = await connection.execute(
-        `SELECT p.*, s.id AS seller_id FROM products p
-         JOIN sellers s ON p.seller_id = s.id
-         WHERE p.id = ? AND p.is_active = 1 FOR UPDATE`,
-        [item.productId]
-      );
+      const product = productRows.find((p) => p.id === item.productId);
+      if (!product) continue;
 
-      if (productRows.length === 0) {
-        throw new Error(`Product ${item.productId} not found or inactive`);
+      const sellerId = product.seller_id;
+      if (!itemsBySeller[sellerId]) {
+        itemsBySeller[sellerId] = {
+          seller_id: sellerId,
+          store_name: product.store_name,
+          store_logo_key: product.store_logo_key,
+          items: [],
+        };
       }
 
-      const product = productRows[0];
-
+      // Check stock availability
       if (product.stock_quantity < item.quantity) {
-        throw new Error(`Insufficient stock for ${product.name}`);
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}. Available: ${product.stock_quantity}, Requested: ${item.quantity}`,
+        });
       }
 
-      const itemTotal = round(product.price * item.quantity);
-      subtotal += itemTotal;
-
-      validatedItems.push({
+      itemsBySeller[sellerId].items.push({
         ...item,
-        product,
-        itemTotal,
+        product: product,
+        unit_price: product.price,
+        total_price: product.price * item.quantity,
       });
     }
 
-    // Voucher handling
-    let voucherId = null;
-    let voucherDiscount = 0;
-
+    // Validate voucher if provided
+    let appliedVoucher = null;
     if (voucherCode) {
       const [voucherRows] = await connection.execute(
         `SELECT * FROM vouchers 
@@ -100,137 +109,177 @@ const createOrder = async (req, res) => {
       );
 
       if (voucherRows.length === 0) {
-        throw new Error("Invalid or expired voucher");
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or expired voucher code",
+        });
       }
 
-      const voucher = voucherRows[0];
-
-      if (subtotal < Number.parseFloat(voucher.minimum_order_amount)) {
-        throw new Error(
-          `Minimum order amount of ₱${voucher.minimum_order_amount} required for this voucher`
-        );
-      }
-
-      if (voucher.usage_limit && voucher.used_count >= voucher.usage_limit) {
-        throw new Error("Voucher usage limit exceeded");
-      }
-
-      if (voucher.discount_type === "percentage") {
-        voucherDiscount = round(
-          (subtotal * Number.parseFloat(voucher.discount_value)) / 100
-        );
-
-        if (voucher.maximum_discount_amount) {
-          voucherDiscount = Math.min(
-            voucherDiscount,
-            Number.parseFloat(voucher.maximum_discount_amount)
-          );
-        }
-      } else {
-        voucherDiscount = Number.parseFloat(voucher.discount_value);
-      }
-
-      voucherId = voucher.id;
-
-      // Update voucher usage
-      await connection.execute(
-        `UPDATE vouchers SET used_count = used_count + 1 WHERE id = ?`,
-        [voucher.id]
-      );
+      appliedVoucher = voucherRows[0];
     }
 
     const deliveryFee = 50.0;
-    const totalAmount = round(subtotal + deliveryFee - voucherDiscount);
-    const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const createdOrders = [];
+    let totalOrderAmount = 0;
 
-    // Create order with delivery address details stored directly
-    const [orderResult] = await connection.execute(
-      `INSERT INTO orders 
-       (user_id, order_number, subtotal, delivery_fee, voucher_discount, 
-        total_amount, voucher_id, delivery_address_id, delivery_recipient_name, 
-        delivery_phone_number, delivery_street_address, delivery_barangay, 
-        delivery_city, delivery_province, delivery_postal_code, delivery_landmark, 
-        delivery_notes, payment_method) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        userId,
-        orderNumber,
-        subtotal,
-        deliveryFee,
-        voucherDiscount,
-        totalAmount,
-        voucherId,
-        deliveryAddressId,
-        deliveryAddress.recipient_name,
-        deliveryAddress.phone_number,
-        deliveryAddress.street_address,
-        deliveryAddress.barangay,
-        deliveryAddress.city,
-        deliveryAddress.province,
-        deliveryAddress.postal_code,
-        deliveryAddress.landmark,
-        deliveryNotes,
-        paymentMethod,
-      ]
-    );
+    // Create separate order for each seller
+    for (const [sellerId, sellerData] of Object.entries(itemsBySeller)) {
+      const orderNumber = `ORD${Date.now()}${Math.floor(
+        Math.random() * 1000000
+      )}`;
 
-    const orderId = orderResult.insertId;
+      // Calculate subtotal for this seller
+      const subtotal = sellerData.items.reduce(
+        (sum, item) => sum + item.total_price,
+        0
+      );
 
-    for (const item of validatedItems) {
-      await connection.execute(
-        `INSERT INTO order_items 
-         (order_id, product_id, seller_id, quantity, unit_price, total_price, preparation_options) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      // Apply voucher discount proportionally if multiple sellers
+      let voucherDiscount = 0;
+      if (appliedVoucher) {
+        const totalSubtotal = Object.values(itemsBySeller).reduce(
+          (sum, seller) =>
+            sum +
+            seller.items.reduce(
+              (itemSum, item) => itemSum + item.total_price,
+              0
+            ),
+          0
+        );
+
+        if (appliedVoucher.discount_type === "percentage") {
+          const discountAmount =
+            (subtotal * appliedVoucher.discount_value) / 100;
+          voucherDiscount = appliedVoucher.maximum_discount_amount
+            ? Math.min(
+                discountAmount,
+                appliedVoucher.maximum_discount_amount *
+                  (subtotal / totalSubtotal)
+              )
+            : discountAmount;
+        } else {
+          voucherDiscount =
+            appliedVoucher.discount_value * (subtotal / totalSubtotal);
+        }
+      }
+
+      const totalAmount = subtotal + deliveryFee - voucherDiscount;
+      totalOrderAmount += totalAmount;
+
+      // Create order
+      const [orderResult] = await connection.execute(
+        `INSERT INTO orders (
+          user_id, order_number, status, payment_method, payment_status,
+          subtotal, delivery_fee, voucher_discount, total_amount, voucher_id,
+          delivery_address_id, delivery_recipient_name, delivery_phone_number,
+          delivery_street_address, delivery_barangay, delivery_city, 
+          delivery_province, delivery_postal_code, delivery_landmark, delivery_notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          orderId,
-          item.productId,
-          item.product.seller_id,
-          item.quantity,
-          item.product.price,
-          item.itemTotal,
-          item.preparationOptions
-            ? JSON.stringify(item.preparationOptions)
-            : null,
+          userId,
+          orderNumber,
+          "pending",
+          paymentMethod,
+          "pending",
+          subtotal,
+          deliveryFee,
+          voucherDiscount,
+          totalAmount,
+          appliedVoucher?.id || null,
+          deliveryAddressId,
+          deliveryAddress.recipient_name,
+          deliveryAddress.phone_number,
+          deliveryAddress.street_address,
+          deliveryAddress.barangay,
+          deliveryAddress.city,
+          deliveryAddress.province,
+          deliveryAddress.postal_code,
+          deliveryAddress.landmark,
+          deliveryNotes,
         ]
       );
 
+      const orderId = orderResult.insertId;
+
+      // Create order items
+      for (const item of sellerData.items) {
+        await connection.execute(
+          `INSERT INTO order_items (
+            order_id, product_id, seller_id, quantity, unit_price, total_price, preparation_options
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            orderId,
+            item.productId,
+            sellerId,
+            item.quantity,
+            item.unit_price,
+            item.total_price,
+            JSON.stringify(item.preparationOptions || {}),
+          ]
+        );
+
+        // Update product stock
+        await connection.execute(
+          "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?",
+          [item.quantity, item.productId]
+        );
+      }
+
+      // Add to order status history
       await connection.execute(
-        `UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?`,
-        [item.quantity, item.productId]
+        "INSERT INTO order_status_history (order_id, status, notes) VALUES (?, ?, ?)",
+        [orderId, "pending", "Order placed successfully"]
+      );
+
+      createdOrders.push({
+        orderId: orderId,
+        orderNumber: orderNumber,
+        sellerId: sellerId,
+        storeName: sellerData.store_name,
+        totalAmount: totalAmount,
+      });
+    }
+
+    // Update voucher usage count if applied
+    if (appliedVoucher) {
+      await connection.execute(
+        "UPDATE vouchers SET used_count = used_count + 1 WHERE id = ?",
+        [appliedVoucher.id]
       );
     }
 
-    await connection.execute(
-      `INSERT INTO order_status_history (order_id, status, notes) 
-       VALUES (?, 'pending', 'Order placed successfully')`,
-      [orderId]
-    );
-
+    // Clear cart items if requested (from cart checkout)
     if (clearCart) {
-      await connection.execute(`DELETE FROM cart WHERE user_id = ?`, [userId]);
+      const cartItemIds = items.map((item) => item.productId);
+      const cartPlaceholders = cartItemIds.map(() => "?").join(",");
+      await connection.execute(
+        `DELETE FROM cart WHERE user_id = ? AND product_id IN (${cartPlaceholders})`,
+        [userId, ...cartItemIds]
+      );
     }
 
     await connection.commit();
-    connection.release();
 
-    res.json({
+    res.status(201).json({
       success: true,
-      message: "Order created successfully",
+      message: `${createdOrders.length} order${
+        createdOrders.length > 1 ? "s" : ""
+      } created successfully`,
       data: {
-        orderId,
-        orderNumber,
-        totalAmount,
+        orders: createdOrders,
+        totalAmount: totalOrderAmount,
       },
     });
   } catch (error) {
     await connection.rollback();
-    connection.release();
-
     console.error("Error creating order:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Failed to create order",
+      message: "Failed to create order",
+      error: error.message,
     });
+  } finally {
+    connection.release();
   }
 };
 

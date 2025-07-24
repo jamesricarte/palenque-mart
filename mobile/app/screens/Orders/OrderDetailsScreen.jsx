@@ -1,3 +1,5 @@
+"use client";
+
 import {
   View,
   Text,
@@ -5,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -14,7 +17,6 @@ import axios from "axios";
 
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
-import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation";
 
 const OrderDetailsScreen = () => {
   const navigation = useNavigation();
@@ -24,10 +26,11 @@ const OrderDetailsScreen = () => {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     fetchOrderDetails();
-  }, [orderId]);
+  }, []);
 
   const fetchOrderDetails = async () => {
     try {
@@ -58,8 +61,8 @@ const OrderDetailsScreen = () => {
     return colors[status] || "bg-gray-100 text-gray-800";
   };
 
-  const getStatusLabel = (status) => {
-    const labels = {
+  const getStatusText = (status) => {
+    const statusMap = {
       pending: "Pending",
       confirmed: "Confirmed",
       preparing: "Preparing",
@@ -69,7 +72,7 @@ const OrderDetailsScreen = () => {
       cancelled: "Cancelled",
       refunded: "Refunded",
     };
-    return labels[status] || status;
+    return statusMap[status] || status;
   };
 
   const formatUnitType = (unitType) => {
@@ -97,6 +100,35 @@ const OrderDetailsScreen = () => {
     });
   };
 
+  const canCancelOrder = () => {
+    return order && ["pending", "confirmed"].includes(order.status);
+  };
+
+  const handleCancelOrder = () => {
+    Alert.alert("Cancel Order", "Are you sure you want to cancel this order?", [
+      { text: "No", style: "cancel" },
+      { text: "Yes", style: "destructive", onPress: cancelOrder },
+    ]);
+  };
+
+  const cancelOrder = async () => {
+    setCancelling(true);
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/orders/${orderId}/cancel`
+      );
+      if (response.data.success) {
+        Alert.alert("Success", "Order cancelled successfully");
+        fetchOrderDetails(); // Refresh order details
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      Alert.alert("Error", "Failed to cancel order");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   if (loading) {
     return (
       <View className="flex-1 bg-white">
@@ -110,7 +142,7 @@ const OrderDetailsScreen = () => {
         </View>
 
         <View className="items-center justify-center flex-1">
-          <PersonalizedLoadingAnimation />
+          <ActivityIndicator size="large" color="#EA580C" />
           <Text className="mt-4 text-gray-600">Loading order details...</Text>
         </View>
       </View>
@@ -130,10 +162,7 @@ const OrderDetailsScreen = () => {
         </View>
 
         <View className="items-center justify-center flex-1">
-          <Feather name="alert-circle" size={64} color="#9CA3AF" />
-          <Text className="mt-4 text-xl font-semibold text-gray-600">
-            Order not found
-          </Text>
+          <Text className="text-gray-600">Order not found</Text>
         </View>
       </View>
     );
@@ -156,27 +185,75 @@ const OrderDetailsScreen = () => {
         <View className="p-4 mb-4 bg-white rounded-lg">
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-lg font-semibold text-gray-900">
-              {order.order_number}
+              Order #{order.order_number}
             </Text>
             <View
               className={`px-3 py-1 rounded-full ${getStatusColor(order.status)}`}
             >
               <Text className="text-sm font-medium">
-                {getStatusLabel(order.status)}
+                {getStatusText(order.status)}
               </Text>
             </View>
           </View>
 
-          <Text className="text-sm text-gray-600">
-            Placed on {formatDate(order.created_at)}
-          </Text>
+          <View className="space-y-2">
+            <View className="flex-row justify-between">
+              <Text className="text-gray-600">Order Date</Text>
+              <Text className="text-gray-900">
+                {formatDate(order.created_at)}
+              </Text>
+            </View>
 
-          {order.delivered_at && (
-            <Text className="text-sm text-green-600">
-              Delivered on {formatDate(order.delivered_at)}
-            </Text>
-          )}
+            <View className="flex-row justify-between">
+              <Text className="text-gray-600">Payment Method</Text>
+              <View className="flex-row items-center">
+                <MaterialCommunityIcons name="cash" size={16} color="#059669" />
+                <Text className="ml-1 text-gray-900">Cash on Delivery</Text>
+              </View>
+            </View>
+
+            <View className="flex-row justify-between">
+              <Text className="text-gray-600">Payment Status</Text>
+              <Text className="text-gray-900 capitalize">
+                {order.payment_status.replace("_", " ")}
+              </Text>
+            </View>
+          </View>
         </View>
+
+        {/* Store Information - Display once since order is per store */}
+        {order.items && order.items.length > 0 && (
+          <View className="p-4 mb-4 bg-white rounded-lg">
+            <Text className="mb-3 text-lg font-semibold text-gray-900">
+              Store Information
+            </Text>
+            <View className="flex-row items-center">
+              {order.items[0].store_logo_key ? (
+                <Image
+                  source={{ uri: order.items[0].store_logo_key }}
+                  className="w-12 h-12 mr-3 rounded-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-200 rounded-full">
+                  <MaterialCommunityIcons
+                    name="storefront-outline"
+                    size={20}
+                    color="#6B7280"
+                  />
+                </View>
+              )}
+              <View>
+                <Text className="text-lg font-semibold text-gray-900">
+                  {order.items[0].store_name}
+                </Text>
+                <Text className="text-sm text-gray-600">
+                  Seller ID: {order.items[0].seller_seller_id}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Order Items */}
         <View className="p-4 mb-4 bg-white rounded-lg">
@@ -184,7 +261,7 @@ const OrderDetailsScreen = () => {
             Order Items
           </Text>
 
-          {order.items.map((item, index) => (
+          {order.items?.map((item, index) => (
             <View
               key={index}
               className="flex-row pb-4 mb-4 border-b border-gray-200 last:border-b-0 last:mb-0"
@@ -205,65 +282,59 @@ const OrderDetailsScreen = () => {
 
               <View className="flex-1">
                 <Text className="text-base font-medium text-gray-900">
-                  {item.product_name}
+                  {item.name}
                 </Text>
-
-                <View className="flex-row items-center mt-1">
-                  {item.store_logo_key ? (
-                    <Image
-                      source={{ uri: item.store_logo_key }}
-                      className="w-4 h-4 mr-2 rounded-full"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <MaterialCommunityIcons
-                      name="storefront-outline"
-                      size={16}
-                      color="#6B7280"
-                      style={{ marginRight: 8 }}
-                    />
-                  )}
-                  <Text className="text-sm text-gray-600">
-                    {item.store_name}
-                  </Text>
-                </View>
-
                 <Text className="text-sm text-gray-500">
                   {formatUnitType(item.unit_type)}
                 </Text>
 
                 <View className="flex-row items-center justify-between mt-2">
                   <Text className="text-sm text-gray-600">
-                    ₱{parseFloat(item.unit_price).toFixed(2)} × {item.quantity}
+                    Qty: {item.quantity} × ₱
+                    {Number.parseFloat(item.unit_price).toFixed(2)}
                   </Text>
                   <Text className="font-medium text-orange-600">
-                    ₱{parseFloat(item.total_price).toFixed(2)}
+                    ₱{Number.parseFloat(item.total_price).toFixed(2)}
                   </Text>
                 </View>
 
-                {item.preparation_options && (
-                  <View className="mt-2">
-                    <Text className="text-xs text-gray-500">Preparation:</Text>
+                {/* Item Status */}
+                <View className="mt-2">
+                  <View
+                    className={`self-start px-2 py-1 rounded-full ${getStatusColor(item.item_status)}`}
+                  >
+                    <Text className="text-xs font-medium">
+                      {getStatusText(item.item_status)}
+                    </Text>
+                  </View>
+                </View>
 
-                    <View className="flex-row flex-wrap mt-1">
-                      {Object.entries(
-                        typeof item.preparation_options === "string"
-                          ? JSON.parse(item.preparation_options)
-                          : item.preparation_options
-                      ).map(
-                        ([option, selected]) =>
-                          selected && (
-                            <View
-                              key={option}
-                              className="px-2 py-1 mb-1 mr-1 bg-blue-100 rounded-full"
-                            >
-                              <Text className="text-xs text-blue-800 capitalize">
-                                {option.replace("_", " ")}
-                              </Text>
-                            </View>
+                {/* Preparation Options */}
+                {item.preparation_options &&
+                  Object.keys(item.preparation_options).length !== 0 &&
+                  Object.keys(JSON.parse(item.preparation_options)).some(
+                    (key) => JSON.parse(item.preparation_options)[key]
+                  ) && (
+                    <View className="mt-2">
+                      <Text className="text-xs text-gray-500">
+                        Preparation:{" "}
+                        {Object.entries(JSON.parse(item.preparation_options))
+                          .filter(([key, value]) => value)
+                          .map(
+                            ([key]) =>
+                              key.charAt(0).toUpperCase() + key.slice(1)
                           )
-                      )}
+                          .join(", ")}
+                      </Text>
                     </View>
+                  )}
+
+                {/* Seller Notes */}
+                {item.seller_notes && (
+                  <View className="mt-2">
+                    <Text className="text-xs text-gray-500">
+                      Note: {item.seller_notes}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -277,65 +348,57 @@ const OrderDetailsScreen = () => {
             Delivery Address
           </Text>
 
-          <View>
-            <Text className="text-base font-medium text-gray-900">
-              {order.recipient_name}
+          <View className="space-y-1">
+            <Text className="font-medium text-gray-900">
+              {order.delivery_recipient_name}
             </Text>
-            <Text className="text-gray-600">{order.phone_number}</Text>
-            <Text className="mt-1 text-gray-700">
-              {order.street_address}, {order.barangay}
+            <Text className="text-gray-600">{order.delivery_phone_number}</Text>
+            <Text className="text-gray-700">
+              {order.delivery_street_address}, {order.delivery_barangay}
             </Text>
             <Text className="text-gray-700">
-              {order.city}, {order.province} {order.postal_code}
+              {order.delivery_city}, {order.delivery_province}{" "}
+              {order.delivery_postal_code}
             </Text>
-            {order.landmark && (
+            {order.delivery_landmark && (
               <Text className="text-sm text-gray-500">
-                Landmark: {order.landmark}
+                Landmark: {order.delivery_landmark}
+              </Text>
+            )}
+            {order.delivery_notes && (
+              <Text className="text-sm text-gray-500">
+                Notes: {order.delivery_notes}
               </Text>
             )}
           </View>
-
-          {order.delivery_notes && (
-            <View className="p-3 mt-3 rounded-lg bg-gray-50">
-              <Text className="text-sm font-medium text-gray-700">
-                Delivery Notes:
-              </Text>
-              <Text className="text-sm text-gray-600">
-                {order.delivery_notes}
-              </Text>
-            </View>
-          )}
         </View>
 
-        {/* Payment & Summary */}
+        {/* Order Summary */}
         <View className="p-4 mb-4 bg-white rounded-lg">
           <Text className="mb-3 text-lg font-semibold text-gray-900">
-            Payment Summary
+            Order Summary
           </Text>
 
           <View className="space-y-2">
             <View className="flex-row justify-between">
               <Text className="text-gray-600">Subtotal</Text>
               <Text className="text-gray-900">
-                ₱{parseFloat(order.subtotal).toFixed(2)}
+                ₱{Number.parseFloat(order.subtotal).toFixed(2)}
               </Text>
             </View>
 
             <View className="flex-row justify-between">
               <Text className="text-gray-600">Delivery Fee</Text>
               <Text className="text-gray-900">
-                ₱{parseFloat(order.delivery_fee).toFixed(2)}
+                ₱{Number.parseFloat(order.delivery_fee).toFixed(2)}
               </Text>
             </View>
 
             {order.voucher_discount > 0 && (
               <View className="flex-row justify-between">
+                <Text className="text-green-600">Voucher Discount</Text>
                 <Text className="text-green-600">
-                  Voucher Discount{" "}
-                  {order.voucher_code && `(${order.voucher_code})`}
-                </Text>
-                <Text className="text-green-600">
-                  -₱{parseFloat(order.voucher_discount).toFixed(2)}
+                  -₱{Number.parseFloat(order.voucher_discount).toFixed(2)}
                 </Text>
               </View>
             )}
@@ -346,16 +409,9 @@ const OrderDetailsScreen = () => {
                   Total
                 </Text>
                 <Text className="text-lg font-semibold text-orange-600">
-                  ₱{parseFloat(order.total_amount).toFixed(2)}
+                  ₱{Number.parseFloat(order.total_amount).toFixed(2)}
                 </Text>
               </View>
-            </View>
-
-            <View className="flex-row items-center pt-2">
-              <MaterialCommunityIcons name="cash" size={16} color="#059669" />
-              <Text className="ml-2 text-sm text-gray-600">
-                Cash on Delivery
-              </Text>
             </View>
           </View>
         </View>
@@ -390,32 +446,18 @@ const OrderDetailsScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      {(order.status === "pending" || order.status === "confirmed") && (
+      {canCancelOrder() && (
         <View className="p-4 bg-white border-t border-gray-200">
           <TouchableOpacity
             className="items-center p-4 border border-red-600 rounded-lg"
-            onPress={() => {
-              Alert.alert(
-                "Cancel Order",
-                "Are you sure you want to cancel this order?",
-                [
-                  { text: "No", style: "cancel" },
-                  {
-                    text: "Yes, Cancel",
-                    style: "destructive",
-                    onPress: () => {
-                      // TODO: Implement cancel order functionality
-                      Alert.alert(
-                        "Cancel Order",
-                        "This feature will be implemented soon!"
-                      );
-                    },
-                  },
-                ]
-              );
-            }}
+            onPress={handleCancelOrder}
+            disabled={cancelling}
           >
-            <Text className="font-semibold text-red-600">Cancel Order</Text>
+            {cancelling ? (
+              <ActivityIndicator color="#DC2626" />
+            ) : (
+              <Text className="font-semibold text-red-600">Cancel Order</Text>
+            )}
           </TouchableOpacity>
         </View>
       )}
