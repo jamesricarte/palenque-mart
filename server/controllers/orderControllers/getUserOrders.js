@@ -15,7 +15,7 @@ const getUserOrders = async (req, res) => {
       queryParams.push(status);
     }
 
-    // Get orders with first store logo - now using stored delivery address fields
+    // Get orders with first store logo and first product details for each order
     const [orders] = await db.execute(
       `SELECT 
         o.*,
@@ -27,7 +27,29 @@ const getUserOrders = async (req, res) => {
          FROM order_items oi2 
          JOIN sellers s2 ON oi2.seller_id = s2.id 
          WHERE oi2.order_id = o.id 
-         LIMIT 1) as first_store_logo_key
+         LIMIT 1) as first_store_logo_key,
+        (SELECT p.name
+         FROM order_items oi3
+         JOIN products p ON oi3.product_id = p.id
+         WHERE oi3.order_id = o.id
+         ORDER BY oi3.id
+         LIMIT 1) as first_product_name,
+        (SELECT p.image_keys
+         FROM order_items oi4
+         JOIN products p ON oi4.product_id = p.id
+         WHERE oi4.order_id = o.id
+         ORDER BY oi4.id
+         LIMIT 1) as first_product_image_key,
+        (SELECT oi5.quantity
+         FROM order_items oi5
+         WHERE oi5.order_id = o.id
+         ORDER BY oi5.id
+         LIMIT 1) as first_product_quantity,
+        (SELECT oi6.unit_price
+         FROM order_items oi6
+         WHERE oi6.order_id = o.id
+         ORDER BY oi6.id
+         LIMIT 1) as first_product_price
       FROM orders o
       LEFT JOIN vouchers v ON o.voucher_id = v.id
       LEFT JOIN order_items oi ON o.id = oi.order_id
@@ -39,31 +61,44 @@ const getUserOrders = async (req, res) => {
       queryParams
     );
 
-    // Generate public URLs for store logos and map delivery address fields
-    const ordersWithLogos = orders.map((order) => {
-      let store_logo_url = null;
+    // Generate public URLs for store logos and product images
+    const ordersWithLogos = await Promise.all(
+      orders.map(async (order) => {
+        let store_logo_url = null;
+        let first_product_image_url = null;
 
-      if (order.first_store_logo_key) {
-        const { data } = supabase.storage
-          .from("vendor-assets")
-          .getPublicUrl(order.first_store_logo_key);
+        if (order.first_store_logo_key) {
+          const { data } = supabase.storage
+            .from("vendor-assets")
+            .getPublicUrl(order.first_store_logo_key);
 
-        store_logo_url = data.publicUrl;
-      }
+          store_logo_url = data.publicUrl;
+        }
 
-      return {
-        ...order,
-        // Map stored delivery fields to expected field names for backward compatibility
-        recipient_name: order.delivery_recipient_name,
-        phone_number: order.delivery_phone_number,
-        street_address: order.delivery_street_address,
-        barangay: order.delivery_barangay,
-        city: order.delivery_city,
-        province: order.delivery_province,
-        landmark: order.delivery_landmark,
-        store_logo_url,
-      };
-    });
+        // Get product image URL from Supabase
+        if (order.first_product_image_key) {
+          const { data } = supabase.storage
+            .from("products")
+            .getPublicUrl(order.first_product_image_key);
+
+          first_product_image_url = data.publicUrl;
+        }
+
+        return {
+          ...order,
+          // Map stored delivery fields to expected field names for backward compatibility
+          recipient_name: order.delivery_recipient_name,
+          phone_number: order.delivery_phone_number,
+          street_address: order.delivery_street_address,
+          barangay: order.delivery_barangay,
+          city: order.delivery_city,
+          province: order.delivery_province,
+          landmark: order.delivery_landmark,
+          store_logo_url,
+          first_product_image_url,
+        };
+      })
+    );
 
     // Do not remove this line because it is essential for making the query of countResult correct
     const totalCountStatusFilter =

@@ -269,6 +269,48 @@ const OrdersScreen = () => {
                 </Text>
               </View>
 
+              {/* First product display with image */}
+              {order.first_product_name && (
+                <View className="flex-row items-center p-2 mb-3 rounded-md bg-gray-50">
+                  {order.first_product_image_url ? (
+                    <Image
+                      source={{ uri: order.first_product_image_url }}
+                      className="w-12 h-12 mr-3 rounded-md"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-200 rounded-md">
+                      <MaterialCommunityIcons
+                        name="image-off-outline"
+                        size={20}
+                        color="#6B7280"
+                      />
+                    </View>
+                  )}
+                  <View className="flex-1">
+                    <Text
+                      className="text-sm font-medium text-gray-800"
+                      numberOfLines={1}
+                    >
+                      {order.first_product_name}
+                    </Text>
+                    <View className="flex-row items-center justify-between mt-1">
+                      <Text className="text-xs text-gray-500">
+                        {order.first_product_quantity} x ₱
+                        {Number.parseFloat(order.first_product_price).toFixed(
+                          2
+                        )}
+                      </Text>
+                      {order.item_count > 1 && (
+                        <Text className="text-xs font-medium text-orange-600">
+                          +{order.item_count - 1} more
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              )}
+
               <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-sm text-gray-600">
                   {order.item_count} item{order.item_count !== 1 ? "s" : ""}
