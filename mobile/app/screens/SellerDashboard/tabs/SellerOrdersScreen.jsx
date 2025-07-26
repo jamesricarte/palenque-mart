@@ -1,18 +1,582 @@
 "use client";
 
-import { View, Text } from "react-native";
+import { useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  Alert,
+  Modal,
+  Image,
+} from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useAuth } from "../../../context/AuthContext";
+import { API_URL } from "../../../config/apiConfig";
+import axios from "axios";
+import DefaultLoadingAnimation from "../../../components/DefaultLoadingAnimation";
 
-const SellerOrdersScreen = () => {
+const SellerOrdersScreen = ({ navigation }) => {
+  const { token } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [quickActionModalVisible, setQuickActionModalVisible] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const statusOptions = [
+    { value: "all", label: "All Orders", color: "#6B7280", count: 0 },
+    {
+      value: "pending",
+      label: "New Orders",
+      color: "#F59E0B",
+      count: 0,
+      priority: true,
+    },
+    { value: "confirmed", label: "Confirmed", color: "#3B82F6", count: 0 },
+    {
+      value: "preparing",
+      label: "Preparing",
+      color: "#8B5CF6",
+      count: 0,
+      priority: true,
+    },
+    {
+      value: "ready_for_pickup",
+      label: "Ready",
+      color: "#10B981",
+      count: 0,
+      priority: true,
+    },
+    {
+      value: "out_for_delivery",
+      label: "Out for Delivery",
+      color: "#06B6D4",
+      count: 0,
+    },
+    { value: "delivered", label: "Delivered", color: "#059669", count: 0 },
+    { value: "cancelled", label: "Cancelled", color: "#EF4444", count: 0 },
+  ];
+
+  const quickActions = {
+    pending: [
+      {
+        value: "confirmed",
+        label: "Accept Order",
+        color: "#10B981",
+        icon: "check-circle",
+        description: "Accept and confirm this order",
+      },
+      {
+        value: "cancelled",
+        label: "Decline Order",
+        color: "#EF4444",
+        icon: "x-circle",
+        description: "Decline this order",
+      },
+    ],
+    confirmed: [
+      {
+        value: "preparing",
+        label: "Start Preparing",
+        color: "#8B5CF6",
+        icon: "clock",
+        description: "Begin preparing the order items",
+      },
+    ],
+    preparing: [
+      {
+        value: "ready_for_pickup",
+        label: "Mark Ready",
+        color: "#10B981",
+        icon: "package",
+        description: "Order is ready for pickup by delivery partner",
+      },
+    ],
+    // Removed ready_for_pickup and out_for_delivery actions as requested
+  };
+
+  const fetchOrders = async () => {
+    setLoading(true);
+
+    try {
+      const response = await axios.get(`${API_URL}/api/seller/orders`, {
+        params: { status: selectedStatus },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setOrders(response.data.data.orders);
+        // Update status counts
+        const allOrders = response.data.data.orders;
+        statusOptions.forEach((status) => {
+          if (status.value === "all") {
+            status.count = allOrders.length;
+          } else {
+            status.count = allOrders.filter(
+              (order) => order.status === status.value
+            ).length;
+          }
+        });
+      } else {
+        console.error("Failed to fetch orders:", response.data.message);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching orders:",
+        error.response?.data || error.message
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const fetchOrdersCallback = useCallback(fetchOrders, [token, selectedStatus]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrdersCallback();
+    }, [fetchOrdersCallback])
+  );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchOrdersCallback();
+  }, [fetchOrdersCallback]);
+
+  const handleQuickAction = async (orderId, newStatus, actionData) => {
+    setUpdatingStatus(true);
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/seller/orders/${orderId}/status`,
+        {
+          status: newStatus,
+          notes: actionData.description,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        Alert.alert(
+          "Success",
+          `Order ${actionData.label.toLowerCase()} successfully`
+        );
+        fetchOrdersCallback();
+        setQuickActionModalVisible(false);
+        setSelectedOrder(null);
+      } else {
+        Alert.alert(
+          "Error",
+          response.data.message || "Failed to update order status"
+        );
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      Alert.alert("Error", "Failed to update order status");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const statusOption = statusOptions.find(
+      (option) => option.value === status
+    );
+    return statusOption ? statusOption.color : "#6B7280";
+  };
+
+  const getStatusLabel = (status) => {
+    const statusOption = statusOptions.find(
+      (option) => option.value === status
+    );
+    return statusOption ? statusOption.label : status;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+      return `${diffInMinutes}m ago`;
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return `₱${Number.parseFloat(amount).toFixed(2)}`;
+  };
+
+  const openQuickActionModal = (order) => {
+    setSelectedOrder(order);
+    setQuickActionModalVisible(true);
+  };
+
+  const navigateToOrderDetails = (orderId) => {
+    navigation.navigate("SellerOrderDetails", { orderId });
+  };
+
+  const getOrderPriority = (order) => {
+    const urgentStatuses = ["pending", "preparing"];
+    return urgentStatuses.includes(order.status);
+  };
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-gray-50">
+        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+          <Text className="text-xl font-semibold">Order Management</Text>
+        </View>
+        <View className="items-center justify-center flex-1">
+          <DefaultLoadingAnimation />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-gray-50">
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-xl font-semibold">My Orders</Text>
+        <Text className="text-xl font-semibold">Order Management</Text>
+
+        {/* Status Filter with Counts - Fixed Colors */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-4"
+        >
+          {statusOptions.map((status) => (
+            <TouchableOpacity
+              key={status.value}
+              onPress={() => {
+                setSelectedStatus(status.value);
+              }}
+              className={`mr-3 px-4 py-2 rounded-full flex-row items-center ${
+                selectedStatus === status.value
+                  ? "bg-orange-500"
+                  : "bg-gray-200"
+              }`}
+            >
+              <Text
+                className={`text-sm font-medium ${selectedStatus === status.value ? "text-white" : "text-gray-700"}`}
+              >
+                {status.label}
+              </Text>
+              {status.count > 0 && (
+                <View
+                  className={`ml-2 px-2 py-1 rounded-full ${
+                    selectedStatus === status.value
+                      ? "bg-white bg-opacity-20"
+                      : "bg-orange-500"
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-bold ${selectedStatus === status.value ? "text-white" : "text-white"}`}
+                  >
+                    {status.count}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-      <View className="items-center justify-center flex-1">
-        <Feather name="inbox" size={48} color="#d1d5db" />
-        <Text className="mt-4 text-lg font-medium">No Orders Yet</Text>
-      </View>
+
+      {orders?.length === 0 ? (
+        <View className="items-center justify-center flex-1">
+          <Feather name="inbox" size={48} color="#d1d5db" />
+          <Text className="mt-4 text-lg font-medium">No Orders Found</Text>
+          <Text className="px-8 mt-2 text-center text-gray-500">
+            {selectedStatus === "all"
+              ? "You haven't received any orders yet. Orders will appear here when customers place them."
+              : `No ${getStatusLabel(selectedStatus).toLowerCase()} orders at the moment.`}
+          </Text>
+        </View>
+      ) : (
+        <ScrollView
+          className="flex-1"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {orders?.map((order) => (
+            <TouchableOpacity
+              key={order.id}
+              onPress={() => navigateToOrderDetails(order.id)}
+              className={`mx-4 mt-4 bg-white rounded-lg shadow-sm ${
+                getOrderPriority(order) ? "border-l-4 border-orange-500" : ""
+              }`}
+            >
+              {/* Order Header */}
+              <View className="p-4 border-b border-gray-100">
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-lg font-semibold">
+                      {order.order_number}
+                    </Text>
+                    <Text className="mt-1 text-sm text-gray-500">
+                      {formatDate(order.created_at)}
+                    </Text>
+                  </View>
+                  <View className="items-end">
+                    <View
+                      className="px-3 py-1 rounded-full"
+                      style={{
+                        backgroundColor: `${getStatusColor(order.status)}20`,
+                      }}
+                    >
+                      <Text
+                        className="text-sm font-medium"
+                        style={{ color: getStatusColor(order.status) }}
+                      >
+                        {getStatusLabel(order.status)}
+                      </Text>
+                    </View>
+                    {getOrderPriority(order) && (
+                      <View className="flex-row items-center mt-1">
+                        <Feather name="clock" size={12} color="#F59E0B" />
+                        <Text className="ml-1 text-xs font-medium text-orange-600">
+                          Needs Attention
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+
+                <View className="flex-row items-center justify-between mt-2">
+                  <Text className="text-sm text-gray-700">
+                    {order.customer_first_name} {order.customer_last_name}
+                  </Text>
+                  <Text className="text-lg font-semibold text-orange-600">
+                    {formatCurrency(order.seller_total_amount)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Order Items Display - First Item with Image */}
+              {order.items && order.items.length > 0 && (
+                <View className="px-4 py-3 border-b border-gray-100">
+                  <View className="flex-row items-center">
+                    {/* First Item Image */}
+                    <View className="w-12 h-12 mr-3 bg-gray-200 rounded-lg">
+                      {order.items[0].image_keys ? (
+                        <Image
+                          source={{ uri: order.items[0].image_keys }}
+                          className="w-full h-full rounded-lg"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View className="flex items-center justify-center w-full h-full">
+                          <MaterialCommunityIcons
+                            name="image-off-outline"
+                            size={20}
+                            color="#6B7280"
+                          />
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Item Details */}
+                    <View className="flex-1">
+                      <Text
+                        className="font-medium text-gray-800"
+                        numberOfLines={1}
+                      >
+                        {order.items[0].product_name}
+                      </Text>
+                      <Text className="text-sm text-gray-500">
+                        Qty: {order.items[0].quantity} •{" "}
+                        {formatCurrency(order.items[0].unit_price)} each
+                      </Text>
+                      {order.items.length > 1 && (
+                        <Text className="mt-1 text-xs font-medium text-orange-600">
+                          +{order.items.length - 1} more item
+                          {order.items.length > 2 ? "s" : ""}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Order Summary */}
+              <View className="p-4">
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text className="text-sm text-gray-600">
+                    {order.item_count} item(s)
+                  </Text>
+                  <Text className="text-sm text-gray-600 capitalize">
+                    {order.payment_method.replace(/_/g, " ")}
+                  </Text>
+                </View>
+
+                {/* Quick Action Buttons - Hidden for ready_for_pickup and out_for_delivery */}
+                {quickActions[order.status] && (
+                  <View className="flex-row space-x-2">
+                    {quickActions[order.status].map((action, index) => (
+                      <TouchableOpacity
+                        key={action.value}
+                        onPress={() => openQuickActionModal(order)}
+                        className={`flex-1 py-3 rounded-lg flex-row items-center justify-center ${
+                          index === 0 ? "bg-orange-500" : "bg-gray-200"
+                        }`}
+                      >
+                        <Feather
+                          name={action.icon}
+                          size={16}
+                          color={index === 0 ? "white" : "#6B7280"}
+                        />
+                        <Text
+                          className={`ml-2 font-medium ${index === 0 ? "text-white" : "text-gray-700"}`}
+                        >
+                          {action.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+
+                {/* Waiting for Pickup Status */}
+                {order.status === "ready_for_pickup" && (
+                  <View className="p-3 mt-3 border border-green-200 rounded-lg bg-green-50">
+                    <View className="flex-row items-center">
+                      <Feather name="search" size={16} color="#10B981" />
+                      <Text className="ml-2 text-sm font-medium text-green-800">
+                        Looking for Delivery Partner
+                      </Text>
+                    </View>
+                    <Text className="mt-1 text-xs text-green-600">
+                      Your order is ready and we're finding a delivery partner
+                      to pick it up
+                    </Text>
+                  </View>
+                )}
+
+                {/* Out for Delivery Status */}
+                {order.status === "out_for_delivery" && (
+                  <View className="p-3 mt-3 border border-blue-200 rounded-lg bg-blue-50">
+                    <View className="flex-row items-center">
+                      <Feather name="truck" size={16} color="#06B6D4" />
+                      <Text className="ml-2 text-sm font-medium text-blue-800">
+                        Out for Delivery
+                      </Text>
+                    </View>
+                    <Text className="mt-1 text-xs text-blue-600">
+                      Your order is on the way to the customer
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
+      {/* Quick Action Modal */}
+      <Modal
+        visible={quickActionModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setQuickActionModalVisible(false);
+          setSelectedOrder(null);
+        }}
+      >
+        <View
+          className="justify-end flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="p-6 bg-white rounded-t-3xl">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-semibold">Quick Actions</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setQuickActionModalVisible(false);
+                  setSelectedOrder(null);
+                }}
+              >
+                <Feather name="x" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedOrder && (
+              <>
+                <View className="p-3 mb-4 rounded-lg bg-gray-50">
+                  <Text className="font-medium text-gray-900">
+                    {selectedOrder.order_number}
+                  </Text>
+                  <Text className="text-sm text-gray-600">
+                    {selectedOrder.customer_first_name}{" "}
+                    {selectedOrder.customer_last_name}
+                  </Text>
+                  <Text className="text-sm font-medium text-orange-600">
+                    {formatCurrency(selectedOrder.seller_total_amount)}
+                  </Text>
+                </View>
+
+                {quickActions[selectedOrder.status]?.map((action) => (
+                  <TouchableOpacity
+                    key={action.value}
+                    onPress={() =>
+                      handleQuickAction(selectedOrder.id, action.value, action)
+                    }
+                    disabled={updatingStatus}
+                    className="flex-row items-center p-4 mb-3 border border-gray-200 rounded-lg"
+                    style={{
+                      backgroundColor: updatingStatus ? "#F3F4F6" : "white",
+                    }}
+                  >
+                    <View
+                      className="items-center justify-center w-10 h-10 mr-4 rounded-full"
+                      style={{ backgroundColor: `${action.color}20` }}
+                    >
+                      <Feather
+                        name={action.icon}
+                        size={20}
+                        color={action.color}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text
+                        className={`font-medium ${updatingStatus ? "text-gray-400" : "text-gray-900"}`}
+                      >
+                        {action.label}
+                      </Text>
+                      <Text
+                        className={`text-sm ${updatingStatus ? "text-gray-300" : "text-gray-500"}`}
+                      >
+                        {action.description}
+                      </Text>
+                    </View>
+                    {updatingStatus && <DefaultLoadingAnimation size="small" />}
+                  </TouchableOpacity>
+                ))}
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

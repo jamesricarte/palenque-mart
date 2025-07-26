@@ -282,7 +282,7 @@ const OrderDetailsScreen = () => {
 
               <View className="flex-1">
                 <Text className="text-base font-medium text-gray-900">
-                  {item.name}
+                  {item.product_name}
                 </Text>
                 <Text className="text-sm text-gray-500">
                   {formatUnitType(item.unit_type)}

@@ -124,9 +124,9 @@ const createOrder = async (req, res) => {
 
     // Create separate order for each seller
     for (const [sellerId, sellerData] of Object.entries(itemsBySeller)) {
-      const orderNumber = `ORD${Date.now()}${Math.floor(
-        Math.random() * 1000000
-      )}`;
+      const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, "0")}`;
 
       // Calculate subtotal for this seller
       const subtotal = sellerData.items.reduce(

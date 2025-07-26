@@ -16,6 +16,10 @@ const getStoreProfile = require("../controllers/sellerControllers/getStoreProfil
 const updateStoreProfile = require("../controllers/sellerControllers/updateStoreProfile");
 const getProducts = require("../controllers/sellerControllers/getProducts");
 
+const getSellerOrders = require("../controllers/sellerControllers/getSellerOrders");
+const updateOrderStatus = require("../controllers/sellerControllers/updateOrderStatus");
+const getSellerOrderDetails = require("../controllers/sellerControllers/getSellerOrderDetails");
+
 // Routes
 router.post(
   "/submit-application",
@@ -47,5 +51,14 @@ router.put("/store-profile", authenticateToken, updateStoreProfile);
 
 // Route to get seller's products
 router.get("/products", authenticateToken, getProducts);
+
+// Route to get seller's orders
+router.get("/orders", authenticateToken, getSellerOrders);
+
+// Route to get order details
+router.get("/orders/:orderId", authenticateToken, getSellerOrderDetails);
+
+// Route to update order status
+router.put("/orders/:orderId/status", authenticateToken, updateOrderStatus);
 
 module.exports = router;
