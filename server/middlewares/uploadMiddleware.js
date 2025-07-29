@@ -38,6 +38,11 @@ const upload = multer({
   { name: "validId", maxCount: 1 },
   { name: "proofOfAddress", maxCount: 1 },
   { name: "productImage", maxCount: 1 }, // Added for product uploads
+  { name: "drivers_license", maxCount: 1 }, // Added for delivery partner documents
+  { name: "vehicle_registration", maxCount: 1 },
+  { name: "insurance", maxCount: 1 },
+  { name: "background_check", maxCount: 1 },
+  { name: "profile_photo", maxCount: 1 },
 ]);
 
 // Error handling middleware

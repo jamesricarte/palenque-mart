@@ -35,7 +35,7 @@ CREATE TABLE `cart` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -59,9 +59,10 @@ CREATE TABLE `delivery_partner_applications` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `application_id` varchar(20) NOT NULL,
-  `vehicle_type` enum('motorcycle','bicycle','car','truck') NOT NULL,
+  `vehicle_type` enum('motorcycle','tricycle','car','truck') NOT NULL,
   `license_number` varchar(50) NOT NULL,
   `vehicle_registration` varchar(50) NOT NULL,
+  `company_name` varchar(255) DEFAULT NULL,
   `service_areas` json NOT NULL,
   `availability_hours` json NOT NULL,
   `emergency_contact_name` varchar(255) NOT NULL,
@@ -78,7 +79,7 @@ CREATE TABLE `delivery_partner_applications` (
   KEY `idx_application_id` (`application_id`),
   KEY `idx_status` (`status`),
   KEY `idx_reviewed_by` (`reviewed_by`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -87,6 +88,7 @@ CREATE TABLE `delivery_partner_applications` (
 
 LOCK TABLES `delivery_partner_applications` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_applications` DISABLE KEYS */;
+INSERT INTO `delivery_partner_applications` VALUES (1,5,'DPA19373338','tricycle','N03-12-123456','DMV1234','independent','[\"Tabaco City\"]','{\"friday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": true}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}}','Marita C. Ricarte','09063569259','pending',NULL,'2025-07-29 17:28:17','2025-07-29 17:28:17',NULL,NULL);
 /*!40000 ALTER TABLE `delivery_partner_applications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -106,13 +108,14 @@ CREATE TABLE `delivery_partner_documents` (
   `file_size` int NOT NULL,
   `mime_type` varchar(100) NOT NULL,
   `verification_status` enum('pending','verified','rejected') DEFAULT 'pending',
+  `rejection_reason` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_application_id` (`application_id`),
   KEY `idx_document_type` (`document_type`),
   KEY `idx_verification_status` (`verification_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -121,6 +124,7 @@ CREATE TABLE `delivery_partner_documents` (
 
 LOCK TABLES `delivery_partner_documents` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_documents` DISABLE KEYS */;
+INSERT INTO `delivery_partner_documents` VALUES (1,1,'vehicle_registration','user_5/DPA19373338/vehicle_registration-1753810097878.jpeg','images%20(7).jpeg',47849,'image/jpeg','pending',NULL,'2025-07-29 17:28:18','2025-07-29 17:28:18'),(2,1,'insurance','user_5/DPA19373338/insurance-1753810098846.png','images%20(1).png',26986,'image/png','pending',NULL,'2025-07-29 17:28:19','2025-07-29 17:28:19');
 /*!40000 ALTER TABLE `delivery_partner_documents` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -149,7 +153,7 @@ CREATE TABLE `order_items` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_item_status` (`item_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +162,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,7,6,1,200.00,200.00,'{}','preparing',NULL,'2025-07-24 07:36:29','2025-07-24 07:50:26'),(2,2,5,2,1,10.00,10.00,NULL,'out_for_delivery',NULL,'2025-07-24 08:15:57','2025-07-25 16:47:11'),(3,2,7,6,1,200.00,200.00,NULL,'pending',NULL,'2025-07-24 08:15:57','2025-07-24 08:15:57'),(4,3,3,2,2,25.00,50.00,NULL,'delivered',NULL,'2025-07-24 12:26:29','2025-07-25 14:37:35'),(5,3,2,1,1,290.00,290.00,NULL,'pending',NULL,'2025-07-24 12:26:29','2025-07-24 12:26:29'),(6,3,5,2,1,10.00,10.00,NULL,'delivered',NULL,'2025-07-24 12:26:29','2025-07-25 14:37:35'),(7,4,2,1,1,290.00,290.00,NULL,'pending',NULL,'2025-07-24 13:31:40','2025-07-24 13:31:40'),(8,4,4,2,1,20.00,20.00,NULL,'out_for_delivery',NULL,'2025-07-24 13:31:40','2025-07-25 13:28:45'),(9,5,2,1,1,290.00,290.00,'{}','pending',NULL,'2025-07-24 15:23:55','2025-07-24 15:23:55'),(10,6,3,2,1,25.00,25.00,'{}','out_for_delivery',NULL,'2025-07-24 15:23:55','2025-07-25 13:16:57'),(11,6,4,2,1,20.00,20.00,'{}','out_for_delivery',NULL,'2025-07-24 15:23:55','2025-07-25 13:16:57'),(12,6,5,2,1,10.00,10.00,'{}','out_for_delivery',NULL,'2025-07-24 15:23:55','2025-07-25 13:16:57'),(13,7,5,2,1,10.00,10.00,'{}','out_for_delivery',NULL,'2025-07-25 15:34:43','2025-07-26 14:56:20');
+INSERT INTO `order_items` VALUES (1,1,4,2,1,20.00,20.00,'{}','ready_for_pickup',NULL,'2025-07-26 16:16:17','2025-07-26 16:46:56'),(2,1,3,2,1,25.00,25.00,'{}','ready_for_pickup',NULL,'2025-07-26 16:16:17','2025-07-26 16:46:56'),(3,2,6,6,1,180.00,180.00,'{}','pending',NULL,'2025-07-26 16:16:17','2025-07-26 16:16:17'),(4,2,7,6,1,200.00,200.00,'{}','pending',NULL,'2025-07-26 16:16:17','2025-07-26 16:16:17');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -179,7 +183,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -188,7 +192,7 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-07-24 07:36:29'),(3,1,'confirmed','Accept and confirm this order',4,'2025-07-24 07:48:53'),(4,1,'preparing','Begin preparing the order items',4,'2025-07-24 07:50:26'),(5,2,'pending','Order placed successfully',NULL,'2025-07-24 08:15:57'),(6,3,'pending','Order placed successfully',NULL,'2025-07-24 12:26:29'),(7,4,'pending','Order placed successfully',NULL,'2025-07-24 13:31:40'),(8,5,'pending','Order placed successfully',NULL,'2025-07-24 15:23:55'),(9,6,'pending','Order placed successfully',NULL,'2025-07-24 15:23:55'),(10,6,'confirmed','Accept and confirm this order',3,'2025-07-25 13:14:25'),(11,6,'preparing','Begin preparing the order items',3,'2025-07-25 13:14:38'),(12,6,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-25 13:16:40'),(13,6,'out_for_delivery','Delivery partner has picked up the order',3,'2025-07-25 13:16:57'),(14,4,'confirmed','Accept and confirm this order',3,'2025-07-25 13:27:52'),(15,4,'preparing','Begin preparing the order items',3,'2025-07-25 13:28:01'),(16,4,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-25 13:28:05'),(17,4,'out_for_delivery','Delivery partner has picked up the order',3,'2025-07-25 13:28:45'),(18,3,'confirmed','Accept and confirm this order',3,'2025-07-25 13:39:42'),(19,3,'preparing','Begin preparing the order items',3,'2025-07-25 13:39:47'),(20,3,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-25 13:40:26'),(21,3,'out_for_delivery','Delivery partner has picked up the order',3,'2025-07-25 14:37:31'),(22,3,'delivered','Confirm order has been delivered',3,'2025-07-25 14:37:35'),(23,2,'confirmed','Accept and confirm this order',3,'2025-07-25 14:41:52'),(24,2,'preparing','Begin preparing the order items',3,'2025-07-25 14:42:23'),(25,7,'pending','Order placed successfully',NULL,'2025-07-25 15:34:43'),(26,7,'confirmed','Accept and confirm this order',3,'2025-07-25 15:43:29'),(27,2,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-25 16:34:10'),(28,2,'out_for_delivery','Delivery partner has picked up the order',3,'2025-07-25 16:47:11'),(29,7,'preparing','Begin preparing the order items',3,'2025-07-25 16:52:28'),(30,7,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-25 16:52:31'),(31,7,'out_for_delivery','Delivery partner has picked up the order',3,'2025-07-26 14:43:46'),(32,7,'out_for_delivery','Delivery partner has picked up the order',3,'2025-07-26 14:56:20');
+INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-07-26 16:16:17'),(2,2,'pending','Order placed successfully',NULL,'2025-07-26 16:16:17'),(3,1,'confirmed','Accept and confirm this order',3,'2025-07-26 16:23:14'),(4,1,'preparing','Begin preparing the order items',3,'2025-07-26 16:23:31'),(5,1,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-26 16:23:39'),(6,1,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-26 16:46:56');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -235,7 +239,7 @@ CREATE TABLE `orders` (
   KEY `idx_payment_status` (`payment_status`),
   KEY `idx_voucher_id` (`voucher_id`),
   KEY `idx_delivery_address_id` (`delivery_address_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,7 +248,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,2,'ORD1753342589545338','preparing','cash_on_delivery','pending',200.00,50.00,0.00,250.00,NULL,3,'James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery','',NULL,NULL,'2025-07-24 07:44:50','Decline this order','2025-07-24 07:36:29','2025-07-24 07:50:26'),(2,2,'ORD1753344957325108','out_for_delivery','cash_on_delivery','pending',210.00,50.00,0.00,260.00,NULL,3,'James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery','',NULL,NULL,NULL,NULL,'2025-07-24 08:15:57','2025-07-25 16:47:11'),(3,4,'ORD1753359989162646','delivered','cash_on_delivery','pending',350.00,50.00,0.00,400.00,NULL,4,'Jessie Melgar','+639771495823','Zone 3','Guinobat','Tabaco City','Albay','4511','Near basketball court','',NULL,'2025-07-25 14:37:35',NULL,NULL,'2025-07-24 12:26:29','2025-07-25 14:37:35'),(4,4,'ORD1753363900859920','out_for_delivery','cash_on_delivery','pending',310.00,50.00,0.00,360.00,NULL,4,'Jessie Melgar','+639771495823','Zone 3','Guinobat','Tabaco City','Albay','4511','Near basketball court','',NULL,NULL,NULL,NULL,'2025-07-24 13:31:40','2025-07-25 13:28:44'),(5,4,'ORD1753370635659677946','pending','cash_on_delivery','pending',290.00,50.00,0.00,340.00,NULL,4,'Jessie Melgar','+639771495823','Zone 3','Guinobat','Tabaco City','Albay','4511','Near basketball court','',NULL,NULL,NULL,NULL,'2025-07-24 15:23:55','2025-07-24 15:23:55'),(6,4,'ORD1753370635699756405','out_for_delivery','cash_on_delivery','pending',55.00,50.00,0.00,105.00,NULL,4,'Jessie Melgar','+639771495823','Zone 3','Guinobat','Tabaco City','Albay','4511','Near basketball court','',NULL,NULL,NULL,NULL,'2025-07-24 15:23:55','2025-07-25 13:16:57'),(7,4,'ORD1753457683274678767','out_for_delivery','cash_on_delivery','pending',10.00,50.00,0.00,60.00,NULL,4,'Jessie Melgar','+639771495823','Zone 3','Guinobat','Tabaco City','Albay','4511','Near basketball court','',NULL,NULL,NULL,NULL,'2025-07-25 15:34:43','2025-07-26 14:56:20');
+INSERT INTO `orders` VALUES (1,2,'ORD1753546577304329','ready_for_pickup','cash_on_delivery','pending',45.00,50.00,0.00,95.00,NULL,3,'James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery','',NULL,NULL,NULL,NULL,'2025-07-26 16:16:17','2025-07-26 16:46:56'),(2,2,'ORD1753546577319533','pending','cash_on_delivery','pending',380.00,50.00,0.00,430.00,NULL,3,'James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery','',NULL,NULL,NULL,NULL,'2025-07-26 16:16:17','2025-07-26 16:16:17');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -286,7 +290,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Karne','Fresh meats',120.00,139,'Meat','Pork Chop','per_kilo','Harvested  yesterday','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/453e0f9e-5bb4-446b-a16e-0cd70e9027cb-photo.jpeg',1,'2025-07-21 11:17:15','2025-07-23 10:29:20'),(2,1,'Whole Chicken','',290.00,34,'Meat','Chicken','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/5e7dc5c6-e28a-4a3c-9c86-7eb1d9912d68-photo.jpeg',1,'2025-07-21 11:42:34','2025-07-24 15:23:55'),(3,2,'Kamatis','',25.00,16,'Fruits','Other','per_250g','Harvested yesterday ','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b9184cee-be10-43a7-ab07-363730bcf94d-photo.jpeg',1,'2025-07-21 12:29:12','2025-07-24 15:23:55'),(4,2,'Apple','',20.00,42,'Fruits','Other','per_250g',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b2ae2953-30bf-49b8-be40-04a882584a7f-photo.jpeg',1,'2025-07-21 12:42:28','2025-07-24 15:23:55'),(5,2,'Sibulyas','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit',10.00,243,'Vegetables','Root Vegetables','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/3f1e3928-68dc-4a4d-9884-f05de56bf71a-photo.jpeg',1,'2025-07-21 12:44:41','2025-07-25 15:34:43'),(6,6,'Tilapia','',180.00,3,'Fish','Tilapia','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": false, \"sliced\": true, \"cleaned\": false}','product-images/user_4/d9e9ca2f-0edf-477e-bc80-f143343be7a1-photo.jpeg',1,'2025-07-23 07:53:30','2025-07-23 09:39:57'),(7,6,'Pundahan','',200.00,3,'Fish','Other','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": true, \"sliced\": true, \"cleaned\": false}','product-images/user_4/3ec1f333-a9a5-4cbe-84a0-f06b296007ec-photo.jpeg',1,'2025-07-23 08:01:51','2025-07-24 08:15:57');
+INSERT INTO `products` VALUES (1,1,'Karne','Fresh meats',120.00,139,'Meat','Pork Chop','per_kilo','Harvested  yesterday','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/453e0f9e-5bb4-446b-a16e-0cd70e9027cb-photo.jpeg',1,'2025-07-21 11:17:15','2025-07-23 10:29:20'),(2,1,'Whole Chicken','',290.00,34,'Meat','Chicken','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/5e7dc5c6-e28a-4a3c-9c86-7eb1d9912d68-photo.jpeg',1,'2025-07-21 11:42:34','2025-07-24 15:23:55'),(3,2,'Kamatis','',25.00,15,'Fruits','Other','per_250g','Harvested yesterday ','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b9184cee-be10-43a7-ab07-363730bcf94d-photo.jpeg',1,'2025-07-21 12:29:12','2025-07-26 16:16:17'),(4,2,'Apple','',20.00,41,'Fruits','Other','per_250g',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b2ae2953-30bf-49b8-be40-04a882584a7f-photo.jpeg',1,'2025-07-21 12:42:28','2025-07-26 16:16:17'),(5,2,'Sibulyas','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit',10.00,243,'Vegetables','Root Vegetables','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/3f1e3928-68dc-4a4d-9884-f05de56bf71a-photo.jpeg',1,'2025-07-21 12:44:41','2025-07-25 15:34:43'),(6,6,'Tilapia','',180.00,2,'Fish','Tilapia','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": false, \"sliced\": true, \"cleaned\": false}','product-images/user_4/d9e9ca2f-0edf-477e-bc80-f143343be7a1-photo.jpeg',1,'2025-07-23 07:53:30','2025-07-26 16:16:17'),(7,6,'Pundahan','',200.00,2,'Fish','Other','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": true, \"sliced\": true, \"cleaned\": false}','product-images/user_4/3ec1f333-a9a5-4cbe-84a0-f06b296007ec-photo.jpeg',1,'2025-07-23 08:01:51','2025-07-26 16:16:17');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -554,7 +558,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email_UNIQUE` (`email`),
   KEY `idx_role` (`role`),
   KEY `idx_is_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -563,7 +567,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2a$12$fUYXFIMWIqLTACJ8.Qt5..Ku0JavZAlOv3BN9dLqB0jRbx87BawJu',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 14:43:52','2025-07-17 15:01:30'),(2,'James','Ricarte','uhenyou@gmail.com','$2b$10$QDJSH/XYM6U2Dqjga3DOyeITqsYx2S7qSBmpFTzka0R0lhsQli9ke','+639771495824',NULL,'2003-01-03','male','user',1,'2025-07-17 14:46:24','2025-07-17 14:47:16'),(3,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$9tvwV4nMfjGKuaq4OvplB.o6YYCm20qEBAH9v9teNN9aJRM21eR2W','+639771495822',NULL,'2003-01-03','male','user',1,'2025-07-17 14:48:49','2025-07-17 14:49:45'),(4,'Jessie','Melgar','07110972@dwc-legazpi.edu','$2b$10$krXrMEKGa0r8CFKNKrFE6ek1snEX9HJzMkr7wg1RjfFede4cqE0lq','+639771495823',NULL,'2003-01-03','male','user',1,'2025-07-20 15:34:19','2025-07-20 15:35:17');
+INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2a$12$fUYXFIMWIqLTACJ8.Qt5..Ku0JavZAlOv3BN9dLqB0jRbx87BawJu',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 14:43:52','2025-07-17 15:01:30'),(2,'James','Ricarte','uhenyou@gmail.com','$2b$10$QDJSH/XYM6U2Dqjga3DOyeITqsYx2S7qSBmpFTzka0R0lhsQli9ke','+639771495824',NULL,'2003-01-03','male','user',1,'2025-07-17 14:46:24','2025-07-17 14:47:16'),(3,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$9tvwV4nMfjGKuaq4OvplB.o6YYCm20qEBAH9v9teNN9aJRM21eR2W','+639771495822',NULL,'2003-01-03','male','user',1,'2025-07-17 14:48:49','2025-07-17 14:49:45'),(4,'Jessie','Melgar','07110972@dwc-legazpi.edu','$2b$10$krXrMEKGa0r8CFKNKrFE6ek1snEX9HJzMkr7wg1RjfFede4cqE0lq','+639771495823',NULL,'2003-01-03','male','user',1,'2025-07-20 15:34:19','2025-07-20 15:35:17'),(5,'James','Mickel','jamesmickelricarte@gmail.com','$2b$10$oIRgpnR0W1G0mq7M1feh3.jhC83WLdMGyRwRuv2tviXeiX4TGcphm','+639771495821',NULL,'2003-01-03','male','user',1,'2025-07-29 10:41:43','2025-07-29 10:43:37');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -617,4 +621,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-26 23:33:47
+-- Dump completed on 2025-07-30  1:35:41

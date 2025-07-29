@@ -29,11 +29,18 @@ import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/Selle
 import SellerSubmissionSuccessScreen from "../screens/PartnershipOptions/Seller/SellerSubmissionSuccessScreen";
 import SellerApplicationStatusScreen from "../screens/PartnershipOptions/Seller/SellerApplicationStatusScreen";
 
+import DeliveryPartnerWelcomeScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerWelcomeScreen";
+import DeliveryPartnerRegistrationFormScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerRegistrationFormScreen";
+import DeliveryPartnerReviewSubmitScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerReviewSubmitScreen";
+import DeliveryPartnerSubmissionSuccessScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerSubmissionSuccessScreen";
+import DeliveryPartnerApplicationStatusScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerApplicationStatusScreen";
+
 import AdminDashboardScreen from "../screens/Admin/AdminDashboardScreen";
 import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApplicationDetailsScreen";
 
 import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
 import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
+import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
 import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
 
 import ProductDetailsScreen from "../screens/ProductDetails/ProductDetailsScreen";
@@ -44,8 +51,6 @@ import OrdersScreen from "../screens/Orders/OrdersScreen";
 import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
 
 import AddressManagementScreen from "../screens/AddressManagement/AddressManagementScreen";
-
-import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -105,7 +110,8 @@ const MainStackNavigator = () => {
         component={EditMobileNumberScreen}
       />
 
-      {/* Partnership */}
+      {/* Partnership Options*/}
+      {/* Seller */}
       <Stack.Screen name="SellerWelcome" component={SellerWelcomeScreen} />
       <Stack.Screen
         name="SellerAccountType"
@@ -126,6 +132,28 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="SellerApplicationStatus"
         component={SellerApplicationStatusScreen}
+      />
+
+      {/* Delivery Partner */}
+      <Stack.Screen
+        name="DeliveryPartnerWelcome"
+        component={DeliveryPartnerWelcomeScreen}
+      />
+      <Stack.Screen
+        name="DeliveryPartnerRegistrationForm"
+        component={DeliveryPartnerRegistrationFormScreen}
+      />
+      <Stack.Screen
+        name="DeliveryPartnerReviewSubmit"
+        component={DeliveryPartnerReviewSubmitScreen}
+      />
+      <Stack.Screen
+        name="DeliveryPartnerSubmissionSuccess"
+        component={DeliveryPartnerSubmissionSuccessScreen}
+      />
+      <Stack.Screen
+        name="DeliveryPartnerApplicationStatus"
+        component={DeliveryPartnerApplicationStatusScreen}
       />
 
       {/* Admin */}

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const SellerWelcomeScreen = ({ navigation }) => {
   const benefits = [
@@ -52,7 +53,11 @@ const SellerWelcomeScreen = ({ navigation }) => {
           <View className="px-6 py-8 bg-gradient-to-r from-blue-50 to-blue-100">
             <View className="items-center mb-6">
               <View className="flex items-center justify-center w-20 h-20 mb-4 bg-blue-500 rounded-full">
-                <Feather name="store" size={40} color="white" />
+                <MaterialCommunityIcons
+                  name="storefront-outline"
+                  size={40}
+                  color="white"
+                />
               </View>
               <Text className="mb-2 text-2xl font-bold text-center">
                 Start Your Online Business

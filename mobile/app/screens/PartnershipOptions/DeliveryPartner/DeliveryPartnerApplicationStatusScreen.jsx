@@ -17,14 +17,13 @@ import * as ImagePicker from "expo-image-picker";
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
 
-const SellerApplicationStatusScreen = ({ navigation }) => {
+const DeliveryPartnerApplicationStatusScreen = ({ navigation }) => {
   const { token, approvalStatusUpdated, resetApprovalStatus } = useAuth();
   const [applicationData, setApplicationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stagedFiles, setStagedFiles] = useState({});
-  const [switchingToSeller, setSwitchingToSeller] = useState(false);
   const [hasOtherPendingApplication, setHasOtherPendingApplication] =
     useState(false);
 
@@ -37,7 +36,7 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
       }
 
       const response = await axios.get(
-        `${API_URL}/api/seller/application-status`,
+        `${API_URL}/api/delivery-partner/application-status`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -50,10 +49,10 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
         setStagedFiles({}); // Reset staged files on refresh
       }
 
-      // Check for other pending applications (delivery partner)
+      // Check for other pending applications (seller)
       try {
-        const deliveryResponse = await axios.get(
-          `${API_URL}/api/delivery-partner/application-status`,
+        const sellerResponse = await axios.get(
+          `${API_URL}/api/seller/application-status`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -62,14 +61,14 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
         );
 
         if (
-          deliveryResponse.data.success &&
-          deliveryResponse.data.data.status !== "rejected" &&
-          deliveryResponse.data.data.status !== "approved"
+          sellerResponse.data.success &&
+          sellerResponse.data.data.status !== "rejected" &&
+          sellerResponse.data.data.status !== "approved"
         ) {
           setHasOtherPendingApplication(true);
         }
       } catch (error) {
-        // No delivery partner application or error fetching
+        // No seller application or error fetching
         setHasOtherPendingApplication(false);
       }
     } catch (error) {
@@ -90,7 +89,6 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
   useEffect(() => {
     if (approvalStatusUpdated) {
       fetchApplicationStatus();
-
       resetApprovalStatus();
     }
   }, [approvalStatusUpdated]);
@@ -123,10 +121,8 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
     const fileAction = isFileStaged ? "Change" : "Select";
 
     switch (documentType) {
-      case "selfie_with_id":
+      case "profile_photo":
         return `${photoAction} Photo`;
-      case "store_logo":
-        return `${imageAction} Image`;
       default:
         return `${fileAction} File`;
     }
@@ -135,7 +131,7 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
   const handleSelectFile = async (documentId, documentType) => {
     let result;
     try {
-      if (documentType === "selfie_with_id") {
+      if (documentType === "profile_photo") {
         const hasPermission = await requestPermissions();
         if (!hasPermission) return;
 
@@ -143,16 +139,6 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [4, 3],
-          quality: 0.8,
-        });
-      } else if (documentType === "store_logo") {
-        const hasPermission = await requestPermissions();
-        if (!hasPermission) return;
-
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
           quality: 0.8,
         });
       } else {
@@ -198,7 +184,7 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
       });
 
       const response = await axios.post(
-        `${API_URL}/api/seller/resubmit-documents`,
+        `${API_URL}/api/delivery-partner/resubmit-documents`,
         formData,
         {
           headers: {
@@ -230,16 +216,17 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
     if (hasOtherPendingApplication) {
       Alert.alert(
         "Application Restriction",
-        "You currently have a pending delivery partner application. Dual partnership is not allowed on our platform. Please wait for your current application to be processed.",
+        "You currently have a pending seller application. Dual partnership is not allowed on our platform. Please wait for your current application to be processed.",
         [{ text: "OK" }]
       );
       return;
     }
-    navigation.navigate("SellerWelcome");
+    navigation.navigate("DeliveryPartnerWelcome");
   };
 
-  const handleGoToSellerDashboard = () => {
-    navigation.replace("SellerDashboard");
+  const handleGoToDeliveryDashboard = () => {
+    // Will be implemented when delivery dashboard is ready
+    Alert.alert("Coming Soon", "Delivery dashboard will be available soon.");
   };
 
   const rejectedDocs = useMemo(
@@ -354,16 +341,15 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
             Congratulations!
           </Text>
           <Text className="mb-8 text-lg text-center text-gray-600">
-            Your seller application for{" "}
-            <Text className="font-bold">{applicationData.storeName}</Text> has
-            been approved.
+            Your delivery partner application has been approved. You can now
+            start accepting delivery requests.
           </Text>
           <TouchableOpacity
-            className="w-full py-4 bg-blue-500 rounded-lg"
-            onPress={handleGoToSellerDashboard}
+            className="w-full py-4 bg-green-500 rounded-lg"
+            onPress={handleGoToDeliveryDashboard}
           >
             <Text className="text-lg font-semibold text-center text-white">
-              Go to Seller Dashboard
+              Go to Delivery Dashboard
             </Text>
           </TouchableOpacity>
         </View>
@@ -404,7 +390,7 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
             No Application Found
           </Text>
           <Text className="text-center text-gray-500">
-            You haven't submitted a seller application yet.
+            You haven't submitted a delivery partner application yet.
           </Text>
         </View>
       </View>
@@ -473,6 +459,18 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
                 </Text>
               </View>
             )}
+          </View>
+        </View>
+
+        {/* Vehicle Type */}
+        <View className="px-6 mb-6">
+          <View className="p-4 border border-green-200 rounded-lg bg-green-50">
+            <Text className="mb-1 font-semibold text-green-800">
+              Vehicle Type
+            </Text>
+            <Text className="text-green-700 capitalize">
+              {applicationData.vehicleType?.replace("_", " ")}
+            </Text>
           </View>
         </View>
 
@@ -647,4 +645,4 @@ const SellerApplicationStatusScreen = ({ navigation }) => {
   );
 };
 
-export default SellerApplicationStatusScreen;
+export default DeliveryPartnerApplicationStatusScreen;

@@ -10,6 +10,7 @@ import {
 import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
@@ -59,14 +60,14 @@ const AdminOverviewScreen = ({ navigation }) => {
         <Text className="text-lg font-semibold">{title}</Text>
         {icon}
       </View>
-      <Text className="text-2xl font-bold mb-1">{value}</Text>
+      <Text className="mb-1 text-2xl font-bold">{value}</Text>
       {subtitle && <Text className="text-sm text-gray-600">{subtitle}</Text>}
     </TouchableOpacity>
   );
 
   const StatusCard = ({ title, stats, color }) => (
     <View className={`p-4 rounded-lg border ${color} mb-4`}>
-      <Text className="text-lg font-semibold mb-3">{title}</Text>
+      <Text className="mb-3 text-lg font-semibold">{title}</Text>
       <View className="flex flex-row justify-around">
         <View className="items-center">
           <Text className="text-xl font-bold text-yellow-600">
@@ -109,7 +110,7 @@ const AdminOverviewScreen = ({ navigation }) => {
           <Text className="text-xl font-semibold">Admin Overview</Text>
           <Ionicons name="notifications-outline" size={24} color="black" />
         </View>
-        <View className="flex-1 items-center justify-center">
+        <View className="items-center justify-center flex-1">
           <Text className="text-gray-500">Loading overview...</Text>
         </View>
       </View>
@@ -137,14 +138,20 @@ const AdminOverviewScreen = ({ navigation }) => {
       >
         {/* Quick Stats */}
         <View className="p-4">
-          <Text className="text-lg font-semibold mb-4">Quick Stats</Text>
+          <Text className="mb-4 text-lg font-semibold">Quick Stats</Text>
           <View className="flex flex-row mb-4">
             <StatCard
               title="Total Sellers"
               value={overviewData?.seller?.total || 0}
               subtitle={`${overviewData?.seller?.recentApplications || 0} this week`}
               color="border-blue-200 bg-blue-50"
-              icon={<Feather name="store" size={20} color="#2563eb" />}
+              icon={
+                <MaterialCommunityIcons
+                  name="storefront-outline"
+                  size={20}
+                  color="#2563eb"
+                />
+              }
               onPress={() => navigation.navigate("Sellers")}
             />
             <StatCard
@@ -173,15 +180,15 @@ const AdminOverviewScreen = ({ navigation }) => {
 
           {/* Quick Actions */}
           <View className="mt-4">
-            <Text className="text-lg font-semibold mb-4">Quick Actions</Text>
+            <Text className="mb-4 text-lg font-semibold">Quick Actions</Text>
             <View className="space-y-3">
               <TouchableOpacity
-                className="flex flex-row items-center p-4 bg-white rounded-lg border border-gray-200"
+                className="flex flex-row items-center p-4 bg-white border border-gray-200 rounded-lg"
                 onPress={() =>
                   navigation.navigate("Sellers", { filter: "pending" })
                 }
               >
-                <View className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-yellow-100 rounded-lg">
                   <Ionicons name="time-outline" size={20} color="#d97706" />
                 </View>
                 <View className="flex-1">
@@ -195,14 +202,14 @@ const AdminOverviewScreen = ({ navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="flex flex-row items-center p-4 bg-white rounded-lg border border-gray-200"
+                className="flex flex-row items-center p-4 bg-white border border-gray-200 rounded-lg"
                 onPress={() =>
                   navigation.navigate("Sellers", {
                     filter: "needs_resubmission",
                   })
                 }
               >
-                <View className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-orange-100 rounded-lg">
                   <Ionicons
                     name="alert-circle-outline"
                     size={20}
