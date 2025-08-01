@@ -18,7 +18,10 @@ import axios from "axios";
 import { API_URL } from "../../config/apiConfig";
 import { useAuth } from "../../context/AuthContext";
 
-const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
+const AdminDeliveryPartnerApplicationDetailsScreen = ({
+  navigation,
+  route,
+}) => {
   const { applicationId } = route.params;
   const { token } = useAuth();
   const [applicationData, setApplicationData] = useState(null);
@@ -45,7 +48,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${API_URL}/api/admin/seller-applications/${applicationId}`,
+        `${API_URL}/api/admin/delivery-partner-applications/${applicationId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -74,7 +77,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     } else {
       Alert.alert(
         "Approve Application",
-        "Are you sure you want to approve this seller application?",
+        "Are you sure you want to approve this delivery partner application?",
         [
           { text: "Cancel", style: "cancel" },
           { text: "Approve", onPress: () => submitReview(action) },
@@ -97,7 +100,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     try {
       setProcessing(true);
       const response = await axios.post(
-        `${API_URL}/api/admin/seller-applications/${applicationId}/review`,
+        `${API_URL}/api/admin/delivery-partner-applications/${applicationId}/review`,
         {
           action,
           rejectionReason: reason,
@@ -115,7 +118,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
             text: "OK",
             onPress: () =>
               navigation.navigate("AdminDashboard", {
-                screen: "Sellers",
+                screen: "Delivery",
               }),
           },
         ]);
@@ -141,7 +144,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
       const response = await axios.post(
         `${API_URL}/api/admin/documents/signed-url`,
         {
-          bucket: "seller-documents",
+          bucket: "delivery-partner-documents",
           path: document.storage_key,
         },
         {
@@ -169,7 +172,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     try {
       setProcessing(true);
       const response = await axios.post(
-        `${API_URL}/api/admin/seller-documents/${docId}/review`,
+        `${API_URL}/api/admin/delivery-partner-documents/${docId}/review`,
         { action, rejectionReason: reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -256,6 +259,22 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     });
   };
 
+  const formatAvailabilityHours = (hours) => {
+    if (!hours || typeof hours !== "object") return "N/A";
+
+    const days = Object.keys(hours);
+    const availableDays = days.filter((day) => hours[day]?.available);
+
+    if (availableDays.length === 0) return "No availability set";
+
+    return availableDays
+      .map((day) => {
+        const dayData = hours[day];
+        return `${day.charAt(0).toUpperCase() + day.slice(1)}: ${dayData.start} - ${dayData.end}`;
+      })
+      .join(", ");
+  };
+
   const InfoSection = ({ title, children }) => (
     <View className="p-4 mb-6 bg-white border border-gray-200 rounded-lg">
       <Text className="mb-3 text-lg font-semibold">{title}</Text>
@@ -304,13 +323,13 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     );
   }
 
-  const { application, businessDetails, address, storeProfile, documents } =
-    applicationData;
+  const { application, documents } = applicationData;
 
-  const requiredDocTypes = ["government_id", "selfie_with_id"];
-  if (application.account_type === "business") {
-    requiredDocTypes.push("business_documents");
-  }
+  const requiredDocTypes = [
+    "drivers_license",
+    "vehicle_registration",
+    "profile_photo",
+  ];
 
   const allRequiredDocsVerified = documents
     .filter((doc) => requiredDocTypes.includes(doc.document_type))
@@ -518,63 +537,48 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
           <InfoRow label="Phone" value={application.phone} />
           <InfoRow label="Birth Date" value={application.birth_date} />
           <InfoRow label="Gender" value={application.gender} />
-          <InfoRow label="Account Type" value={application.account_type} />
         </InfoSection>
 
-        {/* Business Details */}
-        {businessDetails && (
-          <InfoSection title="Business Details">
-            <InfoRow
-              label="Business Name"
-              value={businessDetails.business_name}
-            />
-            <InfoRow
-              label="Registration Number"
-              value={businessDetails.business_registration_number}
-            />
-            <InfoRow
-              label="Contact Person"
-              value={businessDetails.contact_person}
-            />
-            <InfoRow
-              label="Business Address"
-              value={businessDetails.business_address}
-            />
-          </InfoSection>
-        )}
+        {/* Vehicle Information */}
+        <InfoSection title="Vehicle Information">
+          <InfoRow label="Vehicle Type" value={application.vehicle_type} />
+          <InfoRow label="License Number" value={application.license_number} />
+          <InfoRow
+            label="Vehicle Registration"
+            value={application.vehicle_registration}
+          />
+          <InfoRow label="Vehicle Make" value={application.vehicle_make} />
+          <InfoRow label="Vehicle Model" value={application.vehicle_model} />
+          <InfoRow label="Vehicle Year" value={application.vehicle_year} />
+          <InfoRow label="Vehicle Color" value={application.vehicle_color} />
+          <InfoRow label="Company Name" value={application.company_name} />
+        </InfoSection>
 
-        {/* Store Profile */}
-        {storeProfile && (
-          <InfoSection title="Store Profile">
-            <InfoRow label="Store Name" value={storeProfile.store_name} />
-            <View className="mb-2">
-              <Text className="mb-1 text-gray-600">Store Description:</Text>
-              <Text className="font-medium">
-                {storeProfile.store_description}
-              </Text>
-            </View>
-          </InfoSection>
-        )}
+        {/* Service Information */}
+        <InfoSection title="Service Information">
+          <View className="mb-2">
+            <Text className="mb-1 text-gray-600">Availability Hours:</Text>
+            <Text className="font-medium">
+              {formatAvailabilityHours(application.availability_hours)}
+            </Text>
+          </View>
+        </InfoSection>
 
-        {/* Address Information */}
-        {address && (
-          <InfoSection title="Address Information">
-            <View className="mb-2">
-              <Text className="mb-1 text-gray-600">Pickup Address:</Text>
-              <Text className="font-medium">{address.pickup_address}</Text>
-            </View>
-            <View className="mb-2">
-              <Text className="mb-1 text-gray-600">Return Address:</Text>
-              <Text className="font-medium">{address.return_address}</Text>
-            </View>
-            {address.store_location && (
-              <View className="mb-2">
-                <Text className="mb-1 text-gray-600">Store Location:</Text>
-                <Text className="font-medium">{address.store_location}</Text>
-              </View>
-            )}
-          </InfoSection>
-        )}
+        {/* Emergency Contact */}
+        <InfoSection title="Emergency Contact">
+          <InfoRow
+            label="Contact Name"
+            value={application.emergency_contact_name}
+          />
+          <InfoRow
+            label="Contact Phone"
+            value={application.emergency_contact_phone}
+          />
+          <InfoRow
+            label="Relationship"
+            value={application.emergency_contact_relation}
+          />
+        </InfoSection>
 
         {/* Documents */}
         {documents && documents.length > 0 && (
@@ -700,4 +704,4 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
   );
 };
 
-export default AdminSellerApplicationDetailsScreen;
+export default AdminDeliveryPartnerApplicationDetailsScreen;

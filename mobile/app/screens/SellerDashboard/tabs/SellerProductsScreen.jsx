@@ -9,7 +9,7 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
@@ -24,10 +24,8 @@ const SellerProductsScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (route.params?.newProductAdded) {
-        fetchProducts();
-      }
-    }, [route.params])
+      fetchProducts();
+    }, [])
   );
 
   const fetchProducts = async () => {
@@ -49,10 +47,6 @@ const SellerProductsScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
 
   const formatPrice = (price) => {
     return `₱${Number.parseFloat(price).toFixed(2)}`;

@@ -170,7 +170,7 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
             later.
           </Text>
 
-          <View className="space-y-4">
+          <View className="flex gap-3">
             {vehicleTypes.map((vehicle) => (
               <TouchableOpacity
                 key={vehicle.id}

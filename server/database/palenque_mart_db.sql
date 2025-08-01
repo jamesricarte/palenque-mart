@@ -62,11 +62,16 @@ CREATE TABLE `delivery_partner_applications` (
   `vehicle_type` enum('motorcycle','tricycle','car','truck') NOT NULL,
   `license_number` varchar(50) NOT NULL,
   `vehicle_registration` varchar(50) NOT NULL,
+  `vehicle_make` varchar(100) DEFAULT NULL,
+  `vehicle_model` varchar(100) DEFAULT NULL,
+  `vehicle_year` varchar(4) DEFAULT NULL,
+  `vehicle_color` varchar(50) DEFAULT NULL,
   `company_name` varchar(255) DEFAULT NULL,
   `service_areas` json NOT NULL,
   `availability_hours` json NOT NULL,
   `emergency_contact_name` varchar(255) NOT NULL,
   `emergency_contact_phone` varchar(20) NOT NULL,
+  `emergency_contact_relation` varchar(100) DEFAULT NULL,
   `status` enum('pending','approved','rejected','under_review') DEFAULT 'pending',
   `rejection_reason` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -88,7 +93,7 @@ CREATE TABLE `delivery_partner_applications` (
 
 LOCK TABLES `delivery_partner_applications` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_applications` DISABLE KEYS */;
-INSERT INTO `delivery_partner_applications` VALUES (1,5,'DPA19373338','tricycle','N03-12-123456','DMV1234','independent','[\"Tabaco City\"]','{\"friday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": true}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"08:00\", \"available\": true}}','Marita C. Ricarte','09063569259','pending',NULL,'2025-07-29 17:28:17','2025-07-29 17:28:17',NULL,NULL);
+INSERT INTO `delivery_partner_applications` VALUES (1,5,'DPA92342791','tricycle','DMW1224','PFD-344-DFDR-23','Yamaha','Onix','2018','Green','independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0906343555','Parent','pending',NULL,'2025-08-01 07:40:12','2025-08-01 07:40:12',NULL,NULL);
 /*!40000 ALTER TABLE `delivery_partner_applications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -115,7 +120,7 @@ CREATE TABLE `delivery_partner_documents` (
   KEY `idx_application_id` (`application_id`),
   KEY `idx_document_type` (`document_type`),
   KEY `idx_verification_status` (`verification_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,7 +129,7 @@ CREATE TABLE `delivery_partner_documents` (
 
 LOCK TABLES `delivery_partner_documents` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_documents` DISABLE KEYS */;
-INSERT INTO `delivery_partner_documents` VALUES (1,1,'vehicle_registration','user_5/DPA19373338/vehicle_registration-1753810097878.jpeg','images%20(7).jpeg',47849,'image/jpeg','pending',NULL,'2025-07-29 17:28:18','2025-07-29 17:28:18'),(2,1,'insurance','user_5/DPA19373338/insurance-1753810098846.png','images%20(1).png',26986,'image/png','pending',NULL,'2025-07-29 17:28:19','2025-07-29 17:28:19');
+INSERT INTO `delivery_partner_documents` VALUES (1,1,'drivers_license','user_5/DPA92342791/drivers_license-1754034012977.jpeg','images%20(6).jpeg',53886,'image/jpeg','pending',NULL,'2025-08-01 07:40:13','2025-08-01 07:40:13'),(2,1,'vehicle_registration','user_5/DPA92342791/vehicle_registration-1754034013912.jpeg','images%20(7).jpeg',47849,'image/jpeg','pending',NULL,'2025-08-01 07:40:14','2025-08-01 07:40:14'),(3,1,'profile_photo','user_5/DPA92342791/profile_photo-1754034014273.jpeg','profile_photo.jpeg',19588,'image/jpeg','pending',NULL,'2025-08-01 07:40:14','2025-08-01 07:40:14'),(4,1,'insurance','user_5/DPA92342791/insurance-1754034014441.png','images%20(1).png',26986,'image/png','pending',NULL,'2025-08-01 07:40:14','2025-08-01 07:40:14');
 /*!40000 ALTER TABLE `delivery_partner_documents` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -621,4 +626,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-30  1:35:41
+-- Dump completed on 2025-08-01 16:37:22

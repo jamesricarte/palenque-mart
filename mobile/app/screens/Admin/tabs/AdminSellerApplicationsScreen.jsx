@@ -81,16 +81,10 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
     }
   };
 
-  useEffect(() => {
-    fetchApplications(false, selectedStatus, 1);
-  }, [selectedStatus]);
-
   useFocusEffect(
     useCallback(() => {
-      if (route.params?.newProductAdded) {
-        fetchApplications();
-      }
-    }, [route.params])
+      fetchApplications(false, selectedStatus, 1);
+    }, [selectedStatus])
   );
 
   const getStatusColor = (status) => {

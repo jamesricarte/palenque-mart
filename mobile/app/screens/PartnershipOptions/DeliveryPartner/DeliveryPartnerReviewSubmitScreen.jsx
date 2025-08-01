@@ -80,13 +80,18 @@ const DeliveryPartnerReviewSubmitScreen = ({ navigation, route }) => {
         "background_check",
       ];
 
+      const dockeyMap = {
+        drivers_license: "driversLicense",
+        vehicle_registration: "vehicleRegistrationDoc",
+        profile_photo: "profilePhoto",
+        insurance: "insurance",
+        background_check: "backgroundCheck",
+      };
+
       documentTypes.forEach((docType) => {
-        const document =
-          formData[
-            docType === "vehicle_registration"
-              ? "vehicleRegistrationDoc"
-              : docType
-          ];
+        const key = dockeyMap[docType];
+        const document = formData[key];
+
         if (document) {
           formDataToSend.append(docType, {
             uri: document.uri,
@@ -271,20 +276,6 @@ const DeliveryPartnerReviewSubmitScreen = ({ navigation, route }) => {
             emergencyContactRelation: formData.emergencyContactRelation,
           },
           "emergency"
-        )}
-
-        {/* Service Areas & Availability */}
-        {renderSection(
-          "Service Areas & Availability",
-          {
-            serviceAreas: formData.serviceAreas?.join(", ") || "Not specified",
-            availableDays:
-              Object.entries(formData.availabilityHours || {})
-                .filter(([day, schedule]) => schedule.available)
-                .map(([day]) => day.charAt(0).toUpperCase() + day.slice(1))
-                .join(", ") || "Not specified",
-          },
-          "availability"
         )}
 
         {/* Documents */}

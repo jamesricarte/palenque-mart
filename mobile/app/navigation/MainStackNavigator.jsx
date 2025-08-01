@@ -37,6 +37,7 @@ import DeliveryPartnerApplicationStatusScreen from "../screens/PartnershipOption
 
 import AdminDashboardScreen from "../screens/Admin/AdminDashboardScreen";
 import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApplicationDetailsScreen";
+import AdminDeliveryPartnerApplicationDetailsScreen from "../screens/Admin/AdminDeliveryPartnerApplicationDetailsScreen";
 
 import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
 import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
@@ -160,6 +161,10 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="AdminSellerApplicationDetails"
         component={AdminSellerApplicationDetailsScreen}
+      />
+      <Stack.Screen
+        name="AdminDeliveryPartnerApplicationDetails"
+        component={AdminDeliveryPartnerApplicationDetailsScreen}
       />
 
       {/* Seller Dashboard */}

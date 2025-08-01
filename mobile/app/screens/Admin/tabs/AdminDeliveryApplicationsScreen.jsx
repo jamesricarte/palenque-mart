@@ -8,12 +8,13 @@ import {
   RefreshControl,
   TextInput,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const AdminDeliveryApplicationsScreen = ({ navigation, route }) => {
   const { token } = useAuth();
@@ -29,6 +30,7 @@ const AdminDeliveryApplicationsScreen = ({ navigation, route }) => {
     { value: "all", label: "All", color: "bg-gray-100" },
     { value: "pending", label: "Pending", color: "bg-yellow-100" },
     { value: "under_review", label: "Review", color: "bg-blue-100" },
+    { value: "needs_resubmission", label: "Resubmit", color: "bg-orange-100" },
     { value: "approved", label: "Approved", color: "bg-green-100" },
     { value: "rejected", label: "Rejected", color: "bg-red-100" },
   ];
@@ -69,9 +71,11 @@ const AdminDeliveryApplicationsScreen = ({ navigation, route }) => {
     }
   };
 
-  useEffect(() => {
-    fetchApplications(false, selectedStatus);
-  }, [selectedStatus]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchApplications(false, selectedStatus);
+    }, [selectedStatus])
+  );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -79,6 +83,8 @@ const AdminDeliveryApplicationsScreen = ({ navigation, route }) => {
         return "text-yellow-600 bg-yellow-50 border-yellow-200";
       case "under_review":
         return "text-blue-600 bg-blue-50 border-blue-200";
+      case "needs_resubmission":
+        return "text-orange-600 bg-orange-50 border-orange-200";
       case "approved":
         return "text-green-600 bg-green-50 border-green-200";
       case "rejected":
@@ -97,7 +103,14 @@ const AdminDeliveryApplicationsScreen = ({ navigation, route }) => {
   };
 
   const ApplicationCard = ({ application }) => (
-    <TouchableOpacity className="p-4 mb-3 bg-white border border-gray-200 rounded-lg">
+    <TouchableOpacity
+      className="p-4 mb-3 bg-white border border-gray-200 rounded-lg"
+      onPress={() =>
+        navigation.navigate("AdminDeliveryPartnerApplicationDetails", {
+          applicationId: application.application_id,
+        })
+      }
+    >
       <View className="flex flex-row items-start justify-between mb-2">
         <View className="flex-1">
           <Text className="text-base font-semibold">
@@ -227,7 +240,11 @@ const AdminDeliveryApplicationsScreen = ({ navigation, route }) => {
           </View>
         ) : (
           filteredApplications.map((application) => (
-            <ApplicationCard key={application.id} application={application} />
+            <ApplicationCard
+              key={application.id}
+              application={application}
+              navigation={navigation}
+            />
           ))
         )}
       </ScrollView>

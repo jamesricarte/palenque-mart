@@ -19,7 +19,7 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
   const { vehicleType } = route.params;
 
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 4;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -70,21 +70,6 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
 
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false);
-
-  // Add service areas state management
-  const [selectedAreas, setSelectedAreas] = useState([]);
-  const availableAreas = [
-    "Tabaco City",
-    "Legazpi City",
-    "Daraga",
-    "Camalig",
-    "Guinobat",
-    "Ligao City",
-    "Oas",
-    "Polangui",
-    "Libon",
-    "Albay",
-  ];
 
   const updateFormData = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -229,20 +214,7 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
     }
 
     if (currentStep === 4) {
-      // Service areas and availability validation
-      if (formData.serviceAreas.length === 0)
-        newErrors.serviceAreas = "Please select at least one service area";
-
-      const hasAvailableDay = Object.values(formData.availabilityHours).some(
-        (schedule) => schedule.available
-      );
-      if (!hasAvailableDay)
-        newErrors.availabilityHours =
-          "Please set availability for at least one day";
-    }
-
-    if (currentStep === 5) {
-      // Document validation (moved from step 4)
+      // Document validation
       if (!formData.driversLicense)
         newErrors.driversLicense = "Driver's license is required";
       if (!formData.vehicleRegistrationDoc)
@@ -594,117 +566,6 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
 
   const renderStep4 = () => (
     <View className="px-6 py-6">
-      <Text className="mb-2 text-2xl font-bold">
-        Service Areas & Availability
-      </Text>
-      <Text className="mb-6 text-gray-600">
-        Select your preferred service areas and working hours
-      </Text>
-
-      {/* Service Areas */}
-      <View className="mb-6">
-        <Text className="mb-3 text-sm font-medium">Service Areas *</Text>
-        <Text className="mb-3 text-xs text-gray-500">
-          Select areas where you want to deliver
-        </Text>
-
-        <View className="flex-row flex-wrap">
-          {availableAreas.map((area) => (
-            <TouchableOpacity
-              key={area}
-              className={`mr-2 mb-2 px-3 py-2 rounded-full border ${
-                formData.serviceAreas.includes(area)
-                  ? "bg-green-500 border-green-500"
-                  : "bg-white border-gray-300"
-              }`}
-              onPress={() => {
-                const newAreas = formData.serviceAreas.includes(area)
-                  ? formData.serviceAreas.filter((a) => a !== area)
-                  : [...formData.serviceAreas, area];
-                updateFormData("serviceAreas", newAreas);
-              }}
-            >
-              <Text
-                className={`text-sm ${formData.serviceAreas.includes(area) ? "text-white" : "text-gray-700"}`}
-              >
-                {area}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        {errors.serviceAreas && showErrors && (
-          <Text className="mt-1 text-sm text-red-500">
-            {errors.serviceAreas}
-          </Text>
-        )}
-      </View>
-
-      {/* Availability Hours */}
-      <View className="mb-6">
-        <Text className="mb-3 text-sm font-medium">Availability Hours *</Text>
-        <Text className="mb-3 text-xs text-gray-500">
-          Set your working hours for each day
-        </Text>
-
-        {Object.entries(formData.availabilityHours).map(([day, schedule]) => (
-          <View
-            key={day}
-            className="p-3 mb-3 border border-gray-200 rounded-lg"
-          >
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="font-medium capitalize">{day}</Text>
-              <TouchableOpacity
-                className={`px-3 py-1 rounded-full ${schedule.available ? "bg-green-500" : "bg-gray-300"}`}
-                onPress={() => {
-                  updateFormData("availabilityHours", {
-                    ...formData.availabilityHours,
-                    [day]: { ...schedule, available: !schedule.available },
-                  });
-                }}
-              >
-                <Text
-                  className={`text-xs ${schedule.available ? "text-white" : "text-gray-600"}`}
-                >
-                  {schedule.available ? "Available" : "Not Available"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {schedule.available && (
-              <View className="flex-row items-center space-x-2">
-                <TextInput
-                  className="flex-1 p-2 border border-gray-300 rounded"
-                  value={schedule.start}
-                  onChangeText={(value) => {
-                    updateFormData("availabilityHours", {
-                      ...formData.availabilityHours,
-                      [day]: { ...schedule, start: value },
-                    });
-                  }}
-                  placeholder="09:00"
-                />
-                <Text>to</Text>
-                <TextInput
-                  className="flex-1 p-2 border border-gray-300 rounded"
-                  value={schedule.end}
-                  onChangeText={(value) => {
-                    updateFormData("availabilityHours", {
-                      ...formData.availabilityHours,
-                      [day]: { ...schedule, end: value },
-                    });
-                  }}
-                  placeholder="17:00"
-                />
-              </View>
-            )}
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderStep5 = () => (
-    <View className="px-6 py-6">
       <Text className="mb-2 text-2xl font-bold">Document Upload</Text>
       <Text className="mb-6 text-gray-600">
         Upload required documents for verification
@@ -875,8 +736,6 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
         return renderStep3();
       case 4:
         return renderStep4();
-      case 5:
-        return renderStep5();
       default:
         return renderStep1();
     }
