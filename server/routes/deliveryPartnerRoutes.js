@@ -1,20 +1,44 @@
-const express = require("express")
-const router = express.Router()
-const authenticateToken = require("../middlewares/authenticateToken")
-const { upload, handleUploadError } = require("../middlewares/uploadMiddleware")
+const express = require("express");
+const router = express.Router();
+const authenticateToken = require("../middlewares/authenticateToken");
+const {
+  upload,
+  handleUploadError,
+} = require("../middlewares/uploadMiddleware");
 
 // Import controllers
-const submitDeliveryPartnerApplication = require("../controllers/deliveryPartnerControllers/submitDeliveryPartnerApplication")
-const getApplicationStatus = require("../controllers/deliveryPartnerControllers/getApplicationStatus")
-const resubmitDocuments = require("../controllers/deliveryPartnerControllers/resubmitDocuments")
+const submitDeliveryPartnerApplication = require("../controllers/deliveryPartnerControllers/submitDeliveryPartnerApplication");
+const getApplicationStatus = require("../controllers/deliveryPartnerControllers/getApplicationStatus");
+const resubmitDocuments = require("../controllers/deliveryPartnerControllers/resubmitDocuments");
+const getDeliveryPartnerProfile = require("../controllers/deliveryPartnerControllers/getDeliveryPartnerProfile");
+const updateDeliveryPartnerProfile = require("../controllers/deliveryPartnerControllers/updateDeliveryPartnerProfile");
+const getDeliveryPartnerStats = require("../controllers/deliveryPartnerControllers/getDeliveryPartnerStats");
+const getAvailableOrders = require("../controllers/deliveryPartnerControllers/getAvailableOrders");
+const getDeliveryHistory = require("../controllers/deliveryPartnerControllers/getDeliveryHistory");
+const toggleOnlineStatus = require("../controllers/deliveryPartnerControllers/toggleOnlineStatus");
 
-// Routes
-router.post("/submit-application", authenticateToken, upload, handleUploadError, submitDeliveryPartnerApplication)
+// Application routes
+router.post(
+  "/submit-application",
+  authenticateToken,
+  upload,
+  handleUploadError,
+  submitDeliveryPartnerApplication
+);
+router.get("/application-status", authenticateToken, getApplicationStatus);
+router.post(
+  "/resubmit-documents",
+  authenticateToken,
+  upload,
+  resubmitDocuments
+);
 
-// Route to get the status of a delivery partner's application
-router.get("/application-status", authenticateToken, getApplicationStatus)
+// Dashboard routes
+router.get("/profile", authenticateToken, getDeliveryPartnerProfile);
+router.put("/profile", authenticateToken, updateDeliveryPartnerProfile);
+router.get("/stats", authenticateToken, getDeliveryPartnerStats);
+router.get("/available-orders", authenticateToken, getAvailableOrders);
+router.get("/delivery-history", authenticateToken, getDeliveryHistory);
+router.put("/toggle-online-status", authenticateToken, toggleOnlineStatus);
 
-// Route for resubmitting documents
-router.post("/resubmit-documents", authenticateToken, upload, resubmitDocuments)
-
-module.exports = router
+module.exports = router;

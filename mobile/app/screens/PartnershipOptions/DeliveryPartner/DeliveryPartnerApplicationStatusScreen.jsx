@@ -225,8 +225,7 @@ const DeliveryPartnerApplicationStatusScreen = ({ navigation }) => {
   };
 
   const handleGoToDeliveryDashboard = () => {
-    // Will be implemented when delivery dashboard is ready
-    Alert.alert("Coming Soon", "Delivery dashboard will be available soon.");
+    navigation.replace("DeliveryPartnerDashboard");
   };
 
   const rejectedDocs = useMemo(

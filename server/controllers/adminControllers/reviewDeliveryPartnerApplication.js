@@ -1,5 +1,8 @@
 const db = require("../../config/db");
 const supabase = require("../../config/supabase");
+const {
+  sendDeliveryPartnerApprovalNotification,
+} = require("../../utils/notifications");
 
 const reviewDeliveryPartnerApplication = async (req, res) => {
   try {
@@ -66,11 +69,126 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
         [newStatus, rejectionReason || null, adminId, applicationId]
       );
 
-      // If approved, create delivery partner record (if you have such a table)
+      // If approved, create delivery partner record
       if (action === "approve") {
-        // You can add logic here to create a delivery partner record
-        // similar to how sellers are created when approved
-        console.log(`Delivery partner application ${applicationId} approved`);
+        // Generate unique partner ID
+        const partnerId = application.application_id.replace("DPA", "DP");
+
+        // Get user details for notification
+        const [users] = await connection.execute(
+          "SELECT first_name, last_name, email FROM users WHERE id = ?",
+          [application.user_id]
+        );
+        const user = users[0];
+
+        // Create delivery partner record
+        await connection.execute(
+          `
+          INSERT INTO delivery_partners (
+            user_id, application_id, partner_id, vehicle_type, license_number, 
+            vehicle_registration, vehicle_make, vehicle_model, vehicle_year, 
+            vehicle_color, company_name, service_areas, availability_hours,
+            emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
+            is_active, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
+        `,
+          [
+            application.user_id,
+            application.id,
+            partnerId,
+            application.vehicle_type,
+            application.license_number,
+            application.vehicle_registration,
+            application.vehicle_make,
+            application.vehicle_model,
+            application.vehicle_year,
+            application.vehicle_color,
+            application.company_name,
+            JSON.stringify(application.service_areas),
+            JSON.stringify(application.availability_hours),
+            application.emergency_contact_name,
+            application.emergency_contact_phone,
+            application.emergency_contact_relation,
+          ]
+        );
+
+        // Handle profile photo migration
+        const [profilePhotos] = await connection.execute(
+          "SELECT storage_key, file_name FROM delivery_partner_documents WHERE application_id = ? AND document_type = 'profile_photo'",
+          [application.id]
+        );
+
+        if (profilePhotos.length > 0) {
+          const profilePhoto = profilePhotos[0];
+          const oldKey = profilePhoto.storage_key;
+          const fileName = profilePhoto.file_name;
+
+          try {
+            // Download the file from the old location
+            const { data: fileData, error: downloadError } =
+              await supabase.storage
+                .from("delivery-partner-documents")
+                .download(oldKey);
+
+            if (!downloadError && fileData) {
+              // Upload to new location
+              const newKey = `delivery-partners/${partnerId}/profile_photos/profile_photo_${Date.now()}.${fileName
+                .split(".")
+                .pop()}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from("delivery-partner-assets")
+                .upload(newKey, fileData, {
+                  contentType: fileData.type,
+                  upsert: false,
+                });
+
+              if (!uploadError) {
+                // Update user profile picture
+                await connection.execute(
+                  "UPDATE users SET profile_picture = ? WHERE id = ?",
+                  [newKey, application.user_id]
+                );
+
+                // Remove old file
+                await supabase.storage
+                  .from("delivery-partner-documents")
+                  .remove([oldKey]);
+              }
+            }
+          } catch (photoError) {
+            console.error("Error migrating profile photo:", photoError);
+            // Continue with approval even if photo migration fails
+          }
+        }
+
+        // Send approval notification
+        try {
+          const userForNotification = {
+            id: application.user_id,
+            email: user.email,
+            first_name: user.first_name,
+            partner_id: partnerId,
+            vehicle_type: application.vehicle_type,
+          };
+
+          // Note: wss should be passed from the main server file
+          // For now, we'll just send email notification
+          await sendDeliveryPartnerApprovalNotification(
+            userForNotification,
+            req.app.get("wss")
+          );
+        } catch (notificationError) {
+          console.error(
+            "Error sending approval notification:",
+            notificationError
+          );
+          // Continue with approval even if notification fails
+        }
+
+        console.log(
+          `Delivery partner application ${applicationId} approved, partner created with ID: ${partnerId}`
+        );
       }
 
       // If rejected, delete all associated documents from storage
@@ -108,6 +226,9 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
           applicationId,
           status: newStatus,
           reviewedAt: new Date().toISOString(),
+          ...(action === "approve" && {
+            partnerId: application.application_id.replace("DPA", "DP"),
+          }),
         },
       });
     } catch (error) {

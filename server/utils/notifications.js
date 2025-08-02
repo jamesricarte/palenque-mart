@@ -1,6 +1,6 @@
-const nodemailer = require("nodemailer")
-const WebSocket = require("ws")
-require("dotenv").config()
+const nodemailer = require("nodemailer");
+const WebSocket = require("ws");
+require("dotenv").config();
 
 // Nodemailer transporter for sending emails
 const transporter = nodemailer.createTransport({
@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.ADMIN_EMAIL,
     pass: process.env.ADMIN_PASS,
   },
-})
+});
 
 /**
  * Sends an email using the pre-configured transporter.
@@ -17,12 +17,12 @@ const transporter = nodemailer.createTransport({
  */
 const sendEmail = async (mailOptions) => {
   try {
-    await transporter.sendMail(mailOptions)
-    console.log(`Email sent to ${mailOptions.to}`)
+    await transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${mailOptions.to}`);
   } catch (error) {
-    console.error(`Error sending email to ${mailOptions.to}:`, error)
+    console.error(`Error sending email to ${mailOptions.to}:`, error);
   }
-}
+};
 
 /**
  * Sends a push notification to a specific user via WebSocket.
@@ -34,19 +34,19 @@ const sendEmail = async (mailOptions) => {
  */
 const sendPushNotification = (wss, userId, payload) => {
   if (!wss || !wss.clients) {
-    console.error("WebSocket server not available for push notification.")
-    return
+    console.error("WebSocket server not available for push notification.");
+    return;
   }
 
-  const message = JSON.stringify({ ...payload, targetUserId: userId })
+  const message = JSON.stringify({ ...payload, targetUserId: userId });
 
   // Broadcast the message; the client will filter based on targetUserId.
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(message)
+      client.send(message);
     }
-  })
-}
+  });
+};
 
 /**
  * Sends both email and push notifications for seller application approval.
@@ -64,7 +64,9 @@ const sendSellerApprovalNotification = async (user, wss) => {
         <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
           <h1 style="color: #16a34a; text-align: center;">Welcome to the Palenque Mart Family!</h1>
           <p>Hi ${user.first_name},</p>
-          <p>We are thrilled to inform you that your seller application for <strong>${user.store_name || "your store"}</strong> has been approved!</p>
+          <p>We are thrilled to inform you that your seller application for <strong>${
+            user.store_name || "your store"
+          }</strong> has been approved!</p>
           <p>You can now log in to your account, access your new Seller Dashboard, and start listing your products. We're excited to see what you'll bring to our marketplace.</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="https://palenquemart.com/login" style="display: inline-block; padding: 12px 24px; background-color: #F16B44; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
@@ -80,16 +82,67 @@ const sendSellerApprovalNotification = async (user, wss) => {
         </div>
       </div>
     `,
-  }
-  sendEmail(emailOptions)
+  };
+  sendEmail(emailOptions);
 
   // 2. Send Push Notification via WebSocket
   const pushPayload = {
     type: "SELLER_APP_APPROVED",
     title: "Application Approved!",
     body: `Congratulations, ${user.first_name}! You can now start selling on Palenque Mart.`,
-  }
-  sendPushNotification(wss, user.id, pushPayload)
-}
+  };
+  sendPushNotification(wss, user.id, pushPayload);
+};
 
-module.exports = { sendSellerApprovalNotification }
+/**
+ * Sends both email and push notifications for delivery partner application approval.
+ * @param {object} user - The user object, containing id, email, first_name, partner_id, and vehicle_type.
+ * @param {WebSocket.Server} wss - The WebSocket server instance.
+ */
+const sendDeliveryPartnerApprovalNotification = async (user, wss) => {
+  // 1. Send Congratulatory Email
+  const emailOptions = {
+    from: `"Palenque Mart" <${process.env.ADMIN_EMAIL}>`,
+    to: user.email,
+    subject: "Congratulations! Your Delivery Partner Application is Approved!",
+    html: `
+      <div style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+          <h1 style="color: #16a34a; text-align: center;">Welcome to the Palenque Mart Delivery Team!</h1>
+          <p>Hi ${user.first_name},</p>
+          <p>We are excited to inform you that your delivery partner application has been approved!</p>
+          <p>Your Partner ID is: <strong>${user.partner_id}</strong></p>
+          <p>Vehicle Type: <strong>${user.vehicle_type}</strong></p>
+          <p>You can now log in to your account and access your new Delivery Partner Dashboard to start accepting delivery orders. We're looking forward to having you as part of our delivery network.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://palenquemart.com/login" style="display: inline-block; padding: 12px 24px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Go to Your Delivery Dashboard
+            </a>
+          </div>
+          <p>Welcome to the team!</p>
+          <p>The Palenque Mart Team</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;" />
+          <p style="font-size: 12px; color: #888; text-align: center;">
+            If you did not apply to be a delivery partner, please contact our support team immediately.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+  sendEmail(emailOptions);
+
+  // 2. Send Push Notification via WebSocket
+  if (wss) {
+    const pushPayload = {
+      type: "DELIVERY_PARTNER_APP_APPROVED",
+      title: "Application Approved!",
+      body: `Congratulations, ${user.first_name}! You can now start delivering for Palenque Mart.`,
+    };
+    sendPushNotification(wss, user.id, pushPayload);
+  }
+};
+
+module.exports = {
+  sendSellerApprovalNotification,
+  sendDeliveryPartnerApprovalNotification,
+};

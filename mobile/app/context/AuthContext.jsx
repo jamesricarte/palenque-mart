@@ -54,7 +54,8 @@ export const AuthProvider = ({ children }) => {
         console.log("WebSocket message received:", message);
 
         if (
-          message.type === "SELLER_APP_APPROVED" &&
+          (message.type === "SELLER_APP_APPROVED" ||
+            message.type === "DELIVERY_PARTNER_APP_APPROVED") &&
           message.targetUserId === user.id
         ) {
           Alert.alert(message.title, message.body);

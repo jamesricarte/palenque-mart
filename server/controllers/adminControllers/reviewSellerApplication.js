@@ -80,12 +80,11 @@ const reviewSellerApplication = async (req, res) => {
           const sellerId = `SELL${Date.now().toString().slice(-8)}`;
 
           await connection.execute(
-            `
-INSERT INTO sellers (
-  user_id, application_id, seller_id, account_type, 
-  store_name, store_description, store_logo_key
-) VALUES (?, ?, ?, ?, ?, ?, ?)
-`,
+            `INSERT INTO sellers (
+              user_id, application_id, seller_id, account_type, 
+              store_name, store_description, store_logo_key
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            `,
             [
               application.user_id,
               application.id,

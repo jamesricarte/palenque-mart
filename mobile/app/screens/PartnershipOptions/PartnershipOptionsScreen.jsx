@@ -23,6 +23,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
   const [storeProfile, setStoreProfile] = useState(null);
+  const [deliveryPartnerProfile, setDeliveryPartnerProfile] = useState(null);
 
   useEffect(() => {
     checkApplicationStatuses();
@@ -72,6 +73,10 @@ const PartnershipOptionsScreen = ({ navigation }) => {
           setHasDeliveryApplication(true);
           setDeliveryApplicationStatus(deliveryResponse.data.data.status);
           setDeliveryData(deliveryResponse.data.data);
+
+          if (deliveryResponse.data.data.status === "approved") {
+            fetchDeliveryPartnerProfile();
+          }
         }
       } catch (error) {
         setHasDeliveryApplication(false);
@@ -96,6 +101,25 @@ const PartnershipOptionsScreen = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Error fetching store profile:", error);
+    }
+  };
+
+  const fetchDeliveryPartnerProfile = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/delivery-partner/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setDeliveryPartnerProfile(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching delivery partner profile:", error);
     }
   };
 
@@ -169,6 +193,10 @@ const PartnershipOptionsScreen = ({ navigation }) => {
 
   const handleGoToSellerDashboard = () => {
     navigation.replace("SellerDashboard");
+  };
+
+  const handleGoToDeliveryPartnerDashboard = () => {
+    navigation.replace("DeliveryPartnerDashboard");
   };
 
   const handleSellerAction = () => {
@@ -278,7 +306,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                       Delivery Partner
                     </Text>
                     <Text className="text-sm text-gray-600">
-                      Active Partner
+                      {deliveryPartnerProfile?.partner_id || "Active Partner"}
                     </Text>
                   </View>
                 </View>
@@ -289,20 +317,23 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                 </Text>
 
                 <View className="flex flex-row items-center mb-4">
-                  <View className="w-3 h-3 mr-2 bg-green-500 rounded-full" />
-                  <Text className="font-medium text-green-600">
-                    Partner Active
+                  <View
+                    className={`w-3 h-3 mr-2 rounded-full ${
+                      deliveryPartnerProfile?.is_online
+                        ? "bg-green-500"
+                        : "bg-gray-400"
+                    }`}
+                  />
+                  <Text
+                    className={`font-medium ${deliveryPartnerProfile?.is_online ? "text-green-600" : "text-gray-600"}`}
+                  >
+                    {deliveryPartnerProfile?.is_online ? "Online" : "Offline"}
                   </Text>
                 </View>
 
                 <TouchableOpacity
                   className="w-full py-3 bg-green-600 rounded-lg"
-                  onPress={() => {
-                    Alert.alert(
-                      "Coming Soon",
-                      "Delivery dashboard will be available soon."
-                    );
-                  }}
+                  onPress={handleGoToDeliveryPartnerDashboard}
                 >
                   <Text className="font-semibold text-center text-white">
                     Go to Delivery Dashboard

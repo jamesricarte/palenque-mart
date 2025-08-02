@@ -44,6 +44,9 @@ import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
 import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
 import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
 
+import DeliveryPartnerDashboardScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDashboardScreen";
+import EditDeliveryPartnerProfileScreen from "../screens/DeliveryPartnerDashboard/EditDeliveryPartnerProfileScreen";
+
 import ProductDetailsScreen from "../screens/ProductDetails/ProductDetailsScreen";
 
 import CheckoutScreen from "../screens/Checkout/CheckoutScreen";
@@ -173,6 +176,16 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="EditStoreProfile"
         component={EditStoreProfileScreen}
+      />
+
+      {/* Delivery Partner Dashboard */}
+      <Stack.Screen
+        name="DeliveryPartnerDashboard"
+        component={DeliveryPartnerDashboardScreen}
+      />
+      <Stack.Screen
+        name="EditDeliveryPartnerProfile"
+        component={EditDeliveryPartnerProfileScreen}
       />
 
       {/* Product Details */}
