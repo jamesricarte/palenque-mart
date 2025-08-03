@@ -59,21 +59,23 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          await logout();
-          navigation.replace("Login");
+  const handleSwitchToCustomerView = () => {
+    Alert.alert(
+      "Switch to Customer View",
+      "Do you want to switch to the regular customer dashboard?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
         },
-      },
-    ]);
+        {
+          text: "Switch",
+          onPress: () => {
+            navigation.replace("Dashboard");
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -99,10 +101,10 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
           </Text>
         </View>
         <TouchableOpacity
-          onPress={handleLogout}
+          onPress={handleSwitchToCustomerView}
           className="p-2 bg-green-700 rounded-lg"
         >
-          <MaterialIcons name="logout" size={20} color="white" />
+          <MaterialIcons name="swap-horiz" size={20} color="white" />
         </TouchableOpacity>
       </View>
 

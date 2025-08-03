@@ -1,6 +1,13 @@
 "use client";
 
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -21,21 +28,23 @@ const DeliveryPartnerAccountScreen = ({
     });
   };
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          await logout();
-          navigation.replace("Login");
+  const handleSwitchToCustomerView = () => {
+    Alert.alert(
+      "Switch to Customer View",
+      "Do you want to switch to the regular customer dashboard?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
         },
-      },
-    ]);
+        {
+          text: "Switch",
+          onPress: () => {
+            navigation.replace("Dashboard");
+          },
+        },
+      ]
+    );
   };
 
   const formatAvailabilityHours = (hours) => {
@@ -60,8 +69,16 @@ const DeliveryPartnerAccountScreen = ({
         {/* Profile Header */}
         <View className="p-6 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
           <View className="flex flex-row items-center mb-4">
-            <View className="flex items-center justify-center w-16 h-16 mr-4 bg-green-100 rounded-full">
-              <Feather name="user" size={32} color="#16a34a" />
+            <View className="flex items-center justify-center w-16 h-16 mr-4 overflow-hidden bg-green-100 rounded-full">
+              {deliveryPartnerProfile?.profile_picture_url ? (
+                <Image
+                  source={{ uri: deliveryPartnerProfile.profile_picture_url }}
+                  className="w-full h-full"
+                  style={{ resizeMode: "cover" }}
+                />
+              ) : (
+                <Feather name="user" size={32} color="#16a34a" />
+              )}
             </View>
             <View className="flex-1">
               <Text className="text-xl font-semibold text-gray-900">
@@ -240,14 +257,14 @@ const DeliveryPartnerAccountScreen = ({
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={handleLogout}
-            className="flex flex-row items-center p-3 border border-red-200 rounded-lg bg-red-50"
+            onPress={handleSwitchToCustomerView}
+            className="flex flex-row items-center p-3 border border-blue-200 rounded-lg bg-blue-50"
           >
-            <MaterialIcons name="logout" size={20} color="#dc2626" />
-            <Text className="flex-1 ml-3 text-sm font-medium text-red-600">
-              Logout
+            <MaterialIcons name="swap-horiz" size={20} color="#2563eb" />
+            <Text className="flex-1 ml-3 text-sm font-medium text-blue-600">
+              Switch to Customer View
             </Text>
-            <Ionicons name="chevron-forward" size={20} color="#dc2626" />
+            <Ionicons name="chevron-forward" size={20} color="#2563eb" />
           </TouchableOpacity>
         </View>
       </View>

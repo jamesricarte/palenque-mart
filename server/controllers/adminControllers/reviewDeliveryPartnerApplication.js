@@ -81,38 +81,8 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
         );
         const user = users[0];
 
-        // Create delivery partner record
-        await connection.execute(
-          `
-          INSERT INTO delivery_partners (
-            user_id, application_id, partner_id, vehicle_type, license_number, 
-            vehicle_registration, vehicle_make, vehicle_model, vehicle_year, 
-            vehicle_color, company_name, service_areas, availability_hours,
-            emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
-            is_active, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
-        `,
-          [
-            application.user_id,
-            application.id,
-            partnerId,
-            application.vehicle_type,
-            application.license_number,
-            application.vehicle_registration,
-            application.vehicle_make,
-            application.vehicle_model,
-            application.vehicle_year,
-            application.vehicle_color,
-            application.company_name,
-            JSON.stringify(application.service_areas),
-            JSON.stringify(application.availability_hours),
-            application.emergency_contact_name,
-            application.emergency_contact_phone,
-            application.emergency_contact_relation,
-          ]
-        );
-
-        // Handle profile photo migration
+        // Handle profile photo migration first
+        let profilePictureKey = null;
         const [profilePhotos] = await connection.execute(
           "SELECT storage_key, file_name FROM delivery_partner_documents WHERE application_id = ? AND document_type = 'profile_photo'",
           [application.id]
@@ -144,16 +114,18 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
                 });
 
               if (!uploadError) {
-                // Update user profile picture
-                await connection.execute(
-                  "UPDATE users SET profile_picture = ? WHERE id = ?",
-                  [newKey, application.user_id]
-                );
+                profilePictureKey = newKey;
 
                 // Remove old file
                 await supabase.storage
                   .from("delivery-partner-documents")
                   .remove([oldKey]);
+
+                // Delete the profile photo record from delivery_partner_documents
+                await connection.execute(
+                  "DELETE FROM delivery_partner_documents WHERE application_id = ? AND document_type = 'profile_photo'",
+                  [application.id]
+                );
               }
             }
           } catch (photoError) {
@@ -161,6 +133,38 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
             // Continue with approval even if photo migration fails
           }
         }
+
+        // Create delivery partner record with profile picture
+        await connection.execute(
+          `
+          INSERT INTO delivery_partners (
+            user_id, application_id, partner_id, vehicle_type, license_number, 
+            vehicle_registration, vehicle_make, vehicle_model, vehicle_year, 
+            vehicle_color, company_name, service_areas, availability_hours,
+            emergency_contact_name, emergency_contact_phone, emergency_contact_relation,
+            profile_picture, is_active, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())
+        `,
+          [
+            application.user_id,
+            application.id,
+            partnerId,
+            application.vehicle_type,
+            application.license_number,
+            application.vehicle_registration,
+            application.vehicle_make,
+            application.vehicle_model,
+            application.vehicle_year,
+            application.vehicle_color,
+            application.company_name,
+            JSON.stringify(application.service_areas),
+            JSON.stringify(application.availability_hours),
+            application.emergency_contact_name,
+            application.emergency_contact_phone,
+            application.emergency_contact_relation,
+            profilePictureKey,
+          ]
+        );
 
         // Send approval notification
         try {

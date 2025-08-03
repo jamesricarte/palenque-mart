@@ -131,7 +131,7 @@ CREATE TABLE `delivery_partner_applications` (
 
 LOCK TABLES `delivery_partner_applications` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_applications` DISABLE KEYS */;
-INSERT INTO `delivery_partner_applications` VALUES (1,5,'DPA92342791','tricycle','DMW1224','PFD-344-DFDR-23','Yamaha','Onix','2018','Green','independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0906343555','Parent','approved',NULL,'2025-08-01 07:40:12','2025-08-02 08:15:01','2025-08-02 08:15:01',1);
+INSERT INTO `delivery_partner_applications` VALUES (1,5,'DPA25062122','tricycle','DMW023-234-5422','PD-345D-D34-2344','Yamaha','Max','2018','Greeni','independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','09704954656','Parent','approved',NULL,'2025-08-03 13:44:59','2025-08-03 13:45:50','2025-08-03 13:45:50',1);
 /*!40000 ALTER TABLE `delivery_partner_applications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -167,7 +167,7 @@ CREATE TABLE `delivery_partner_documents` (
 
 LOCK TABLES `delivery_partner_documents` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_documents` DISABLE KEYS */;
-INSERT INTO `delivery_partner_documents` VALUES (1,1,'drivers_license','user_5/DPA92342791/drivers_license-1754034012977.jpeg','images%20(6).jpeg',53886,'image/jpeg','verified',NULL,'2025-08-01 07:40:13','2025-08-01 09:03:03'),(2,1,'vehicle_registration','user_5/DPA92342791/vehicle_registration-1754042234416.jpeg','images%20(7).jpeg',47849,'image/jpeg','verified',NULL,'2025-08-01 07:40:14','2025-08-01 09:58:02'),(3,1,'profile_photo','user_5/DPA92342791/profile_photo-1754042235281.jpeg','e9f53e00-661c-4b2b-a9b3-5a6b697098f1.jpeg',19213,'image/jpeg','verified',NULL,'2025-08-01 07:40:14','2025-08-01 10:17:47'),(4,1,'insurance','user_5/DPA92342791/insurance-1754042235440.png','images%20(1).png',26986,'image/png','verified',NULL,'2025-08-01 07:40:14','2025-08-01 10:17:51');
+INSERT INTO `delivery_partner_documents` VALUES (1,1,'drivers_license','user_5/DPA25062122/drivers_license-1754228699944.jpeg','images%20(6).jpeg',53886,'image/jpeg','verified',NULL,'2025-08-03 13:45:00','2025-08-03 13:45:24'),(2,1,'vehicle_registration','user_5/DPA25062122/vehicle_registration-1754228700886.jpeg','images%20(7).jpeg',47849,'image/jpeg','verified',NULL,'2025-08-03 13:45:01','2025-08-03 13:45:31'),(4,1,'insurance','user_5/DPA25062122/insurance-1754228701404.png','images%20(1).png',26986,'image/png','pending',NULL,'2025-08-03 13:45:01','2025-08-03 13:45:01');
 /*!40000 ALTER TABLE `delivery_partner_documents` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -196,6 +196,7 @@ CREATE TABLE `delivery_partners` (
   `emergency_contact_name` varchar(255) NOT NULL,
   `emergency_contact_phone` varchar(20) NOT NULL,
   `emergency_contact_relation` varchar(100) DEFAULT NULL,
+  `profile_picture` varchar(500) DEFAULT NULL,
   `is_online` tinyint(1) DEFAULT '0',
   `current_location_lat` decimal(10,8) DEFAULT NULL,
   `current_location_lng` decimal(11,8) DEFAULT NULL,
@@ -209,7 +210,8 @@ CREATE TABLE `delivery_partners` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_application_id` (`application_id`),
   KEY `idx_is_online` (`is_online`),
-  KEY `idx_is_active` (`is_active`)
+  KEY `idx_is_active` (`is_active`),
+  KEY `idx_profile_picture` (`profile_picture`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -219,7 +221,7 @@ CREATE TABLE `delivery_partners` (
 
 LOCK TABLES `delivery_partners` WRITE;
 /*!40000 ALTER TABLE `delivery_partners` DISABLE KEYS */;
-INSERT INTO `delivery_partners` VALUES (1,5,1,'DP92342791','tricycle','DMW1224','PFD-344-DFDR-23','Yamaha','Onix','2018','Green','independent','[]','{}','Marita C. Ricarte','0906343555','Parent',1,NULL,NULL,5.00,0,1,'2025-08-01 10:23:00','2025-08-02 08:08:48');
+INSERT INTO `delivery_partners` VALUES (1,5,1,'DP25062122','tricycle','DMW023-234-5422','PD-345D-D34-2344','Yamaha','Max','2018','Greeni','independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','09704954656','Parent','delivery-partners/DP25062122/profile_photos/profile_photo_1754228751888.jpeg',0,NULL,NULL,5.00,0,1,'2025-08-03 13:45:52','2025-08-03 13:45:52');
 /*!40000 ALTER TABLE `delivery_partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -662,7 +664,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2a$12$fUYXFIMWIqLTACJ8.Qt5..Ku0JavZAlOv3BN9dLqB0jRbx87BawJu',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 14:43:52','2025-07-17 15:01:30'),(2,'James','Ricarte','uhenyou@gmail.com','$2b$10$QDJSH/XYM6U2Dqjga3DOyeITqsYx2S7qSBmpFTzka0R0lhsQli9ke','+639771495824',NULL,'2003-01-03','male','user',1,'2025-07-17 14:46:24','2025-07-17 14:47:16'),(3,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$9tvwV4nMfjGKuaq4OvplB.o6YYCm20qEBAH9v9teNN9aJRM21eR2W','+639771495822',NULL,'2003-01-03','male','user',1,'2025-07-17 14:48:49','2025-07-17 14:49:45'),(4,'Jessie','Melgar','07110972@dwc-legazpi.edu','$2b$10$krXrMEKGa0r8CFKNKrFE6ek1snEX9HJzMkr7wg1RjfFede4cqE0lq','+639771495823',NULL,'2003-01-03','male','user',1,'2025-07-20 15:34:19','2025-07-20 15:35:17'),(5,'James','Mickel','jamesmickelricarte@gmail.com','$2b$10$oIRgpnR0W1G0mq7M1feh3.jhC83WLdMGyRwRuv2tviXeiX4TGcphm','+639771495821',NULL,'2003-01-03','male','user',1,'2025-07-29 10:41:43','2025-07-29 10:43:37');
+INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2a$12$fUYXFIMWIqLTACJ8.Qt5..Ku0JavZAlOv3BN9dLqB0jRbx87BawJu',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 14:43:52','2025-07-17 15:01:30'),(2,'James','Ricarte','uhenyou@gmail.com','$2b$10$QDJSH/XYM6U2Dqjga3DOyeITqsYx2S7qSBmpFTzka0R0lhsQli9ke','+639771495824',NULL,'2003-01-03','male','user',1,'2025-07-17 14:46:24','2025-07-17 14:47:16'),(3,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$9tvwV4nMfjGKuaq4OvplB.o6YYCm20qEBAH9v9teNN9aJRM21eR2W','+639771495822',NULL,'2003-01-03','male','user',1,'2025-07-17 14:48:49','2025-07-17 14:49:45'),(4,'Jessie','Melgar','07110972@dwc-legazpi.edu','$2b$10$krXrMEKGa0r8CFKNKrFE6ek1snEX9HJzMkr7wg1RjfFede4cqE0lq','+639771495823',NULL,'2003-01-03','male','user',1,'2025-07-20 15:34:19','2025-07-20 15:35:17'),(5,'James','Mickel','jamesmickelricarte@gmail.com','$2b$10$oIRgpnR0W1G0mq7M1feh3.jhC83WLdMGyRwRuv2tviXeiX4TGcphm','+639771495821',NULL,'2003-01-03','male','user',1,'2025-07-29 10:41:43','2025-08-03 13:50:28');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -716,4 +718,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-02 18:32:38
+-- Dump completed on 2025-08-03 21:50:57

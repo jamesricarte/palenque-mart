@@ -62,8 +62,6 @@ const updateDeliveryPartnerProfile = async (req, res) => {
       ]
     );
 
-    console.log("Delivery partner profile updated successfully");
-
     res.status(200).json({
       message: "Delivery partner profile updated successfully",
       success: true,
