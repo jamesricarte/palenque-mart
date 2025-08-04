@@ -34,25 +34,10 @@ const CheckoutScreen = () => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
-  const [showAddAddressModal, setShowAddAddressModal] = useState(false);
   const [deliveryNotes, setDeliveryNotes] = useState("");
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [voucherLoading, setVoucherLoading] = useState(false);
-
-  // New address form state
-  const [newAddress, setNewAddress] = useState({
-    address_type: "home",
-    recipient_name: user?.first_name + " " + user?.last_name || "",
-    phone_number: user?.phone || "",
-    street_address: "",
-    barangay: "",
-    city: "",
-    province: "",
-    postal_code: "",
-    landmark: "",
-    is_default: false,
-  });
 
   const deliveryFee = 50.0;
 
@@ -88,47 +73,6 @@ const CheckoutScreen = () => {
       }
     } catch (error) {
       console.error("Error fetching addresses:", error);
-    }
-  };
-
-  const addNewAddress = async () => {
-    // Validate required fields
-    if (
-      !newAddress.recipient_name ||
-      !newAddress.phone_number ||
-      !newAddress.street_address ||
-      !newAddress.barangay ||
-      !newAddress.city ||
-      !newAddress.province
-    ) {
-      Alert.alert("Error", "Please fill in all required fields");
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${API_URL}/api/addresses`, newAddress);
-      if (response.data.success) {
-        Alert.alert("Success", "Address added successfully");
-        setShowAddAddressModal(false);
-        fetchUserAddresses();
-
-        // Reset form
-        setNewAddress({
-          address_type: "home",
-          recipient_name: user?.first_name + " " + user?.last_name || "",
-          phone_number: user?.phone || "",
-          street_address: "",
-          barangay: "",
-          city: "",
-          province: "",
-          postal_code: "",
-          landmark: "",
-          is_default: false,
-        });
-      }
-    } catch (error) {
-      console.error("Error adding address:", error);
-      Alert.alert("Error", "Failed to add address");
     }
   };
 
@@ -653,7 +597,7 @@ const CheckoutScreen = () => {
                     className="p-4 mt-2 border-2 border-gray-300 border-dashed rounded-lg"
                     onPress={() => {
                       setShowAddressModal(false);
-                      setShowAddAddressModal(true);
+                      navigation.navigate("AddNewAddress");
                     }}
                   >
                     <View className="flex-row items-center justify-center">
@@ -665,209 +609,6 @@ const CheckoutScreen = () => {
                   </TouchableOpacity>
                 )}
               </ScrollView>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Add Address Modal */}
-      <Modal
-        transparent
-        visible={showAddAddressModal}
-        animationType="slide"
-        onRequestClose={() => setShowAddAddressModal(false)}
-      >
-        <View
-          className="flex-1"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-        >
-          <View className="justify-end flex-1">
-            <View
-              className="p-6 bg-white rounded-t-3xl"
-              style={{ maxHeight: "90%" }}
-            >
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-xl font-semibold">Add New Address</Text>
-                <TouchableOpacity onPress={() => setShowAddAddressModal(false)}>
-                  <Feather name="x" size={24} color="black" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <View className="space-y-4">
-                  <View>
-                    <Text className="mb-1 text-sm font-medium text-gray-700">
-                      Recipient Name *
-                    </Text>
-                    <TextInput
-                      className="p-3 border border-gray-300 rounded-lg"
-                      value={newAddress.recipient_name}
-                      onChangeText={(text) =>
-                        setNewAddress((prev) => ({
-                          ...prev,
-                          recipient_name: text,
-                        }))
-                      }
-                      placeholder="Full name"
-                    />
-                  </View>
-
-                  <View>
-                    <Text className="mb-1 text-sm font-medium text-gray-700">
-                      Phone Number *
-                    </Text>
-                    <TextInput
-                      className="p-3 border border-gray-300 rounded-lg"
-                      value={newAddress.phone_number}
-                      onChangeText={(text) =>
-                        setNewAddress((prev) => ({
-                          ...prev,
-                          phone_number: text,
-                        }))
-                      }
-                      placeholder="+63 XXX XXX XXXX"
-                      keyboardType="phone-pad"
-                    />
-                  </View>
-
-                  <View>
-                    <Text className="mb-1 text-sm font-medium text-gray-700">
-                      Street Address *
-                    </Text>
-                    <TextInput
-                      className="p-3 border border-gray-300 rounded-lg"
-                      value={newAddress.street_address}
-                      onChangeText={(text) =>
-                        setNewAddress((prev) => ({
-                          ...prev,
-                          street_address: text,
-                        }))
-                      }
-                      placeholder="House number, street name"
-                    />
-                  </View>
-
-                  <View className="flex-row space-x-2">
-                    <View className="flex-1">
-                      <Text className="mb-1 text-sm font-medium text-gray-700">
-                        Barangay *
-                      </Text>
-                      <TextInput
-                        className="p-3 border border-gray-300 rounded-lg"
-                        value={newAddress.barangay}
-                        onChangeText={(text) =>
-                          setNewAddress((prev) => ({
-                            ...prev,
-                            barangay: text,
-                          }))
-                        }
-                        placeholder="Barangay"
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="mb-1 text-sm font-medium text-gray-700">
-                        City *
-                      </Text>
-                      <TextInput
-                        className="p-3 border border-gray-300 rounded-lg"
-                        value={newAddress.city}
-                        onChangeText={(text) =>
-                          setNewAddress((prev) => ({
-                            ...prev,
-                            city: text,
-                          }))
-                        }
-                        placeholder="City"
-                      />
-                    </View>
-                  </View>
-
-                  <View className="flex-row space-x-2">
-                    <View className="flex-1">
-                      <Text className="mb-1 text-sm font-medium text-gray-700">
-                        Province *
-                      </Text>
-                      <TextInput
-                        className="p-3 border border-gray-300 rounded-lg"
-                        value={newAddress.province}
-                        onChangeText={(text) =>
-                          setNewAddress((prev) => ({
-                            ...prev,
-                            province: text,
-                          }))
-                        }
-                        placeholder="Province"
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="mb-1 text-sm font-medium text-gray-700">
-                        Postal Code
-                      </Text>
-                      <TextInput
-                        className="p-3 border border-gray-300 rounded-lg"
-                        value={newAddress.postal_code}
-                        onChangeText={(text) =>
-                          setNewAddress((prev) => ({
-                            ...prev,
-                            postal_code: text,
-                          }))
-                        }
-                        placeholder="4500"
-                        keyboardType="numeric"
-                      />
-                    </View>
-                  </View>
-
-                  <View>
-                    <Text className="mb-1 text-sm font-medium text-gray-700">
-                      Landmark
-                    </Text>
-                    <TextInput
-                      className="p-3 border border-gray-300 rounded-lg"
-                      value={newAddress.landmark}
-                      onChangeText={(text) =>
-                        setNewAddress((prev) => ({
-                          ...prev,
-                          landmark: text,
-                        }))
-                      }
-                      placeholder="Near church, mall, etc."
-                    />
-                  </View>
-
-                  <View className="flex-row items-center">
-                    <TouchableOpacity
-                      className={`w-5 h-5 border-2 rounded mr-3 ${
-                        newAddress.is_default
-                          ? "bg-orange-600 border-orange-600"
-                          : "border-gray-300"
-                      }`}
-                      onPress={() =>
-                        setNewAddress((prev) => ({
-                          ...prev,
-                          is_default: !prev.is_default,
-                        }))
-                      }
-                    >
-                      {newAddress.is_default && (
-                        <Feather name="check" size={12} color="white" />
-                      )}
-                    </TouchableOpacity>
-                    <Text className="text-sm text-gray-700">
-                      Set as default address
-                    </Text>
-                  </View>
-                </View>
-              </ScrollView>
-
-              <TouchableOpacity
-                className="items-center p-4 mt-4 bg-orange-600 rounded-lg"
-                onPress={addNewAddress}
-              >
-                <Text className="text-lg font-semibold text-white">
-                  Save Address
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
         </View>

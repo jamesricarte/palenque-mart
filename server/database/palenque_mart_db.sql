@@ -35,7 +35,7 @@ CREATE TABLE `cart` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -221,7 +221,7 @@ CREATE TABLE `delivery_partners` (
 
 LOCK TABLES `delivery_partners` WRITE;
 /*!40000 ALTER TABLE `delivery_partners` DISABLE KEYS */;
-INSERT INTO `delivery_partners` VALUES (1,5,1,'DP25062122','tricycle','DMW023-234-5422','PD-345D-D34-2344','Yamaha','Max','2018','Greeni','independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','09704954656','Parent','delivery-partners/DP25062122/profile_photos/profile_photo_1754228751888.jpeg',0,NULL,NULL,5.00,0,1,'2025-08-03 13:45:52','2025-08-03 13:45:52');
+INSERT INTO `delivery_partners` VALUES (1,5,1,'DP25062122','tricycle','DMW023-234-5422','PD-345D-D34-2344','Yamaha','Max','2018','Greeni','independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','09704954656','Parent','delivery-partners/DP25062122/profile_photos/profile_photo_1754228751888.jpeg',1,NULL,NULL,5.00,0,1,'2025-08-03 13:45:52','2025-08-03 14:26:41');
 /*!40000 ALTER TABLE `delivery_partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -250,7 +250,7 @@ CREATE TABLE `order_items` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_item_status` (`item_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -259,7 +259,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,4,2,1,20.00,20.00,'{}','ready_for_pickup',NULL,'2025-07-26 16:16:17','2025-07-26 16:46:56'),(2,1,3,2,1,25.00,25.00,'{}','ready_for_pickup',NULL,'2025-07-26 16:16:17','2025-07-26 16:46:56'),(3,2,6,6,1,180.00,180.00,'{}','pending',NULL,'2025-07-26 16:16:17','2025-07-26 16:16:17'),(4,2,7,6,1,200.00,200.00,'{}','pending',NULL,'2025-07-26 16:16:17','2025-07-26 16:16:17');
+INSERT INTO `order_items` VALUES (1,1,5,2,1,10.00,10.00,'{}','ready_for_pickup',NULL,'2025-08-04 08:08:34','2025-08-04 08:10:32');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -280,7 +280,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -289,7 +289,7 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-07-26 16:16:17'),(2,2,'pending','Order placed successfully',NULL,'2025-07-26 16:16:17'),(3,1,'confirmed','Accept and confirm this order',3,'2025-07-26 16:23:14'),(4,1,'preparing','Begin preparing the order items',3,'2025-07-26 16:23:31'),(5,1,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-26 16:23:39'),(6,1,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-07-26 16:46:56');
+INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-04 08:08:34'),(2,1,'confirmed','Accept and confirm this order',3,'2025-08-04 08:09:33'),(3,1,'preparing','Begin preparing the order items',3,'2025-08-04 08:10:05'),(4,1,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-08-04 08:10:32');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -336,7 +336,7 @@ CREATE TABLE `orders` (
   KEY `idx_payment_status` (`payment_status`),
   KEY `idx_voucher_id` (`voucher_id`),
   KEY `idx_delivery_address_id` (`delivery_address_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -345,7 +345,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,2,'ORD1753546577304329','ready_for_pickup','cash_on_delivery','pending',45.00,50.00,0.00,95.00,NULL,3,'James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery','',NULL,NULL,NULL,NULL,'2025-07-26 16:16:17','2025-07-26 16:46:56'),(2,2,'ORD1753546577319533','pending','cash_on_delivery','pending',380.00,50.00,0.00,430.00,NULL,3,'James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery','',NULL,NULL,NULL,NULL,'2025-07-26 16:16:17','2025-07-26 16:16:17');
+INSERT INTO `orders` VALUES (1,5,'ORD1754294914125736','ready_for_pickup','cash_on_delivery','pending',10.00,50.00,0.00,60.00,NULL,5,'James Mickel','+639771495821','Jamaica Mansions','Panal','Tabaco City','Albay','4511','Near church','Please order it in the afternoon',NULL,NULL,NULL,NULL,'2025-08-04 08:08:34','2025-08-04 08:10:32');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -387,7 +387,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Karne','Fresh meats',120.00,139,'Meat','Pork Chop','per_kilo','Harvested  yesterday','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/453e0f9e-5bb4-446b-a16e-0cd70e9027cb-photo.jpeg',1,'2025-07-21 11:17:15','2025-07-23 10:29:20'),(2,1,'Whole Chicken','',290.00,34,'Meat','Chicken','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/5e7dc5c6-e28a-4a3c-9c86-7eb1d9912d68-photo.jpeg',1,'2025-07-21 11:42:34','2025-07-24 15:23:55'),(3,2,'Kamatis','',25.00,15,'Fruits','Other','per_250g','Harvested yesterday ','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b9184cee-be10-43a7-ab07-363730bcf94d-photo.jpeg',1,'2025-07-21 12:29:12','2025-07-26 16:16:17'),(4,2,'Apple','',20.00,41,'Fruits','Other','per_250g',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b2ae2953-30bf-49b8-be40-04a882584a7f-photo.jpeg',1,'2025-07-21 12:42:28','2025-07-26 16:16:17'),(5,2,'Sibulyas','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit',10.00,243,'Vegetables','Root Vegetables','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/3f1e3928-68dc-4a4d-9884-f05de56bf71a-photo.jpeg',1,'2025-07-21 12:44:41','2025-07-25 15:34:43'),(6,6,'Tilapia','',180.00,2,'Fish','Tilapia','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": false, \"sliced\": true, \"cleaned\": false}','product-images/user_4/d9e9ca2f-0edf-477e-bc80-f143343be7a1-photo.jpeg',1,'2025-07-23 07:53:30','2025-07-26 16:16:17'),(7,6,'Pundahan','',200.00,2,'Fish','Other','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": true, \"sliced\": true, \"cleaned\": false}','product-images/user_4/3ec1f333-a9a5-4cbe-84a0-f06b296007ec-photo.jpeg',1,'2025-07-23 08:01:51','2025-07-26 16:16:17'),(8,1,'Pundahan','',180.00,8,'Fish','Other','per_kilo','Slaughtered this morning','2025-08-01','From Puro beach','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/71f1aabc-e80b-43e4-bf0d-42636e348e1a-photo.jpeg',1,'2025-08-01 10:43:13','2025-08-01 10:43:13'),(9,1,'Longanissa ','',80.00,12,'Meat','Other','per_pack','Ordered today','2025-08-01','Pangasinan supplier','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/f9823389-8434-4754-9e59-fbd92142c3ce-photo.jpeg',1,'2025-08-01 10:46:52','2025-08-01 10:46:52');
+INSERT INTO `products` VALUES (1,1,'Karne','Fresh meats',120.00,139,'Meat','Pork Chop','per_kilo','Harvested  yesterday','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/453e0f9e-5bb4-446b-a16e-0cd70e9027cb-photo.jpeg',1,'2025-07-21 11:17:15','2025-07-23 10:29:20'),(2,1,'Whole Chicken','',290.00,34,'Meat','Chicken','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/5e7dc5c6-e28a-4a3c-9c86-7eb1d9912d68-photo.jpeg',1,'2025-07-21 11:42:34','2025-07-24 15:23:55'),(3,2,'Kamatis','',25.00,15,'Fruits','Other','per_250g','Harvested yesterday ','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b9184cee-be10-43a7-ab07-363730bcf94d-photo.jpeg',1,'2025-07-21 12:29:12','2025-07-26 16:16:17'),(4,2,'Apple','',20.00,41,'Fruits','Other','per_250g',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b2ae2953-30bf-49b8-be40-04a882584a7f-photo.jpeg',1,'2025-07-21 12:42:28','2025-07-26 16:16:17'),(5,2,'Sibulyas','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit',10.00,242,'Vegetables','Root Vegetables','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/3f1e3928-68dc-4a4d-9884-f05de56bf71a-photo.jpeg',1,'2025-07-21 12:44:41','2025-08-04 08:08:34'),(6,6,'Tilapia','',180.00,2,'Fish','Tilapia','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": false, \"sliced\": true, \"cleaned\": false}','product-images/user_4/d9e9ca2f-0edf-477e-bc80-f143343be7a1-photo.jpeg',1,'2025-07-23 07:53:30','2025-07-26 16:16:17'),(7,6,'Pundahan','',200.00,2,'Fish','Other','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": true, \"sliced\": true, \"cleaned\": false}','product-images/user_4/3ec1f333-a9a5-4cbe-84a0-f06b296007ec-photo.jpeg',1,'2025-07-23 08:01:51','2025-07-26 16:16:17'),(8,1,'Pundahan','',180.00,8,'Fish','Other','per_kilo','Slaughtered this morning','2025-08-01','From Puro beach','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/71f1aabc-e80b-43e4-bf0d-42636e348e1a-photo.jpeg',1,'2025-08-01 10:43:13','2025-08-01 10:43:13'),(9,1,'Longanissa ','',80.00,12,'Meat','Other','per_pack','Ordered today','2025-08-01','Pangasinan supplier','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/f9823389-8434-4754-9e59-fbd92142c3ce-photo.jpeg',1,'2025-08-01 10:46:52','2025-08-01 10:46:52');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -611,13 +611,16 @@ CREATE TABLE `user_addresses` (
   `province` varchar(100) NOT NULL,
   `postal_code` varchar(10) DEFAULT NULL,
   `landmark` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,8) DEFAULT NULL,
+  `longitude` decimal(11,8) DEFAULT NULL,
   `is_default` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`),
-  KEY `idx_is_default` (`is_default`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_is_default` (`is_default`),
+  KEY `idx_coordinates` (`latitude`,`longitude`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -626,7 +629,7 @@ CREATE TABLE `user_addresses` (
 
 LOCK TABLES `user_addresses` WRITE;
 /*!40000 ALTER TABLE `user_addresses` DISABLE KEYS */;
-INSERT INTO `user_addresses` VALUES (3,2,'home','James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery',0,'2025-07-23 17:18:44','2025-07-23 17:18:44'),(4,4,'home','Jessie Melgar','+639771495823','Zone 3','Guinobat','Tabaco City','Albay','4511','Near basketball court',0,'2025-07-24 12:26:23','2025-07-24 12:26:23');
+INSERT INTO `user_addresses` VALUES (3,2,'home','James Ricarte','+639771495824','Zone 5','Bangkilingan ','Tabaco City','Albay','4511','Near melgar\'s bakery',NULL,NULL,0,'2025-07-23 17:18:44','2025-07-23 17:18:44'),(4,4,'home','Jessie Melgar','+639771495823','Zone 3','Guinobat','Tabaco City','Albay','4511','Near basketball court',NULL,NULL,0,'2025-07-24 12:26:23','2025-07-24 12:26:23'),(5,5,'home','James Mickel','+639771495821','Jamaica Mansions','Panal','Tabaco City','Albay','4511','Near church',NULL,NULL,0,'2025-08-04 08:07:46','2025-08-04 08:07:46'),(6,5,'home','James Mickel','+639771495821','Tabaco City','Albay','Tabaco City','Bicol','','',NULL,NULL,0,'2025-08-04 12:05:44','2025-08-04 12:05:44'),(7,5,'home','James Mickel','+639771495821','8PXC+9C','Albay','Tabaco City','Bicol','4511','',NULL,NULL,0,'2025-08-04 12:14:51','2025-08-04 12:14:51'),(8,5,'home','James Mickel','+639771495821','006 Karangahan Boulevard','Panal','Tabaco City','Albay','4511','',NULL,NULL,0,'2025-08-04 15:12:48','2025-08-04 15:12:48');
 /*!40000 ALTER TABLE `user_addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -718,4 +721,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-03 21:50:57
+-- Dump completed on 2025-08-04 23:13:39

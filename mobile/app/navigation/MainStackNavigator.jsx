@@ -55,6 +55,7 @@ import OrdersScreen from "../screens/Orders/OrdersScreen";
 import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
 
 import AddressManagementScreen from "../screens/AddressManagement/AddressManagementScreen";
+import AddNewAddressScreen from "../screens/AddressManagement/AddNewAddressScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -201,10 +202,12 @@ const MainStackNavigator = () => {
       <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
 
       {/* Settings */}
+      {/* Address Management */}
       <Stack.Screen
         name="AddressManagement"
         component={AddressManagementScreen}
       />
+      <Stack.Screen name="AddNewAddress" component={AddNewAddressScreen} />
 
       <Stack.Screen
         name="SellerOrderDetails"
