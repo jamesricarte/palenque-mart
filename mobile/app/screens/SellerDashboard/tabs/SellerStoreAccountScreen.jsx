@@ -8,22 +8,25 @@ import {
   Alert,
   Image,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import { useAuth } from "../../../context/AuthContext";
 import { API_URL } from "../../../config/apiConfig";
+import { useFocusEffect } from "@react-navigation/native";
 
 const SellerStoreAccountScreen = ({ navigation }) => {
   const { user, token, logout } = useAuth();
   const [sellerData, setSellerData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchSellerData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSellerData();
+    }, [])
+  );
 
   const fetchSellerData = async () => {
     try {

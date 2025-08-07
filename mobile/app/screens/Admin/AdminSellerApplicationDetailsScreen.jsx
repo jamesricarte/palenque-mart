@@ -263,6 +263,17 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
     </View>
   );
 
+  const getAddressTypeFullAddress = (addressType) => {
+    const parts = [
+      addressType?.street_address || null,
+      addressType?.barangay || null,
+      addressType?.city || null,
+      addressType?.province || null,
+    ];
+
+    return parts.filter((part) => part && part.trim() !== "").join(", ");
+  };
+
   const InfoRow = ({ label, value }) => (
     <View className="flex flex-row justify-between mb-2">
       <Text className="flex-1 text-gray-600">{label}:</Text>
@@ -561,16 +572,22 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
           <InfoSection title="Address Information">
             <View className="mb-2">
               <Text className="mb-1 text-gray-600">Pickup Address:</Text>
-              <Text className="font-medium">{address.pickup_address}</Text>
+              <Text className="font-medium">
+                {getAddressTypeFullAddress(address.pickup_address)}
+              </Text>
             </View>
             <View className="mb-2">
               <Text className="mb-1 text-gray-600">Return Address:</Text>
-              <Text className="font-medium">{address.return_address}</Text>
+              <Text className="font-medium">
+                {getAddressTypeFullAddress(address.return_address)}
+              </Text>
             </View>
             {address.store_location && (
               <View className="mb-2">
                 <Text className="mb-1 text-gray-600">Store Location:</Text>
-                <Text className="font-medium">{address.store_location}</Text>
+                <Text className="font-medium">
+                  {getAddressTypeFullAddress(address.store_location)}
+                </Text>
               </View>
             )}
           </InfoSection>

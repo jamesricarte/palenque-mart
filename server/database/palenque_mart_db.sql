@@ -35,7 +35,7 @@ CREATE TABLE `cart` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,7 +44,6 @@ CREATE TABLE `cart` (
 
 LOCK TABLES `cart` WRITE;
 /*!40000 ALTER TABLE `cart` DISABLE KEYS */;
-INSERT INTO `cart` VALUES (41,4,5,1,'2025-07-24 15:30:10','2025-07-24 15:30:10');
 /*!40000 ALTER TABLE `cart` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -250,7 +249,7 @@ CREATE TABLE `order_items` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_item_status` (`item_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -259,7 +258,6 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,5,2,1,10.00,10.00,'{}','ready_for_pickup',NULL,'2025-08-04 08:08:34','2025-08-04 08:10:32');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -280,7 +278,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -289,7 +287,6 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-04 08:08:34'),(2,1,'confirmed','Accept and confirm this order',3,'2025-08-04 08:09:33'),(3,1,'preparing','Begin preparing the order items',3,'2025-08-04 08:10:05'),(4,1,'ready_for_pickup','Order is ready for pickup by delivery partner',3,'2025-08-04 08:10:32');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -336,7 +333,7 @@ CREATE TABLE `orders` (
   KEY `idx_payment_status` (`payment_status`),
   KEY `idx_voucher_id` (`voucher_id`),
   KEY `idx_delivery_address_id` (`delivery_address_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -345,7 +342,6 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,5,'ORD1754294914125736','ready_for_pickup','cash_on_delivery','pending',10.00,50.00,0.00,60.00,NULL,5,'James Mickel','+639771495821','Jamaica Mansions','Panal','Tabaco City','Albay','4511','Near church','Please order it in the afternoon',NULL,NULL,NULL,NULL,'2025-08-04 08:08:34','2025-08-04 08:10:32');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -378,7 +374,7 @@ CREATE TABLE `products` (
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_is_active` (`is_active`),
   KEY `idx_category` (`category`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -387,7 +383,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Karne','Fresh meats',120.00,139,'Meat','Pork Chop','per_kilo','Harvested  yesterday','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/453e0f9e-5bb4-446b-a16e-0cd70e9027cb-photo.jpeg',1,'2025-07-21 11:17:15','2025-07-23 10:29:20'),(2,1,'Whole Chicken','',290.00,34,'Meat','Chicken','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/5e7dc5c6-e28a-4a3c-9c86-7eb1d9912d68-photo.jpeg',1,'2025-07-21 11:42:34','2025-07-24 15:23:55'),(3,2,'Kamatis','',25.00,15,'Fruits','Other','per_250g','Harvested yesterday ','2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b9184cee-be10-43a7-ab07-363730bcf94d-photo.jpeg',1,'2025-07-21 12:29:12','2025-07-26 16:16:17'),(4,2,'Apple','',20.00,41,'Fruits','Other','per_250g',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/b2ae2953-30bf-49b8-be40-04a882584a7f-photo.jpeg',1,'2025-07-21 12:42:28','2025-07-26 16:16:17'),(5,2,'Sibulyas','Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit',10.00,242,'Vegetables','Root Vegetables','per_piece',NULL,'2025-07-21',NULL,'{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/3f1e3928-68dc-4a4d-9884-f05de56bf71a-photo.jpeg',1,'2025-07-21 12:44:41','2025-08-04 08:08:34'),(6,6,'Tilapia','',180.00,2,'Fish','Tilapia','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": false, \"sliced\": true, \"cleaned\": false}','product-images/user_4/d9e9ca2f-0edf-477e-bc80-f143343be7a1-photo.jpeg',1,'2025-07-23 07:53:30','2025-07-26 16:16:17'),(7,6,'Pundahan','',200.00,2,'Fish','Other','per_kilo','Harvested this morning','2025-07-23',NULL,'{\"cut\": true, \"whole\": true, \"sliced\": true, \"cleaned\": false}','product-images/user_4/3ec1f333-a9a5-4cbe-84a0-f06b296007ec-photo.jpeg',1,'2025-07-23 08:01:51','2025-07-26 16:16:17'),(8,1,'Pundahan','',180.00,8,'Fish','Other','per_kilo','Slaughtered this morning','2025-08-01','From Puro beach','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/71f1aabc-e80b-43e4-bf0d-42636e348e1a-photo.jpeg',1,'2025-08-01 10:43:13','2025-08-01 10:43:13'),(9,1,'Longanissa ','',80.00,12,'Meat','Other','per_pack','Ordered today','2025-08-01','Pangasinan supplier','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/f9823389-8434-4754-9e59-fbd92142c3ce-photo.jpeg',1,'2025-08-01 10:46:52','2025-08-01 10:46:52');
+INSERT INTO `products` VALUES (1,1,'Tilapia','Wala lang',120.00,9,'Fish','Tilapia','per_500g','Slaugthered this morning','2025-08-05','From Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_3/c79f8188-c20f-49dd-9b66-17c408581624-photo.jpeg',1,'2025-08-05 18:03:52','2025-08-05 18:03:52');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -401,14 +397,23 @@ DROP TABLE IF EXISTS `seller_addresses`;
 CREATE TABLE `seller_addresses` (
   `id` int NOT NULL AUTO_INCREMENT,
   `application_id` int NOT NULL,
-  `pickup_address` text NOT NULL,
-  `return_address` text NOT NULL,
-  `store_location` text,
+  `type` enum('pickup','return','store') NOT NULL,
+  `street_address` text NOT NULL,
+  `barangay` varchar(100) NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `province` varchar(100) NOT NULL,
+  `postal_code` varchar(10) DEFAULT NULL,
+  `landmark` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,8) DEFAULT NULL,
+  `longitude` decimal(11,8) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_application_id` (`application_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `unique_application_type` (`application_id`,`type`),
+  KEY `idx_application_id` (`application_id`),
+  KEY `idx_type` (`type`),
+  KEY `idx_coordinates` (`latitude`,`longitude`)
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -417,8 +422,35 @@ CREATE TABLE `seller_addresses` (
 
 LOCK TABLES `seller_addresses` WRITE;
 /*!40000 ALTER TABLE `seller_addresses` DISABLE KEYS */;
-INSERT INTO `seller_addresses` VALUES (1,1,'Panal, Tabaco City, Albay','Panal, Tabaco City, Albay',NULL,'2025-07-21 11:12:07','2025-07-21 11:12:07'),(2,2,'Guinobat, Tabaco City, Albay','Guinobat, Tabaco City, Albay','','2025-07-21 12:25:04','2025-07-22 02:40:02'),(3,3,'Bangkilingan, Tabaco City, Albay','Bangkilingan, Tabaco City, Albay',NULL,'2025-07-23 07:49:53','2025-07-23 07:49:53');
+INSERT INTO `seller_addresses` VALUES (1,2,'pickup','Jamaica Mansions','Panal','Tabaco City','Albay','4511','Near you',13.35241298,123.72151159,'2025-08-05 15:48:58','2025-08-06 23:08:40'),(2,2,'return','Jamaica Mansions','Panal','Tabaco City','Albay','4511','Near me',13.35258860,123.72160200,'2025-08-05 15:48:58','2025-08-06 23:08:40'),(3,2,'store','Jamaica Mansions','Panal','Tabaco City','Albay','4511','Near us',13.35179807,123.72197628,'2025-08-05 15:48:58','2025-08-06 23:08:40'),(30,3,'pickup','Zone 2','Panal','Tabaco City','Albay','4511','Near us',13.35240810,123.72177890,'2025-08-07 07:09:37','2025-08-07 07:09:37'),(31,3,'return','Zone 2','Panal','Tabaco City','Albay','4511','Near us',13.35196170,123.72180000,'2025-08-07 07:09:37','2025-08-07 07:09:37'),(32,3,'store','Zone 2','Panal','Tabaco City','Albay','4511','Near me',13.35220420,123.72170020,'2025-08-07 07:09:37','2025-08-07 07:09:37');
 /*!40000 ALTER TABLE `seller_addresses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `seller_addresses_backup`
+--
+
+DROP TABLE IF EXISTS `seller_addresses_backup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `seller_addresses_backup` (
+  `id` int NOT NULL DEFAULT '0',
+  `application_id` int NOT NULL,
+  `pickup_address` text NOT NULL,
+  `return_address` text NOT NULL,
+  `store_location` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `seller_addresses_backup`
+--
+
+LOCK TABLES `seller_addresses_backup` WRITE;
+/*!40000 ALTER TABLE `seller_addresses_backup` DISABLE KEYS */;
+/*!40000 ALTER TABLE `seller_addresses_backup` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -454,7 +486,7 @@ CREATE TABLE `seller_applications` (
 
 LOCK TABLES `seller_applications` WRITE;
 /*!40000 ALTER TABLE `seller_applications` DISABLE KEYS */;
-INSERT INTO `seller_applications` VALUES (1,2,'APP96323852','individual','approved',NULL,'2025-07-21 11:12:03','2025-07-21 11:15:27','2025-07-21 11:15:27',1),(2,3,'APP00700985','individual','approved',NULL,'2025-07-21 12:25:01','2025-07-21 12:38:53','2025-07-21 12:38:53',1),(3,4,'APP56990014','individual','approved',NULL,'2025-07-23 07:49:50','2025-08-02 08:18:54','2025-08-02 08:18:54',1);
+INSERT INTO `seller_applications` VALUES (2,3,'APP08830004','individual','approved',NULL,'2025-08-05 15:47:10','2025-08-05 18:02:32','2025-08-05 18:02:32',1),(3,2,'APP50575021','individual','pending',NULL,'2025-08-07 07:09:35','2025-08-07 07:09:35',NULL,NULL);
 /*!40000 ALTER TABLE `seller_applications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -511,7 +543,7 @@ CREATE TABLE `seller_documents` (
   KEY `idx_application_id` (`application_id`),
   KEY `idx_document_type` (`document_type`),
   KEY `idx_verification_status` (`verification_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -520,7 +552,7 @@ CREATE TABLE `seller_documents` (
 
 LOCK TABLES `seller_documents` WRITE;
 /*!40000 ALTER TABLE `seller_documents` DISABLE KEYS */;
-INSERT INTO `seller_documents` VALUES (1,1,'government_id','user_2/APP96323852/government_id-1753096323860.png','UMID_EMV_sample.png',3902179,'image/png','verified',NULL,'2025-07-21 11:12:07','2025-07-21 11:12:39'),(2,1,'selfie_with_id','user_2/APP96323852/selfie_with_id-1753096386803.jpeg','91cc44f1-adcc-4f5c-bd69-5c77250d0914.jpeg',19097,'image/jpeg','verified',NULL,'2025-07-21 11:12:07','2025-07-21 11:15:05'),(3,1,'bank_statement','user_2/APP96323852/bank_statement-1753096326968.png','images.png',19164,'image/png','verified',NULL,'2025-07-21 11:12:07','2025-07-21 11:15:09'),(5,2,'government_id','user_3/APP00700985/government_id-1753100701028.png','UMID_EMV_sample.png',1875925,'image/png','verified',NULL,'2025-07-21 12:25:04','2025-07-21 12:25:56'),(6,2,'selfie_with_id','user_3/APP00700985/selfie_with_id-1753100703365.jpeg','selfie_with_id.jpeg',635489,'image/jpeg','verified',NULL,'2025-07-21 12:25:04','2025-07-21 12:26:02'),(7,2,'bank_statement','user_3/APP00700985/bank_statement-1753100703907.png','images%20(1).png',19164,'image/png','pending',NULL,'2025-07-21 12:25:04','2025-07-21 12:25:04'),(8,3,'government_id','user_4/APP56990014/government_id-1753256990018.png','UMID_EMV_sample.png',3902179,'image/png','verified',NULL,'2025-07-23 07:49:53','2025-07-23 07:50:51'),(9,3,'selfie_with_id','user_4/APP56990014/selfie_with_id-1753256992645.jpeg','selfie_with_id.jpeg',19608,'image/jpeg','verified',NULL,'2025-07-23 07:49:53','2025-08-01 10:15:43');
+INSERT INTO `seller_documents` VALUES (1,2,'government_id','user_3/APP08830004/government_id-1754408830016.png','UMID_EMV_sample.png',1875925,'image/png','verified',NULL,'2025-08-05 15:48:58','2025-08-05 17:56:09'),(2,2,'selfie_with_id','user_3/APP08830004/selfie_with_id-1754408929232.jpeg','selfie_with_id.jpeg',806519,'image/jpeg','verified',NULL,'2025-08-05 15:48:58','2025-08-05 17:58:22'),(3,2,'bank_statement','user_3/APP08830004/bank_statement-1754408937968.png','images%20(1).png',19164,'image/png','verified',NULL,'2025-08-05 15:48:58','2025-08-05 17:59:42'),(4,3,'government_id','user_2/APP50575021/government_id-1754550575029.png','UMID_EMV_sample.png',1875925,'image/png','pending',NULL,'2025-08-07 07:09:37','2025-08-07 07:09:37'),(5,3,'selfie_with_id','user_2/APP50575021/selfie_with_id-1754550576269.jpeg','selfie_with_id.jpeg',1002227,'image/jpeg','pending',NULL,'2025-08-07 07:09:37','2025-08-07 07:09:37'),(6,3,'bank_statement','user_2/APP50575021/bank_statement-1754550577303.png','images%20(1).png',19164,'image/png','pending',NULL,'2025-08-07 07:09:37','2025-08-07 07:09:37');
 /*!40000 ALTER TABLE `seller_documents` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -541,7 +573,7 @@ CREATE TABLE `seller_store_profiles` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_application_id` (`application_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -550,7 +582,7 @@ CREATE TABLE `seller_store_profiles` (
 
 LOCK TABLES `seller_store_profiles` WRITE;
 /*!40000 ALTER TABLE `seller_store_profiles` DISABLE KEYS */;
-INSERT INTO `seller_store_profiles` VALUES (1,1,'James Store','Selling meats ','sellers/SELL96527952/store_logos/store_logo_1753096528967.jpeg','2025-07-21 11:12:07','2025-07-21 11:15:29'),(2,2,'Boy banat store','Selling fruits and vegetables Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit',NULL,'2025-07-21 12:25:04','2025-07-21 12:25:04'),(3,3,'Jessie Store','Selling Fish','sellers/SELL57057213/store_logos/store_logo_1753257058465.jpeg','2025-07-23 07:49:53','2025-07-23 07:50:59');
+INSERT INTO `seller_store_profiles` VALUES (1,2,'James Store','Happy Selling',NULL,'2025-08-05 15:48:58','2025-08-05 17:56:26'),(2,3,'James Store','Sad selling ?',NULL,'2025-08-07 07:09:37','2025-08-07 07:09:37');
 /*!40000 ALTER TABLE `seller_store_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -579,7 +611,7 @@ CREATE TABLE `sellers` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_is_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -588,7 +620,7 @@ CREATE TABLE `sellers` (
 
 LOCK TABLES `sellers` WRITE;
 /*!40000 ALTER TABLE `sellers` DISABLE KEYS */;
-INSERT INTO `sellers` VALUES (1,2,1,'SELL96527952','individual','James Store','Selling meats ','sellers/SELL96527952/store_logos/store_logo_1753096528967.jpeg',1,'2025-07-21 11:15:27','2025-07-21 11:15:29'),(2,3,2,'SELL00767892','individual','Boy banat store','Selling fruits and vegetables Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt moll',NULL,1,'2025-07-21 12:26:07','2025-07-22 02:40:02'),(3,3,2,'SELL01332353','individual','Boy banat store','Selling fruits and vegetables Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt moll',NULL,1,'2025-07-21 12:35:32','2025-07-22 02:40:02'),(4,3,2,'SELL01469137','individual','Boy banat store','Selling fruits and vegetables Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt moll',NULL,1,'2025-07-21 12:37:49','2025-07-22 02:40:02'),(5,3,2,'SELL01533866','individual','Boy banat store','Selling fruits and vegetables Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt moll',NULL,1,'2025-07-21 12:38:53','2025-07-22 02:40:02'),(6,4,3,'SELL57057213','individual','Jessie Store','Selling Fish','sellers/SELL57057213/store_logos/store_logo_1753257058465.jpeg',1,'2025-07-23 07:50:57','2025-07-23 07:50:59'),(7,4,3,'SELL43370704','individual','Jessie Store','Selling Fish',NULL,1,'2025-08-01 10:16:10','2025-08-01 10:16:10'),(8,4,3,'SELL43788680','individual','Jessie Store','Selling Fish',NULL,1,'2025-08-01 10:23:08','2025-08-01 10:23:08'),(9,4,3,'SELL22734451','individual','Jessie Store','Selling Fish',NULL,1,'2025-08-02 08:18:54','2025-08-02 08:18:54');
+INSERT INTO `sellers` VALUES (1,3,2,'SELL16952234','individual','Boy Banat Store','Happy Selling',NULL,1,'2025-08-05 18:02:32','2025-08-06 23:08:40');
 /*!40000 ALTER TABLE `sellers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -721,4 +753,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-04 23:13:39
+-- Dump completed on 2025-08-07 15:13:54

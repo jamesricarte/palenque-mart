@@ -36,12 +36,9 @@ const getProductById = async (req, res) => {
         s.account_type,
         s.store_logo_key,
         s.user_id as seller_user_id,
-        sa.pickup_address,
-        sa.return_address,
-        sa.store_location
+        s.application_id
       FROM products p
       JOIN sellers s ON p.seller_id = s.id
-      LEFT JOIN seller_addresses sa ON s.application_id = sa.application_id
       WHERE p.id = ? AND p.is_active = 1 AND s.is_active = 1
     `;
 
@@ -55,6 +52,39 @@ const getProductById = async (req, res) => {
     }
 
     const product = results[0];
+
+    // Get seller address details with new structure
+    const [addresses] = await db.execute(
+      "SELECT type, street_address, barangay, city, province, postal_code, landmark, latitude, longitude FROM seller_addresses WHERE application_id = ?",
+      [product.application_id]
+    );
+
+    // Transform addresses into object-based structure
+    const addressData = {
+      pickup_address: {},
+      return_address: {},
+      store_location: {},
+    };
+
+    addresses.forEach((addr) => {
+      const addressKey =
+        addr.type === "pickup"
+          ? "pickup_address"
+          : addr.type === "return"
+          ? "return_address"
+          : "store_location";
+
+      addressData[addressKey] = {
+        street_address: addr.street_address,
+        barangay: addr.barangay,
+        city: addr.city,
+        province: addr.province,
+        postal_code: addr.postal_code,
+        landmark: addr.landmark,
+        latitude: addr.latitude,
+        longitude: addr.longitude,
+      };
+    });
 
     // Generate public URLs for images
     let productImageUrl = null;
@@ -79,6 +109,8 @@ const getProductById = async (req, res) => {
     // Update the product object with the generated URLs
     product.image_keys = productImageUrl;
     product.store_logo_key = storeLogoUrl;
+
+    product.address = addressData;
 
     res.status(200).json({
       success: true,

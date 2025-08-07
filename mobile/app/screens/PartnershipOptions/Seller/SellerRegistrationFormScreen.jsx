@@ -35,10 +35,12 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     dateOfBirth: user.birth_date || "",
     businessAddress: "",
 
-    // Address Details
-    pickupAddress: "",
-    returnAddress: "",
-    storeLocation: "",
+    // Address Details - New structure
+    addresses: {
+      pickup: null,
+      return: null,
+      store: null,
+    },
 
     // Bank Details
     bankName: "",
@@ -187,10 +189,12 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     }
 
     if (currentStep === 2) {
-      if (!formData.pickupAddress.trim())
+      if (!formData.addresses?.pickup)
         newErrors.pickupAddress = "Pickup address is required";
-      if (!formData.returnAddress.trim())
+      if (!formData.addresses?.return)
         newErrors.returnAddress = "Return address is required";
+      if (!formData.addresses?.store)
+        newErrors.storeLocation = "Store location is required";
     }
 
     if (currentStep === 3) {
@@ -458,26 +462,82 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     </View>
   );
 
+  const renderAddressCard = (addressType, title, icon) => {
+    const address = formData.addresses?.[addressType];
+
+    return (
+      <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg">
+        <View className="flex flex-row items-center justify-between mb-3">
+          <View className="flex flex-row items-center">
+            <Ionicons name={icon} size={20} color="#374151" />
+            <Text className="ml-2 text-base font-semibold text-gray-800">
+              {title}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("SellerAddressSetup", {
+                addressType: addressType,
+                existingAddress: address,
+                onAddressSet: (addressData) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    addresses: {
+                      ...prev.addresses,
+                      [addressType]: addressData,
+                    },
+                  }));
+                },
+              })
+            }
+            className="p-2"
+          >
+            <Ionicons name="pencil" size={16} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+
+        {address ? (
+          <View>
+            <Text className="text-sm font-medium text-gray-900">
+              {address.streetAddress}
+            </Text>
+            <Text className="text-sm text-gray-600">
+              {address.barangay}, {address.city}
+            </Text>
+            <Text className="text-sm text-gray-600">
+              {address.province}, Philippines
+            </Text>
+          </View>
+        ) : (
+          <View className="py-4">
+            <Text className="text-sm text-center text-gray-500">
+              No address set
+            </Text>
+            <Text className="mt-1 text-xs text-center text-gray-400">
+              Tap edit to set address
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderStep2 = () => (
     <View className="px-6 py-6">
       <Text className="mb-2 text-2xl font-bold">Address Details</Text>
       <Text className="mb-6 text-gray-600">
-        Provide your business and shipping addresses
+        Set up your business addresses with precise locations
       </Text>
 
-      <View className="mb-4">
+      {/* Pickup Address */}
+      <View className="mb-6">
         <Text className="mb-2 text-sm font-medium">Pickup Address *</Text>
-        <Text className="mb-2 text-xs text-gray-500">
+        <Text className="mb-3 text-xs text-gray-500">
           Where couriers will collect your items
         </Text>
-        <TextInput
-          className={`w-full p-3 border rounded-lg ${errors.pickupAddress && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
-          value={formData.pickupAddress}
-          onChangeText={(value) => updateFormData("pickupAddress", value)}
-          placeholder="Enter pickup address"
-          multiline
-          numberOfLines={3}
-        />
+
+        {renderAddressCard("pickup", "Pickup Address", "location-outline")}
+
         {errors.pickupAddress && showErrors && (
           <Text className="mt-1 text-sm text-red-500">
             {errors.pickupAddress}
@@ -485,19 +545,19 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         )}
       </View>
 
-      <View className="mb-4">
+      {/* Return Address */}
+      <View className="mb-6">
         <Text className="mb-2 text-sm font-medium">Return Address *</Text>
-        <Text className="mb-2 text-xs text-gray-500">
+        <Text className="mb-3 text-xs text-gray-500">
           Address for returned items
         </Text>
-        <TextInput
-          className={`w-full p-3 border rounded-lg ${errors.returnAddress && showErrors ? "border-red-500 bg-red-50" : "border-gray-300"}`}
-          value={formData.returnAddress}
-          onChangeText={(value) => updateFormData("returnAddress", value)}
-          placeholder="Enter return address"
-          multiline
-          numberOfLines={3}
-        />
+
+        {renderAddressCard(
+          "return",
+          "Return Address",
+          "return-up-back-outline"
+        )}
+
         {errors.returnAddress && showErrors && (
           <Text className="mt-1 text-sm text-red-500">
             {errors.returnAddress}
@@ -505,29 +565,28 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         )}
       </View>
 
-      <View className="mb-4">
-        <Text className="mb-2 text-sm font-medium">
-          Store Location (Optional)
-        </Text>
-        <Text className="mb-2 text-xs text-gray-500">
+      {/* Store Location */}
+      <View className="mb-6">
+        <Text className="mb-2 text-sm font-medium">Store Location *</Text>
+        <Text className="mb-3 text-xs text-gray-500">
           Physical store location for customer pickup
         </Text>
-        <TextInput
-          className="w-full p-3 border border-gray-300 rounded-lg"
-          value={formData.storeLocation}
-          onChangeText={(value) => updateFormData("storeLocation", value)}
-          placeholder="Enter store location (if applicable)"
-          multiline
-          numberOfLines={3}
-        />
+
+        {renderAddressCard("store", "Store Location", "storefront-outline")}
+
+        {errors.storeLocation && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">
+            {errors.storeLocation}
+          </Text>
+        )}
       </View>
 
       <View className="p-4 border border-blue-200 rounded-lg bg-blue-50">
         <View className="flex flex-row items-start">
           <Ionicons name="information-circle" size={20} color="#3b82f6" />
           <Text className="ml-2 text-sm text-blue-700">
-            Make sure your pickup address is accurate as this is where our
-            delivery partners will collect your orders.
+            All addresses will be verified and used for order processing and
+            delivery coordination.
           </Text>
         </View>
       </View>

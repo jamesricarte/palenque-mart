@@ -43,11 +43,10 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
       formDataToSend.append("accountType", accountType);
       formDataToSend.append("storeName", formData.storeName);
       formDataToSend.append("storeDescription", formData.storeDescription);
-      formDataToSend.append("pickupAddress", formData.pickupAddress);
-      formDataToSend.append("returnAddress", formData.returnAddress);
 
-      if (formData.storeLocation) {
-        formDataToSend.append("storeLocation", formData.storeLocation);
+      // Add address data in new format
+      if (formData.addresses) {
+        formDataToSend.append("addresses", JSON.stringify(formData.addresses));
       }
 
       // Add business details if business account
@@ -193,6 +192,91 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
     </View>
   );
 
+  const renderAddressSection = () => (
+    <View className="p-4 mb-6 rounded-lg bg-gray-50">
+      <View className="flex flex-row items-center justify-between mb-3">
+        <Text className="text-lg font-semibold">Address Information</Text>
+        <TouchableOpacity onPress={() => handleEdit("address")}>
+          <Feather name="edit-2" size={18} color="#3b82f6" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Pickup Address */}
+      {formData.addresses?.pickup && (
+        <View className="p-3 mb-3 bg-white border border-gray-200 rounded-lg">
+          <View className="flex flex-row items-center mb-2">
+            <Ionicons name="location" size={16} color="#059669" />
+            <Text className="ml-2 text-sm font-semibold text-green-700">
+              PICKUP ADDRESS
+            </Text>
+          </View>
+          <Text className="text-sm text-gray-900">
+            {formData.addresses.pickup.streetAddress}
+          </Text>
+          <Text className="text-sm text-gray-600">
+            {formData.addresses.pickup.barangay},{" "}
+            {formData.addresses.pickup.city},{" "}
+            {formData.addresses.pickup.province}
+          </Text>
+          {formData.addresses.pickup.landmark && (
+            <Text className="text-xs text-gray-500">
+              Landmark: {formData.addresses.pickup.landmark}
+            </Text>
+          )}
+        </View>
+      )}
+
+      {/* Return Address */}
+      {formData.addresses?.return && (
+        <View className="p-3 mb-3 bg-white border border-gray-200 rounded-lg">
+          <View className="flex flex-row items-center mb-2">
+            <Ionicons name="return-up-back" size={16} color="#dc2626" />
+            <Text className="ml-2 text-sm font-semibold text-red-700">
+              RETURN ADDRESS
+            </Text>
+          </View>
+          <Text className="text-sm text-gray-900">
+            {formData.addresses.return.streetAddress}
+          </Text>
+          <Text className="text-sm text-gray-600">
+            {formData.addresses.return.barangay},{" "}
+            {formData.addresses.return.city},{" "}
+            {formData.addresses.return.province}
+          </Text>
+          {formData.addresses.return.landmark && (
+            <Text className="text-xs text-gray-500">
+              Landmark: {formData.addresses.return.landmark}
+            </Text>
+          )}
+        </View>
+      )}
+
+      {/* Store Location */}
+      {formData.addresses?.store && (
+        <View className="p-3 mb-3 bg-white border border-gray-200 rounded-lg">
+          <View className="flex flex-row items-center mb-2">
+            <Ionicons name="storefront" size={16} color="#7c3aed" />
+            <Text className="ml-2 text-sm font-semibold text-purple-700">
+              STORE LOCATION
+            </Text>
+          </View>
+          <Text className="text-sm text-gray-900">
+            {formData.addresses.store.streetAddress}
+          </Text>
+          <Text className="text-sm text-gray-600">
+            {formData.addresses.store.barangay}, {formData.addresses.store.city}
+            , {formData.addresses.store.province}
+          </Text>
+          {formData.addresses.store.landmark && (
+            <Text className="text-xs text-gray-500">
+              Landmark: {formData.addresses.store.landmark}
+            </Text>
+          )}
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -238,15 +322,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
         )}
 
         {/* Address Details */}
-        {renderSection(
-          "Address Information",
-          {
-            pickupAddress: formData.pickupAddress,
-            returnAddress: formData.returnAddress,
-            storeLocation: formData.storeLocation,
-          },
-          "address"
-        )}
+        {renderAddressSection()}
 
         {/* Store Profile */}
         {renderSection(

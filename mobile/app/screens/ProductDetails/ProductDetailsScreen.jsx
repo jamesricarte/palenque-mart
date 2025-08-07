@@ -183,6 +183,17 @@ const ProductDetailsScreen = () => {
     }
   };
 
+  const getAddressTypeFullAddress = (addressType) => {
+    const parts = [
+      addressType?.street_address || null,
+      addressType?.barangay || null,
+      addressType?.city || null,
+      addressType?.province || null,
+    ];
+
+    return parts.filter((part) => part && part.trim() !== "").join(", ");
+  };
+
   if (loading) {
     return (
       <View className="flex-1 bg-white">
@@ -381,7 +392,7 @@ const ProductDetailsScreen = () => {
             <Text className="text-gray-700">{product.store_description}</Text>
           )}
 
-          {product.pickup_address && (
+          {product.address.store_location && (
             <View className="flex-row items-start mt-3">
               <Feather
                 name="map-pin"
@@ -390,7 +401,7 @@ const ProductDetailsScreen = () => {
                 className="mt-1"
               />
               <Text className="flex-1 ml-2 text-gray-600">
-                {product.pickup_address}
+                {getAddressTypeFullAddress(product.address.store_location)}
               </Text>
             </View>
           )}

@@ -4,13 +4,7 @@ const updateStoreProfile = async (req, res) => {
   let connection;
   try {
     const userId = req.user.id;
-    const {
-      storeName,
-      storeDescription,
-      pickupAddress,
-      returnAddress,
-      storeLocation,
-    } = req.body;
+    const { storeName, storeDescription, address } = req.body;
 
     if (!storeName || !storeName.trim()) {
       return res.status(400).json({
@@ -40,7 +34,7 @@ const updateStoreProfile = async (req, res) => {
     const applicationId = existingRows[0].application_id;
 
     // Start transaction
-    await connection.query("START TRANSACTION");
+    await connection.beginTransaction();
 
     try {
       // Update seller data
@@ -53,25 +47,52 @@ const updateStoreProfile = async (req, res) => {
         [storeName.trim(), storeDescription || "", new Date(), userId]
       );
 
-      // Update address data
-      await connection.execute(
-        `UPDATE seller_addresses SET 
-          pickup_address = ?,
-          return_address = ?,
-          store_location = ?,
-          updated_at = ?
-        WHERE application_id = ?`,
-        [
-          pickupAddress || "",
-          returnAddress || "",
-          storeLocation || "",
-          new Date(),
-          applicationId,
-        ]
-      );
+      // Update addresses if provided
+      if (address) {
+        const addressTypes = ["pickup", "return", "store"];
+
+        for (const type of addressTypes) {
+          const addressKey =
+            type === "store" ? `${type}_location` : `${type}_address`;
+          const addressData = address[addressKey];
+
+          if (addressData) {
+            // Update or insert address
+            await connection.execute(
+              `INSERT INTO seller_addresses 
+                (application_id, type, street_address, barangay, city, province, postal_code, landmark, latitude, longitude, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE
+                street_address = VALUES(street_address),
+                barangay = VALUES(barangay),
+                city = VALUES(city),
+                province = VALUES(province),
+                postal_code = VALUES(postal_code),
+                landmark = VALUES(landmark),
+                latitude = VALUES(latitude),
+                longitude = VALUES(longitude),
+                updated_at = VALUES(updated_at)`,
+              [
+                applicationId,
+                type,
+                addressData.street_address || "",
+                addressData.barangay || "",
+                addressData.city || "",
+                addressData.province || "",
+                addressData.postal_code || null,
+                addressData.landmark || null,
+                addressData.latitude || null,
+                addressData.longitude || null,
+                new Date(),
+              ]
+            );
+          }
+        }
+      }
 
       // Commit transaction
-      await connection.query("COMMIT");
+      await connection.commit();
+      connection.release();
 
       // Get updated data for response
       const [updatedRows] = await connection.execute(
@@ -89,15 +110,43 @@ const updateStoreProfile = async (req, res) => {
         [userId]
       );
 
-      const [updatedAddressRows] = await connection.execute(
-        `SELECT pickup_address, return_address, store_location
+      // Get updated addresses
+      const [addressRows] = await connection.execute(
+        `SELECT type, street_address, barangay, city, province, postal_code, landmark, latitude, longitude
         FROM seller_addresses 
         WHERE application_id = ?`,
         [applicationId]
       );
 
       const updatedData = updatedRows[0];
-      const updatedAddress = updatedAddressRows[0] || {};
+
+      // Format addresses
+      const formattedAddress = {
+        pickup_address: null,
+        return_address: null,
+        store_location: null,
+      };
+
+      addressRows.forEach((addr) => {
+        const addressObj = {
+          street_address: addr.street_address,
+          barangay: addr.barangay,
+          city: addr.city,
+          province: addr.province,
+          postal_code: addr.postal_code,
+          landmark: addr.landmark,
+          latitude: addr.latitude ? addr.latitude.toString() : null,
+          longitude: addr.longitude ? addr.longitude.toString() : null,
+        };
+
+        if (addr.type === "pickup") {
+          formattedAddress.pickup_address = addressObj;
+        } else if (addr.type === "return") {
+          formattedAddress.return_address = addressObj;
+        } else if (addr.type === "store") {
+          formattedAddress.store_location = addressObj;
+        }
+      });
 
       const responseData = {
         storeName: updatedData.store_name,
@@ -105,11 +154,10 @@ const updateStoreProfile = async (req, res) => {
         accountType: updatedData.account_type,
         contactEmail: updatedData.contact_email,
         contactPhone: updatedData.contact_phone,
-        pickupAddress: updatedAddress.pickup_address || "",
-        returnAddress: updatedAddress.return_address || "",
-        storeLocation: updatedAddress.store_location || "",
+        address: formattedAddress,
         isActive: updatedData.is_active,
         sellerId: updatedData.seller_id,
+        storeLogoUrl: null,
       };
 
       res.status(200).json({
@@ -119,7 +167,8 @@ const updateStoreProfile = async (req, res) => {
       });
     } catch (updateError) {
       // Rollback transaction
-      await connection.query("ROLLBACK");
+      await connection.rollback();
+      connection.release();
       throw updateError;
     } finally {
       connection.release();

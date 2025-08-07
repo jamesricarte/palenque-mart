@@ -33,25 +33,38 @@ const getStoreProfile = async (req, res) => {
 
     const sellerData = sellerRows[0];
 
-    // Get address data from seller_addresses table
-    const [addressRows] = await db.execute(
-      `SELECT 
-        pickup_address,
-        return_address,
-        store_location
-      FROM seller_addresses 
-      WHERE application_id = ?`,
+    // Get address details with new structure
+    const [addresses] = await db.execute(
+      "SELECT type, street_address, barangay, city, province, postal_code, landmark, latitude, longitude FROM seller_addresses WHERE application_id = ?",
       [sellerData.application_id]
     );
 
-    const addressData =
-      addressRows.length > 0
-        ? addressRows[0]
-        : {
-            pickup_address: "",
-            return_address: "",
-            store_location: "",
-          };
+    // Transform addresses into object-based structure
+    const addressData = {
+      pickup_address: {},
+      return_address: {},
+      store_location: {},
+    };
+
+    addresses.forEach((addr) => {
+      const addressKey =
+        addr.type === "pickup"
+          ? "pickup_address"
+          : addr.type === "return"
+          ? "return_address"
+          : "store_location";
+
+      addressData[addressKey] = {
+        street_address: addr.street_address,
+        barangay: addr.barangay,
+        city: addr.city,
+        province: addr.province,
+        postal_code: addr.postal_code,
+        landmark: addr.landmark,
+        latitude: addr.latitude,
+        longitude: addr.longitude,
+      };
+    });
 
     // Prepare response data
     const responseData = {
@@ -60,9 +73,7 @@ const getStoreProfile = async (req, res) => {
       accountType: sellerData.account_type || "",
       contactEmail: sellerData.contact_email || "",
       contactPhone: sellerData.contact_phone || "",
-      pickupAddress: addressData.pickup_address || "",
-      returnAddress: addressData.return_address || "",
-      storeLocation: addressData.store_location || "",
+      address: addressData,
       isActive: sellerData.is_active || 0,
       sellerId: sellerData.seller_id || "",
       storeLogoUrl: sellerData.store_logo_key

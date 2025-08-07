@@ -13,9 +13,7 @@ const submitSellerApplication = async (req, res) => {
     businessRegNumber,
     contactPerson,
     businessAddress,
-    pickupAddress,
-    returnAddress,
-    storeLocation,
+    addresses, // New addresses structure
     storeName,
     storeDescription,
   } = req.body;
@@ -25,8 +23,6 @@ const submitSellerApplication = async (req, res) => {
   // Basic validation
   const requiredFields = {
     accountType,
-    pickupAddress,
-    returnAddress,
     storeName,
     storeDescription,
   };
@@ -46,6 +42,32 @@ const submitSellerApplication = async (req, res) => {
       message: formValidation.message,
       success: false,
       error: formValidation?.error,
+    });
+  }
+
+  // Validate addresses
+  let parsedAddresses;
+  try {
+    parsedAddresses =
+      typeof addresses === "string" ? JSON.parse(addresses) : addresses;
+  } catch (error) {
+    return res.status(400).json({
+      message: "Invalid addresses format",
+      success: false,
+      error: { code: "INVALID_ADDRESSES" },
+    });
+  }
+
+  if (
+    !parsedAddresses ||
+    !parsedAddresses.pickup ||
+    !parsedAddresses.return ||
+    !parsedAddresses.store
+  ) {
+    return res.status(400).json({
+      message: "All address types (pickup, return, store) are required",
+      success: false,
+      error: { code: "MISSING_ADDRESSES" },
     });
   }
 
@@ -121,11 +143,28 @@ const submitSellerApplication = async (req, res) => {
         );
       }
 
-      // Insert address details
-      await connection.execute(
-        "INSERT INTO seller_addresses (application_id, pickup_address, return_address, store_location) VALUES (?, ?, ?, ?)",
-        [dbApplicationId, pickupAddress, returnAddress, storeLocation || null]
-      );
+      // Insert address details - New structure
+      const addressTypes = ["pickup", "return", "store"];
+      for (const addressType of addressTypes) {
+        const addressData = parsedAddresses[addressType];
+        if (addressData) {
+          await connection.execute(
+            "INSERT INTO seller_addresses (application_id, type, street_address, barangay, city, province, postal_code, landmark, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+              dbApplicationId,
+              addressType,
+              addressData.streetAddress,
+              addressData.barangay,
+              addressData.city,
+              addressData.province,
+              addressData.postalCode || null,
+              addressData.landmark || null,
+              addressData.latitude,
+              addressData.longitude,
+            ]
+          );
+        }
+      }
 
       // Insert store profile
       await connection.execute(

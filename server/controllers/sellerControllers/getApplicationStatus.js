@@ -45,11 +45,38 @@ const getApplicationStatus = async (req, res) => {
       businessDetails = business[0] || null;
     }
 
-    // Get address details
+    // Get address details with new structure
     const [addresses] = await db.execute(
-      "SELECT pickup_address, return_address, store_location FROM seller_addresses WHERE application_id = ?",
+      "SELECT type, street_address, barangay, city, province, postal_code, landmark, latitude, longitude FROM seller_addresses WHERE application_id = ?",
       [application.id]
     );
+
+    // Transform addresses into object-based structure
+    const addressData = {
+      pickup_address: {},
+      return_address: {},
+      store_location: {},
+    };
+
+    addresses.forEach((addr) => {
+      const addressKey =
+        addr.type === "pickup"
+          ? "pickup_address"
+          : addr.type === "return"
+          ? "return_address"
+          : "store_location";
+
+      addressData[addressKey] = {
+        street_address: addr.street_address,
+        barangay: addr.barangay,
+        city: addr.city,
+        province: addr.province,
+        postal_code: addr.postal_code,
+        landmark: addr.landmark,
+        latitude: addr.latitude,
+        longitude: addr.longitude,
+      };
+    });
 
     // Get document status
     const [documents] = await db.execute(
@@ -72,7 +99,7 @@ const getApplicationStatus = async (req, res) => {
         storeName: application.store_name,
         storeDescription: application.store_description,
         businessDetails,
-        address: addresses[0] || null,
+        address: addressData,
         documents: documents || [],
       },
     });

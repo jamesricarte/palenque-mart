@@ -25,6 +25,7 @@ import EditMobileNumberScreen from "../screens/Profile/EditMobileNumberScreen";
 import SellerWelcomeScreen from "../screens/PartnershipOptions/Seller/SellerWelcomeScreen";
 import SellerAccountTypeScreen from "../screens/PartnershipOptions/Seller/SellerAccountTypeScreen";
 import SellerRegistrationFormScreen from "../screens/PartnershipOptions/Seller/SellerRegistrationFormScreen";
+import SellerAddressSetupScreen from "../screens/PartnershipOptions/Seller/SellerAddressSetupScreen";
 import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/SellerReviewSubmitScreen";
 import SellerSubmissionSuccessScreen from "../screens/PartnershipOptions/Seller/SellerSubmissionSuccessScreen";
 import SellerApplicationStatusScreen from "../screens/PartnershipOptions/Seller/SellerApplicationStatusScreen";
@@ -125,6 +126,10 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="SellerRegistrationForm"
         component={SellerRegistrationFormScreen}
+      />
+      <Stack.Screen
+        name="SellerAddressSetup"
+        component={SellerAddressSetupScreen}
       />
       <Stack.Screen
         name="SellerReviewSubmit"

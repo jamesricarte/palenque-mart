@@ -19,13 +19,9 @@ const getAllProducts = async (req, res) => {
         s.store_name,
         s.store_description,
         s.account_type,
-        s.store_logo_key,
-        sa.pickup_address,
-        sa.return_address,
-        sa.store_location
+        s.store_logo_key
       FROM products p
       JOIN sellers s ON p.seller_id = s.id
-      LEFT JOIN seller_addresses sa ON s.application_id = sa.application_id
       WHERE p.is_active = 1 AND s.is_active = 1
       ORDER BY p.created_at DESC
     `;

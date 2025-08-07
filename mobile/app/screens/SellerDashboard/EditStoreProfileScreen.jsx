@@ -35,9 +35,11 @@ const EditStoreProfileScreen = ({ navigation }) => {
     accountType: "",
     contactEmail: "",
     contactPhone: "",
-    pickupAddress: "",
-    returnAddress: "",
-    storeLocation: "",
+    address: {
+      pickup_address: null,
+      return_address: null,
+      store_location: null,
+    },
     storeLogoUrl: null,
   });
 
@@ -82,10 +84,16 @@ const EditStoreProfileScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (JSON.stringify(storeData) !== JSON.stringify(originalData)) {
-      setHasChanges(true);
-    } else {
-      setHasChanges(false);
+    if (
+      Object.keys(storeData).length !== 0 &&
+      Object.keys(originalData).length !== 0
+    ) {
+      if (JSON.stringify(storeData) !== JSON.stringify(originalData)) {
+        setHasChanges(true);
+        setIsEditing(true);
+      } else {
+        setHasChanges(false);
+      }
     }
   }, [storeData, originalData]);
 
@@ -217,6 +225,86 @@ const EditStoreProfileScreen = ({ navigation }) => {
         },
       },
     }));
+  };
+
+  const handleAddressEdit = (addressType) => {
+    const existingAddress =
+      addressType === "store"
+        ? storeData.address[`${addressType}_location`]
+        : storeData.address[`${addressType}_address`] ||
+          storeData.address[addressType];
+
+    navigation.navigate("SellerAddressSetup", {
+      addressType: addressType,
+      existingAddress: existingAddress,
+      onAddressSet: (addressData) => {
+        const addressKey =
+          addressType === "store"
+            ? `${addressType}_location`
+            : `${addressType}_address`;
+
+        setStoreData((prev) => ({
+          ...prev,
+          address: {
+            ...prev.address,
+            [addressKey]: addressData,
+          },
+        }));
+      },
+      namingConvention: "snake case",
+    });
+  };
+
+  const renderAddressCard = (addressType, title, icon) => {
+    const addressKey =
+      addressType === "store"
+        ? `${addressType}_location`
+        : `${addressType}_address`;
+
+    const address =
+      storeData.address?.[addressKey] || storeData.address?.[addressType];
+
+    return (
+      <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg">
+        <View className="flex flex-row items-center justify-between mb-3">
+          <View className="flex flex-row items-center">
+            <Ionicons name={icon} size={20} color="#374151" />
+            <Text className="ml-2 text-base font-semibold text-gray-800">
+              {title}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => handleAddressEdit(addressType)}
+            className="p-2"
+          >
+            <Feather name="edit-2" size={16} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+
+        {address ? (
+          <View>
+            <Text className="text-sm font-medium text-gray-900">
+              {address.street_address}
+            </Text>
+            <Text className="text-sm text-gray-600">
+              {address.barangay}, {address.city}
+            </Text>
+            <Text className="text-sm text-gray-600">
+              {address.province}, Philippines
+            </Text>
+          </View>
+        ) : (
+          <View className="py-4">
+            <Text className="text-sm text-center text-gray-500">
+              No address set
+            </Text>
+            <Text className="mt-1 text-xs text-center text-gray-400">
+              Tap edit to set address
+            </Text>
+          </View>
+        )}
+      </View>
+    );
   };
 
   if (initialLoading) {
@@ -365,53 +453,13 @@ const EditStoreProfileScreen = ({ navigation }) => {
         <View className="p-6 mt-4 bg-white">
           <Text className="mb-6 text-xl font-semibold">Store Addresses</Text>
 
-          <View className="mb-4">
-            <Text className="mb-2 text-sm font-medium text-gray-700">
-              Pickup Address
-            </Text>
-            <TextInput
-              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
-              value={storeData.pickupAddress}
-              onChangeText={(text) => handleInputChange("pickupAddress", text)}
-              placeholder="Enter pickup address"
-              multiline
-              numberOfLines={2}
-              textAlignVertical="top"
-              editable={isEditing}
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="mb-2 text-sm font-medium text-gray-700">
-              Return Address
-            </Text>
-            <TextInput
-              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
-              value={storeData.returnAddress}
-              onChangeText={(text) => handleInputChange("returnAddress", text)}
-              placeholder="Enter return address"
-              multiline
-              numberOfLines={2}
-              textAlignVertical="top"
-              editable={isEditing}
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="mb-2 text-sm font-medium text-gray-700">
-              Store Location (Optional)
-            </Text>
-            <TextInput
-              className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
-              value={storeData.storeLocation}
-              onChangeText={(text) => handleInputChange("storeLocation", text)}
-              placeholder="Enter store location"
-              multiline
-              numberOfLines={2}
-              textAlignVertical="top"
-              editable={isEditing}
-            />
-          </View>
+          {renderAddressCard("pickup", "Pickup Address", "location-outline")}
+          {renderAddressCard(
+            "return",
+            "Return Address",
+            "return-up-back-outline"
+          )}
+          {renderAddressCard("store", "Store Location", "storefront-outline")}
         </View>
 
         <View className="h-20" />
