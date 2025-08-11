@@ -13,9 +13,13 @@ const resubmitDocuments = require("../controllers/deliveryPartnerControllers/res
 const getDeliveryPartnerProfile = require("../controllers/deliveryPartnerControllers/getDeliveryPartnerProfile");
 const updateDeliveryPartnerProfile = require("../controllers/deliveryPartnerControllers/updateDeliveryPartnerProfile");
 const getDeliveryPartnerStats = require("../controllers/deliveryPartnerControllers/getDeliveryPartnerStats");
-const getAvailableOrders = require("../controllers/deliveryPartnerControllers/getAvailableOrders");
+const getAvailableDeliveries = require("../controllers/deliveryPartnerControllers/getAvailableDeliveries");
 const getDeliveryHistory = require("../controllers/deliveryPartnerControllers/getDeliveryHistory");
+const getDeliveryDetails = require("../controllers/deliveryPartnerControllers/getDeliveryDetails");
 const toggleOnlineStatus = require("../controllers/deliveryPartnerControllers/toggleOnlineStatus");
+const updateLocation = require("../controllers/deliveryPartnerControllers/updateLocation");
+const acceptAssignment = require("../controllers/deliveryPartnerControllers/acceptAssignment");
+const updateAssignmentStatus = require("../controllers/deliveryPartnerControllers/updateAssignmentStatus");
 
 // Application routes
 router.post(
@@ -37,8 +41,24 @@ router.post(
 router.get("/profile", authenticateToken, getDeliveryPartnerProfile);
 router.put("/profile", authenticateToken, updateDeliveryPartnerProfile);
 router.get("/stats", authenticateToken, getDeliveryPartnerStats);
-router.get("/available-orders", authenticateToken, getAvailableOrders);
+router.get("/available-deliveries", authenticateToken, getAvailableDeliveries);
 router.get("/delivery-history", authenticateToken, getDeliveryHistory);
+router.get(
+  "/delivery-details/:assignmentId",
+  authenticateToken,
+  getDeliveryDetails
+);
 router.put("/toggle-online-status", authenticateToken, toggleOnlineStatus);
+
+// New route for updating location
+router.put("/update-location", authenticateToken, updateLocation);
+
+// New routes for accepting assignments and updating status
+router.post("/accept-assignment", authenticateToken, acceptAssignment);
+router.put(
+  "/update-assignment-status",
+  authenticateToken,
+  updateAssignmentStatus
+);
 
 module.exports = router;

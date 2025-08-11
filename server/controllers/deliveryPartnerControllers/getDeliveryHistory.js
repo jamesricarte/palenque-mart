@@ -22,17 +22,23 @@ const getDeliveryHistory = async (req, res) => {
 
     const deliveryPartnerId = deliveryPartners[0].id;
 
-    // Build query based on status filter
-    let statusCondition = "";
-    const queryParams = [deliveryPartnerId];
+    let deliveryHistory = [];
+
+    // Fetch completed delivery assignments (delivered, cancelled)
+    let assignmentStatusCondition = "";
+    const assignmentParams = [deliveryPartnerId];
 
     if (status && status !== "all") {
-      statusCondition = "AND da.status = ?";
-      queryParams.push(status);
+      if (status === "delivered" || status === "cancelled") {
+        assignmentStatusCondition = "AND da.status = ?";
+        assignmentParams.push(status);
+      }
+    } else {
+      // For "all" or no filter, get delivered and cancelled
+      assignmentStatusCondition = "AND da.status IN ('delivered', 'cancelled')";
     }
 
-    // Get delivery history
-    const [deliveryHistory] = await db.execute(
+    const [completedAssignments] = await db.execute(
       `SELECT 
         da.id as assignment_id,
         da.order_id,
@@ -43,6 +49,7 @@ const getDeliveryHistory = async (req, res) => {
         da.delivery_time,
         da.pickup_address,
         da.delivery_address,
+        da.updated_at,
         o.order_number,
         o.total_amount,
         o.delivery_recipient_name,
@@ -50,41 +57,95 @@ const getDeliveryHistory = async (req, res) => {
         o.delivery_street_address,
         o.delivery_barangay,
         o.delivery_city,
-        COUNT(oi.id) as item_count
+        COUNT(oi.id) as item_count,
+        'assignment' as source_type
       FROM delivery_assignments da
       JOIN orders o ON da.order_id = o.id
       JOIN order_items oi ON o.id = oi.order_id
-      WHERE da.delivery_partner_id = ? ${statusCondition}
+      WHERE da.delivery_partner_id = ? ${assignmentStatusCondition}
       GROUP BY da.id, da.order_id, da.status, da.delivery_fee, da.assigned_at,
                da.pickup_time, da.delivery_time, da.pickup_address, da.delivery_address,
-               o.order_number, o.total_amount, o.delivery_recipient_name,
-               o.delivery_phone_number, o.delivery_street_address, o.delivery_barangay, o.delivery_city
-      ORDER BY da.assigned_at DESC
-      LIMIT ${Number.parseInt(limit)} OFFSET ${Number.parseInt(offset)}`,
-      queryParams
+               da.updated_at, o.order_number, o.total_amount, o.delivery_recipient_name,
+               o.delivery_phone_number, o.delivery_street_address, o.delivery_barangay, o.delivery_city`,
+      assignmentParams
     );
 
-    // Get total count for pagination
-    const countParams = [deliveryPartnerId];
+    deliveryHistory = [...completedAssignments];
+
+    // Fetch declined/expired delivery candidates
+    let candidateStatusCondition = "";
+    const candidateParams = [deliveryPartnerId];
+
     if (status && status !== "all") {
-      countParams.push(status);
+      if (status === "declined" || status === "expired") {
+        candidateStatusCondition = "AND dc.status = ?";
+        candidateParams.push(status);
+      }
+    } else {
+      // For "all" or no filter, get declined and expired
+      candidateStatusCondition = "AND dc.status IN ('declined', 'expired')";
     }
 
-    const [totalCount] = await db.execute(
-      `SELECT COUNT(DISTINCT da.id) as total 
-       FROM delivery_assignments da
-       WHERE da.delivery_partner_id = ? ${statusCondition}`,
-      countParams
+    if (
+      !status ||
+      status === "all" ||
+      status === "declined" ||
+      status === "expired"
+    ) {
+      const [declinedExpiredCandidates] = await db.execute(
+        `SELECT 
+          da.id as assignment_id,
+          da.order_id,
+          dc.status,
+          da.delivery_fee,
+          dc.notified_at as assigned_at,
+          NULL as pickup_time,
+          NULL as delivery_time,
+          da.pickup_address,
+          da.delivery_address,
+          dc.updated_at,
+          o.order_number,
+          o.total_amount,
+          o.delivery_recipient_name,
+          o.delivery_phone_number,
+          o.delivery_street_address,
+          o.delivery_barangay,
+          o.delivery_city,
+          COUNT(oi.id) as item_count,
+          'candidate' as source_type
+        FROM delivery_candidates dc
+        JOIN delivery_assignments da ON dc.assignment_id = da.id
+        JOIN orders o ON da.order_id = o.id
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE dc.delivery_partner_id = ? ${candidateStatusCondition}
+        GROUP BY da.id, da.order_id, dc.status, da.delivery_fee, dc.notified_at,
+                 da.pickup_address, da.delivery_address, dc.updated_at, o.order_number, 
+                 o.total_amount, o.delivery_recipient_name, o.delivery_phone_number, 
+                 o.delivery_street_address, o.delivery_barangay, o.delivery_city`,
+        candidateParams
+      );
+
+      deliveryHistory = [...deliveryHistory, ...declinedExpiredCandidates];
+    }
+
+    // Sort by updated_at timestamp (most recent first)
+    deliveryHistory.sort(
+      (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
     );
 
-    const total = totalCount[0].total;
+    // Apply pagination
+    const paginatedHistory = deliveryHistory.slice(
+      offset,
+      offset + Number.parseInt(limit)
+    );
+    const total = deliveryHistory.length;
     const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       message: "Delivery history retrieved successfully",
       success: true,
       data: {
-        deliveries: deliveryHistory,
+        deliveries: paginatedHistory,
         pagination: {
           currentPage: Number.parseInt(page),
           totalPages,

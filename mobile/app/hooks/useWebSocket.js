@@ -3,24 +3,28 @@ import { useEffect, useRef, useState } from "react";
 export default function useWebSocket(url) {
   const socketRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const stopRef = useRef(false);
+  const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
   const connect = () => {
     socketRef.current = new WebSocket(url);
 
     socketRef.current.onopen = () => {
-      console.log("WebSocket connected");
+      // console.log("WebSocket connected");
       setIsConnected(true);
+      setSocket(socketRef.current);
     };
 
     socketRef.current.onclose = () => {
       console.warn("WebSocket disconnected");
       setIsConnected(false);
-      reconnect();
+      setSocket(null);
+      if (!stopRef.current) reconnect();
     };
 
     socketRef.current.onerror = (err) => {
-      console.log("WebSocket error");
+      console.warn("WebSocket error");
       socketRef.current.close();
     };
   };
@@ -28,7 +32,7 @@ export default function useWebSocket(url) {
   const reconnect = () => {
     ((reconnectTimeoutRef.current = setTimeout(() => {
       if (!isConnected) {
-        // console.log("Reconnecting...");
+        console.log("Websocket reconnecting...");
         connect();
       }
     })),
@@ -36,7 +40,14 @@ export default function useWebSocket(url) {
   };
 
   useEffect(() => {
-    if (!url) return;
+    if (!url) {
+      stopRef.current = true;
+      if (socketRef.current) socketRef.current.close();
+      clearTimeout(reconnectTimeoutRef.current);
+      return;
+    } else {
+      stopRef.current = false;
+    }
 
     connect();
 
@@ -49,7 +60,7 @@ export default function useWebSocket(url) {
   }, [url]);
 
   return {
-    socket: socketRef.current,
+    socket,
     isConnected,
   };
 }

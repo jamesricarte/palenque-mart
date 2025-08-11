@@ -20,6 +20,8 @@ const getSellerOrders = require("../controllers/sellerControllers/getSellerOrder
 const updateOrderStatus = require("../controllers/sellerControllers/updateOrderStatus");
 const getSellerOrderDetails = require("../controllers/sellerControllers/getSellerOrderDetails");
 
+const createDeliveryAssignment = require("../controllers/sellerControllers/createDeliveryAssignment");
+
 // Routes
 router.post(
   "/submit-application",
@@ -60,5 +62,11 @@ router.get("/orders/:orderId", authenticateToken, getSellerOrderDetails);
 
 // Route to update order status
 router.put("/orders/:orderId/status", authenticateToken, updateOrderStatus);
+
+router.post(
+  "/create-delivery-assignment",
+  authenticateToken,
+  createDeliveryAssignment
+);
 
 module.exports = router;

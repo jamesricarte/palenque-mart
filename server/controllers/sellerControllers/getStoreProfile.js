@@ -8,7 +8,7 @@ const getStoreProfile = async (req, res) => {
     // Get seller data from sellers table (live data)
     const [sellerRows] = await db.execute(
       `SELECT 
-        s.id as seller_id,
+        s.id,
         s.seller_id,
         s.account_type,
         s.store_name,
@@ -75,6 +75,7 @@ const getStoreProfile = async (req, res) => {
       contactPhone: sellerData.contact_phone || "",
       address: addressData,
       isActive: sellerData.is_active || 0,
+      id: sellerData.id || "",
       sellerId: sellerData.seller_id || "",
       storeLogoUrl: sellerData.store_logo_key
         ? supabase.storage

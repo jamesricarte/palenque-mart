@@ -73,7 +73,6 @@ const LoginScreen = ({ navigation }) => {
     try {
       const response = await axios.post(`${API_URL}/api/login`, formData);
 
-      console.log(response.data);
       responseData = response.data;
     } catch (error) {
       console.error(error.response.data);

@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (!socket || !isConnected) return;
 
+    console.log("Websocket in authContext is connected.");
+
     const handleMessage = (event) => {
       try {
         const message = JSON.parse(event.data);

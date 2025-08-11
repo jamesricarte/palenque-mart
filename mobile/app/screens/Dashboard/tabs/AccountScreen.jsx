@@ -20,7 +20,8 @@ const AccountScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const route = useRoute();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const [snackBarVisible, setSnackBarVisible] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
@@ -44,9 +45,9 @@ const AccountScreen = ({ navigation }) => {
   };
 
   const handleLogout = () => {
-    setLoading(true);
+    setLogoutLoading(true);
     setTimeout(() => {
-      setLoading(false);
+      setLogoutLoading(false);
       navigation.reset({
         index: 0,
         routes: [
@@ -59,7 +60,7 @@ const AccountScreen = ({ navigation }) => {
         ],
       });
       logout();
-    }, 3000);
+    }, 2000);
   };
 
   const fetchCartCount = async () => {
@@ -78,6 +79,7 @@ const AccountScreen = ({ navigation }) => {
     useCallback(() => {
       if (user) {
         fetchCartCount();
+        setLoading(false);
       } else {
         setCartCount(0);
       }
@@ -89,6 +91,19 @@ const AccountScreen = ({ navigation }) => {
       setSnackBarVisible(true);
     }
   }, []);
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-gray-50">
+        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+          <Text className="text-xl font-semibold">Your Account</Text>
+        </View>
+        <View className="items-center justify-center flex-1">
+          <Text className="text-gray-500">Loading user information...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1">
@@ -215,7 +230,7 @@ const AccountScreen = ({ navigation }) => {
         )}
       </ScrollView>
 
-      <DefaultLoadingAnimation visible={loading} version={2} />
+      <DefaultLoadingAnimation visible={logoutLoading} version={2} />
 
       <Snackbar
         visible={snackBarVisible}

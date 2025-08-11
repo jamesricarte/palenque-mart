@@ -1,9 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import axios from "axios";
+
+import { useSeller } from "../../context/SellerContext";
+import { API_URL } from "../../config/apiConfig";
 
 import SellerOverviewScreen from "./tabs/SellerOverviewScreen";
 import SellerProductsScreen from "./tabs/SellerProductsScreen";
@@ -13,6 +18,69 @@ import SellerStoreAccountScreen from "./tabs/SellerStoreAccountScreen";
 const Tab = createBottomTabNavigator();
 
 const SellerDashboard = () => {
+  const {
+    enterSellerDashboard,
+    exitSellerDashboard,
+    setTriggerWebSocket,
+    refreshOrdersData,
+    setSellerId,
+  } = useSeller();
+
+  useEffect(() => {
+    enterSellerDashboard();
+    fetchSellerData();
+    fetchOrders();
+
+    return () => {
+      exitSellerDashboard();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (refreshOrdersData) fetchOrders();
+  }, [refreshOrdersData]);
+
+  const fetchSellerData = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/seller/store-profile`);
+
+      if (response.data.success) {
+        setSellerId(response.data.data.id);
+      }
+    } catch (error) {
+      console.error("Error fetching seller data:", error);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/seller/orders`, {
+        params: { status: "all" },
+      });
+
+      if (response.data.success) {
+        const allOrders = response.data.data.orders;
+
+        const triggerWebSocket = allOrders.some((order) => {
+          return [
+            "ready_for_pickup",
+            "rider_assigned",
+            "out_for_delivery",
+          ].includes(order.status);
+        });
+
+        // triggerWebSocket &&
+        //   console.log("triggered WebSocket from Seller Dashboard Screen");
+        setTriggerWebSocket(triggerWebSocket);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching orders:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
   return (
     <Tab.Navigator
       initialRouteName="SellerOverview"

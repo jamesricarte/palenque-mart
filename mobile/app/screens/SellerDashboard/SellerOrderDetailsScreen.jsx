@@ -9,44 +9,55 @@ import {
   Image,
   Alert,
   Modal,
-  ActivityIndicator,
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "../../context/AuthContext";
+import { useSeller } from "../../context/SellerContext";
 import { API_URL } from "../../config/apiConfig";
 import axios from "axios";
 import DefaultLoadingAnimation from "../../components/DefaultLoadingAnimation";
-import OrderTrackingView from "../../components/OrderTrackingView";
 import LottieView from "lottie-react-native";
+import MapView, { Marker } from "react-native-maps";
 
 const SellerOrderDetailsScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
   const { token } = useAuth();
+  const {
+    createDeliveryAssignment,
+    startTrackingDeliveryPartner,
+    stopTrackingDeliveryPartner,
+    deliveryPartnerLocation,
+    refreshOrdersData,
+  } = useSeller();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [showTracking, setShowTracking] = useState(false);
-  const [riderAccepted, setRiderAccepted] = useState(false);
-  const [lookingForRider, setLookingForRider] = useState(false);
-
-  // Dummy rider data
-  const dummyRider = {
-    id: 1,
-    name: "Juan Dela Cruz",
-    phone: "+639123456789",
-    vehicle_type: "motorcycle",
-    license_plate: "ABC-1234",
-    rating: 4.8,
-    profile_picture: null,
-  };
+  const [fullScreenMapVisible, setFullScreenMapVisible] = useState(false);
+  const [deliveryProgress, setDeliveryProgress] = useState(0);
+  const [estimatedTime, setEstimatedTime] = useState("15-25 min");
+  const [deliveryPartnerCoordinates, setDeliveryPartnerCoordinates] =
+    useState(null);
 
   const statusOptions = [
     { value: "pending", label: "Pending", color: "#F59E0B" },
     { value: "confirmed", label: "Confirmed", color: "#3B82F6" },
     { value: "preparing", label: "Preparing", color: "#8B5CF6" },
     { value: "ready_for_pickup", label: "Ready for Pickup", color: "#10B981" },
+    { value: "rider_assigned", label: "Rider Assigned", color: "#06B6D4" },
     { value: "out_for_delivery", label: "Out for Delivery", color: "#06B6D4" },
+    { value: "delivered", label: "Delivered", color: "#059669" },
+    { value: "cancelled", label: "Cancelled", color: "#EF4444" },
+  ];
+
+  const deliveryStatusOptions = [
+    {
+      value: "looking_for_rider",
+      label: "Looking for Rider",
+      color: "#F59E0B",
+    },
+    { value: "rider_assigned", label: "Rider Assigned", color: "#06B6D4" },
+    { value: "picked_up", label: "Picked Up", color: "#8B5CF6" },
     { value: "delivered", label: "Delivered", color: "#059669" },
     { value: "cancelled", label: "Cancelled", color: "#EF4444" },
   ];
@@ -86,38 +97,48 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         description: "Order is ready for pickup by delivery partner",
       },
     ],
-    // Removed ready_for_pickup and out_for_delivery actions as requested
   };
 
   useEffect(() => {
     fetchOrderDetails();
+
+    return () => stopTrackingDeliveryPartner();
   }, []);
 
   useEffect(() => {
-    // Simulate rider acceptance process
-    if (order && order.status === "ready_for_pickup") {
-      setLookingForRider(true);
+    if (refreshOrdersData) fetchOrderDetails();
+  }, [refreshOrdersData]);
 
-      // Simulate rider accepting after 3 seconds
-      const timer = setTimeout(() => {
-        setRiderAccepted(true);
-        setLookingForRider(false);
-        setShowTracking(true);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    } else if (order && order.status === "out_for_delivery") {
-      setRiderAccepted(true);
-      setShowTracking(true);
-    } else if (order && order.status === "delivered") {
-      setRiderAccepted(true);
-      setShowTracking(true);
-    } else {
-      setShowTracking(false);
-      setRiderAccepted(false);
-      setLookingForRider(false);
+  useEffect(() => {
+    // Simulate delivery progress
+    if (order?.delivery_assignment?.status === "picked_up") {
+      setDeliveryProgress(0.8); // 80% progress
+      setEstimatedTime("10-15 min");
+    } else if (order?.delivery_assignment?.status === "delivered") {
+      setDeliveryProgress(1.0); // 100% progress
+      setEstimatedTime("Delivered");
+    } else if (order?.delivery_assignment?.status === "rider_assigned") {
+      setDeliveryProgress(0.4); // 40% progress
+      setEstimatedTime("Waiting for pickup");
     }
-  }, [order]);
+  }, [order?.delivery_assignment?.status]);
+
+  useEffect(() => {
+    if (order) {
+      if (deliveryPartnerLocation) {
+        setDeliveryPartnerCoordinates(deliveryPartnerLocation);
+      } else {
+        setDeliveryPartnerCoordinates({
+          latitude: parseFloat(
+            order.delivery_partner?.location?.latitude || null
+          ),
+          longitude: parseFloat(
+            order.delivery_partner?.location?.longitude || null
+          ),
+        });
+      }
+    }
+  }, [order, deliveryPartnerLocation]);
 
   const fetchOrderDetails = async () => {
     try {
@@ -132,6 +153,22 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
 
       if (response.data.success) {
         setOrder(response.data.data.order);
+        const orderDetails = response.data.data.order;
+
+        if (
+          orderDetails &&
+          ["rider_assigned", "out_for_delivery"].includes(
+            orderDetails.status
+          ) &&
+          ["rider_assigned", "picked_up"].includes(
+            orderDetails.delivery_assignment?.status
+          ) &&
+          orderDetails.delivery_partner
+        ) {
+          startTrackingDeliveryPartner(orderDetails.delivery_partner?.id);
+        } else {
+          stopTrackingDeliveryPartner();
+        }
       } else {
         Alert.alert(
           "Error",
@@ -163,8 +200,16 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
           },
         }
       );
-
       if (response.data.success) {
+        if (newStatus === "ready_for_pickup") {
+          try {
+            await createDeliveryAssignment(orderId);
+            console.log("Delivery assignment created successfully");
+          } catch (error) {
+            console.error("Error creating delivery assignment:", error);
+            // Don't fail the status update if delivery assignment creation fails
+          }
+        }
         Alert.alert(
           "Success",
           `Order ${actionData.label.toLowerCase()} successfully`
@@ -194,6 +239,20 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
 
   const getStatusLabel = (status) => {
     const statusOption = statusOptions.find(
+      (option) => option.value === status
+    );
+    return statusOption ? statusOption.label : status;
+  };
+
+  const getDeliveryStatusColor = (status) => {
+    const statusOption = deliveryStatusOptions.find(
+      (option) => option.value === status
+    );
+    return statusOption ? statusOption.color : "#6B7280";
+  };
+
+  const getDeliveryStatusLabel = (status) => {
+    const statusOption = deliveryStatusOptions.find(
       (option) => option.value === status
     );
     return statusOption ? statusOption.label : status;
@@ -253,17 +312,6 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     );
   }
 
-  // Show tracking view for accepted riders or delivered orders
-  if (showTracking && riderAccepted) {
-    return (
-      <OrderTrackingView
-        order={{ ...order, rider: dummyRider }}
-        navigation={navigation}
-        onStatusUpdate={handleStatusUpdate}
-      />
-    );
-  }
-
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -289,32 +337,277 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       </View>
 
       <ScrollView className="flex-1">
-        {/* Looking for Rider UI */}
-        {lookingForRider && order.status === "ready_for_pickup" && (
-          <View className="mx-4 mt-4 border border-blue-200 rounded-lg bg-blue-50">
-            <View className="p-4">
-              <View className="flex-row items-center mb-3">
-                <View className="mr-2">
-                  <LottieView
-                    source={require("../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
-                    autoPlay
-                    loop
-                    style={{ width: 60, height: 30 }}
-                  />
-                </View>
-                <Text className="text-lg font-semibold text-blue-800">
-                  Looking for Delivery Partner
-                </Text>
+        {/* Looking for Rider UI - Centered and Beautiful */}
+        {order.status === "ready_for_pickup" && (
+          <View className="items-center justify-center flex-1 px-8 mt-4">
+            <View className="items-center p-8 bg-white shadow-lg rounded-2xl">
+              <View>
+                <LottieView
+                  source={require("../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
+                  autoPlay
+                  loop
+                  style={{ width: 80, height: 80 }}
+                />
               </View>
-              <Text className="text-blue-700">
+              <Text className="mb-3 text-2xl font-bold text-center text-gray-800">
+                Looking for Delivery Partner
+              </Text>
+              <Text className="mb-4 leading-6 text-center text-gray-600">
                 We're finding the best delivery partner to pick up your order.
                 This usually takes 2-5 minutes.
               </Text>
-              <View className="flex-row items-center mt-2">
-                <Feather name="clock" size={14} color="#06B6D4" />
-                <Text className="ml-1 text-sm text-blue-600">
+              <View className="flex-row items-center px-4 py-2 rounded-full bg-blue-50">
+                <Feather name="clock" size={16} color="#06B6D4" />
+                <Text className="ml-2 font-medium text-blue-600">
                   Estimated wait time: 2-5 minutes
                 </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Delivery Assignment Section */}
+        {order.delivery_assignment && (
+          <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
+            <View className="p-4">
+              <Text className="mb-4 text-lg font-semibold">
+                Delivery Partner
+              </Text>
+
+              {/* Delivery Partner Info */}
+              {order.delivery_partner && (
+                <View className="flex-row items-center p-3 mb-4 rounded-lg bg-cyan-50">
+                  <View className="items-center justify-center w-12 h-12 mr-3 rounded-full bg-cyan-200">
+                    <Feather name="user" size={20} color="#06B6D4" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-semibold text-gray-800">
+                      {order.delivery_partner.first_name}{" "}
+                      {order.delivery_partner.last_name}
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      {order.delivery_partner.phone}
+                    </Text>
+                    <View className="flex-row items-center mt-1">
+                      <Feather name="star" size={12} color="#F59E0B" />
+                      <Text className="ml-1 text-xs text-gray-600">
+                        {order.delivery_partner.rating}/5.0 •{" "}
+                        {order.delivery_partner.vehicle_type}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Map Section for Rider Assigned and Beyond */}
+              {["rider_assigned", "out_for_delivery"].includes(order.status) &&
+                order.pickup_coordinates &&
+                order.delivery_coordinates && (
+                  <View className="mb-4 bg-white rounded-lg shadow-sm">
+                    <View>
+                      {/* Map Preview */}
+                      <TouchableOpacity
+                        onPress={() => setFullScreenMapVisible(true)}
+                        className="relative h-48 overflow-hidden rounded-lg"
+                      >
+                        <MapView
+                          style={{ flex: 1 }}
+                          region={{
+                            latitude:
+                              (order.pickup_coordinates.latitude +
+                                order.delivery_coordinates.latitude) /
+                              2,
+                            longitude:
+                              (order.pickup_coordinates.longitude +
+                                order.delivery_coordinates.longitude) /
+                              2,
+                            latitudeDelta:
+                              Math.abs(
+                                order.pickup_coordinates.latitude -
+                                  order.delivery_coordinates.latitude
+                              ) *
+                                2 +
+                              0.01,
+                            longitudeDelta:
+                              Math.abs(
+                                order.pickup_coordinates.longitude -
+                                  order.delivery_coordinates.longitude
+                              ) *
+                                2 +
+                              0.01,
+                          }}
+                          scrollEnabled={false}
+                          zoomEnabled={false}
+                        >
+                          <Marker
+                            coordinate={order.pickup_coordinates}
+                            title="Pickup Location"
+                            pinColor="#10B981"
+                          />
+                          <Marker
+                            coordinate={order.delivery_coordinates}
+                            title="Delivery Location"
+                            pinColor="#EF4444"
+                          />
+                          {deliveryPartnerCoordinates && (
+                            <Marker
+                              coordinate={deliveryPartnerCoordinates}
+                              title="Delivery Partner Location"
+                              pinColor="#06B6D4"
+                            />
+                          )}
+                        </MapView>
+
+                        {/* Pickup Location Label */}
+                        <View className="absolute px-3 py-1 bg-green-500 rounded-full top-3 left-3">
+                          <Text className="text-xs font-medium text-white">
+                            Pickup
+                          </Text>
+                        </View>
+
+                        {/* Delivery Location Label */}
+                        <View className="absolute px-3 py-1 bg-red-500 rounded-full top-3 right-3">
+                          <Text className="text-xs font-medium text-white">
+                            Delivery
+                          </Text>
+                        </View>
+
+                        {/* Tap to expand indicator */}
+                        <View className="absolute px-3 py-1 bg-black bg-opacity-50 rounded-full bottom-3 right-3">
+                          <Text className="text-xs text-white">
+                            Tap to expand
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+              {/* Delivery Status */}
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-gray-600">Delivery Status:</Text>
+                <View
+                  className="px-3 py-1 rounded-full"
+                  style={{
+                    backgroundColor: `${getDeliveryStatusColor(order.delivery_assignment.status)}20`,
+                  }}
+                >
+                  <Text
+                    className="text-sm font-medium"
+                    style={{
+                      color: getDeliveryStatusColor(
+                        order.delivery_assignment.status
+                      ),
+                    }}
+                  >
+                    {getDeliveryStatusLabel(order.delivery_assignment.status)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Progress Bar */}
+              <View className="mb-4">
+                <View className="h-2 bg-gray-200 rounded-full">
+                  <View
+                    className={`h-2 rounded-full ${order.status === "delivered" ? "bg-green-500" : "bg-blue-500"}`}
+                    style={{ width: `${deliveryProgress * 100}%` }}
+                  />
+                </View>
+              </View>
+
+              {/* Delivery Progress */}
+              <View className="space-y-3">
+                {[
+                  {
+                    status: "looking_for_rider",
+                    label: "Looking for Rider",
+                    icon: "search",
+                  },
+                  {
+                    status: "rider_assigned",
+                    label: "Rider Assigned",
+                    icon: "user-check",
+                  },
+                  {
+                    status: "picked_up",
+                    label: "Order Picked Up",
+                    icon: "package",
+                  },
+                  {
+                    status: "delivered",
+                    label: "Order Delivered",
+                    icon: "check-circle",
+                  },
+                ].map((step, index) => {
+                  const isCompleted =
+                    deliveryStatusOptions.findIndex(
+                      (s) => s.value === order.delivery_assignment.status
+                    ) >=
+                    deliveryStatusOptions.findIndex(
+                      (s) => s.value === step.status
+                    );
+                  const isCurrent =
+                    order.delivery_assignment.status === step.status;
+
+                  return (
+                    <View key={step.status} className="flex-row items-center">
+                      <View
+                        className={`w-6 h-6 rounded-full items-center justify-center ${
+                          isCompleted
+                            ? "bg-green-500"
+                            : isCurrent
+                              ? "bg-orange-500"
+                              : "bg-gray-200"
+                        }`}
+                      >
+                        <Feather
+                          name={step.icon}
+                          size={12}
+                          color={isCompleted || isCurrent ? "white" : "#6B7280"}
+                        />
+                      </View>
+                      <Text
+                        className={`ml-3 text-sm ${
+                          isCompleted
+                            ? "text-green-600 font-medium"
+                            : isCurrent
+                              ? "text-orange-600 font-medium"
+                              : "text-gray-500"
+                        }`}
+                      >
+                        {step.label}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* Delivery Times */}
+              <View className="mt-4 space-y-2">
+                {order.delivery_assignment.assigned_at && (
+                  <View className="flex-row justify-between">
+                    <Text className="text-gray-600">Assigned At:</Text>
+                    <Text className="font-medium">
+                      {formatDate(order.delivery_assignment.assigned_at)}
+                    </Text>
+                  </View>
+                )}
+                {order.delivery_assignment.pickup_time && (
+                  <View className="flex-row justify-between">
+                    <Text className="text-gray-600">Picked Up At:</Text>
+                    <Text className="font-medium">
+                      {formatDate(order.delivery_assignment.pickup_time)}
+                    </Text>
+                  </View>
+                )}
+                {order.delivery_assignment.delivery_time && (
+                  <View className="flex-row justify-between">
+                    <Text className="text-gray-600">Delivered At:</Text>
+                    <Text className="font-medium">
+                      {formatDate(order.delivery_assignment.delivery_time)}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           </View>
@@ -341,6 +634,11 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                   status: "ready_for_pickup",
                   label: "Ready for Pickup",
                   icon: "package",
+                },
+                {
+                  status: "rider_assigned",
+                  label: "Rider Assigned",
+                  icon: "user-check",
                 },
                 {
                   status: "out_for_delivery",
@@ -482,7 +780,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         </View>
 
         {/* Order Items */}
-        <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
+        <View className="mx-4 mt-4 mb-4 bg-white rounded-lg shadow-sm">
           <View className="p-4">
             <Text className="mb-3 text-lg font-semibold">Order Items</Text>
             {order.items.map((item, index) => (
@@ -519,7 +817,24 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Action Buttons - Hidden for ready_for_pickup and out_for_delivery */}
+        {/* Delivered Confirmation */}
+        {order.status === "delivered" && (
+          <View className="mx-4 mb-8 border border-green-200 rounded-lg bg-green-50">
+            <View className="items-center p-4">
+              <View className="items-center justify-center w-16 h-16 mb-3 bg-green-500 rounded-full">
+                <Feather name="check" size={32} color="white" />
+              </View>
+              <Text className="mb-1 text-lg font-semibold text-green-800">
+                Order Delivered Successfully!
+              </Text>
+              <Text className="text-center text-green-700">
+                This order has been completed and delivered to the customer.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Action Buttons */}
         {quickActions[order.status] && (
           <View className="mx-4 mt-4 mb-8">
             {quickActions[order.status].map((action, index) => (
@@ -606,6 +921,107 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+      </Modal>
+
+      {/* Full Screen Map Modal */}
+      <Modal
+        visible={fullScreenMapVisible}
+        transparent={false}
+        animationType="slide"
+        onRequestClose={() => setFullScreenMapVisible(false)}
+      >
+        <View className="flex-1">
+          {/* Header */}
+          <View className="flex-row items-center px-4 pt-16 pb-4 bg-white border-b border-gray-200">
+            <TouchableOpacity
+              onPress={() => setFullScreenMapVisible(false)}
+              className="mr-4"
+            >
+              <Feather name="x" size={24} color="#374151" />
+            </TouchableOpacity>
+            <Text className="text-xl font-semibold">Delivery Map</Text>
+          </View>
+
+          {/* Full Screen Map */}
+          {order && order.pickup_coordinates && order.delivery_coordinates && (
+            <View className="relative flex-1">
+              <MapView
+                style={{ flex: 1 }}
+                region={{
+                  latitude:
+                    (order.pickup_coordinates.latitude +
+                      order.delivery_coordinates.latitude) /
+                    2,
+                  longitude:
+                    (order.pickup_coordinates.longitude +
+                      order.delivery_coordinates.longitude) /
+                    2,
+                  latitudeDelta:
+                    Math.abs(
+                      order.pickup_coordinates.latitude -
+                        order.delivery_coordinates.latitude
+                    ) *
+                      2 +
+                    0.01,
+                  longitudeDelta:
+                    Math.abs(
+                      order.pickup_coordinates.longitude -
+                        order.delivery_coordinates.longitude
+                    ) *
+                      2 +
+                    0.01,
+                }}
+              >
+                <Marker
+                  coordinate={order.pickup_coordinates}
+                  title="Pickup Location"
+                  description="Your store location"
+                  pinColor="#10B981"
+                />
+                <Marker
+                  coordinate={order.delivery_coordinates}
+                  title="Delivery Location"
+                  description="Customer delivery address"
+                  pinColor="#EF4444"
+                />
+
+                {deliveryPartnerCoordinates && (
+                  <Marker
+                    coordinate={deliveryPartnerCoordinates}
+                    title="Delivery Partner Location"
+                    pinColor="#06B6D4"
+                  />
+                )}
+              </MapView>
+
+              {/* Location Labels */}
+              <View className="absolute px-4 py-2 bg-green-500 rounded-full top-4 left-4">
+                <Text className="font-medium text-white">Pickup Location</Text>
+              </View>
+
+              <View className="absolute px-4 py-2 bg-red-500 rounded-full top-4 right-4">
+                <Text className="font-medium text-white">
+                  Delivery Location
+                </Text>
+              </View>
+
+              {/* Order Info Card */}
+              <View className="absolute p-4 bg-white rounded-lg shadow-lg bottom-4 left-4 right-4">
+                <Text className="mb-2 text-lg font-semibold">
+                  {order.order_number}
+                </Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-gray-600">
+                    {order.delivery_recipient_name}
+                  </Text>
+                  <Text className="font-semibold text-orange-600">
+                    {formatCurrency(order.seller_total_amount)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
       </Modal>
     </View>

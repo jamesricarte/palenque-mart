@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,12 +15,15 @@ import { useFocusEffect } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "../../../context/AuthContext";
+import { useSeller } from "../../../context/SellerContext";
 import { API_URL } from "../../../config/apiConfig";
 import axios from "axios";
 import DefaultLoadingAnimation from "../../../components/DefaultLoadingAnimation";
 
 const SellerOrdersScreen = ({ navigation }) => {
   const { token } = useAuth();
+  const { createDeliveryAssignment, setTriggerWebSocket, refreshOrdersData } =
+    useSeller();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,6 +55,12 @@ const SellerOrdersScreen = ({ navigation }) => {
       color: "#10B981",
       count: 0,
       priority: true,
+    },
+    {
+      value: "rider_assigned",
+      label: "Rider Assigned",
+      color: "#06B6D4",
+      count: 0,
     },
     {
       value: "out_for_delivery",
@@ -125,8 +134,18 @@ const SellerOrdersScreen = ({ navigation }) => {
             ).length;
           }
         });
-      } else {
-        console.error("Failed to fetch orders:", response.data.message);
+
+        const triggerWebSocket = allOrders.some((order) => {
+          return [
+            "ready_for_pickup",
+            "rider_assigned",
+            "out_for_delivery",
+          ].includes(order.status);
+        });
+
+        // triggerWebSocket &&
+        //   console.log("triggered WebSocket from Seller Orders Screen");
+        setTriggerWebSocket(triggerWebSocket);
       }
     } catch (error) {
       console.error(
@@ -152,6 +171,10 @@ const SellerOrdersScreen = ({ navigation }) => {
     fetchOrdersCallback();
   }, [fetchOrdersCallback]);
 
+  useEffect(() => {
+    if (refreshOrdersData) fetchOrders();
+  }, [refreshOrdersData]);
+
   const handleQuickAction = async (orderId, newStatus, actionData) => {
     setUpdatingStatus(true);
     try {
@@ -169,6 +192,17 @@ const SellerOrdersScreen = ({ navigation }) => {
       );
 
       if (response.data.success) {
+        // If status is ready_for_pickup, create delivery assignment
+        if (newStatus === "ready_for_pickup") {
+          try {
+            await createDeliveryAssignment(orderId);
+            console.log("Delivery assignment created successfully");
+          } catch (error) {
+            console.error("Error creating delivery assignment:", error);
+            // Don't fail the status update if delivery assignment creation fails
+          }
+        }
+
         Alert.alert(
           "Success",
           `Order ${actionData.label.toLowerCase()} successfully`
@@ -487,6 +521,31 @@ const SellerOrdersScreen = ({ navigation }) => {
                     </Text>
                   </View>
                 )}
+
+                {/* Rider Assigned Status */}
+                {order.status === "rider_assigned" &&
+                  order.delivery_partner && (
+                    <View className="p-3 mt-3 border rounded-lg border-cyan-200 bg-cyan-50">
+                      <View className="flex-row items-center">
+                        <Feather name="user-check" size={16} color="#06B6D4" />
+                        <Text className="ml-2 text-sm font-medium text-cyan-800">
+                          Rider Assigned
+                        </Text>
+                      </View>
+                      <Text className="mt-1 text-xs text-cyan-600">
+                        {order.delivery_partner.first_name}{" "}
+                        {order.delivery_partner.last_name} will pick up your
+                        order
+                      </Text>
+                      <View className="flex-row items-center mt-1">
+                        <Feather name="star" size={12} color="#06B6D4" />
+                        <Text className="ml-1 text-xs text-cyan-600">
+                          {order.delivery_partner.rating}/5.0 •{" "}
+                          {order.delivery_partner.vehicle_type}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
               </View>
             </TouchableOpacity>
           ))}

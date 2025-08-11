@@ -6,12 +6,13 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useAuth } from "../../context/AuthContext";
+import { useDeliveryPartner } from "../../context/DeliveryPartnerContext";
 import axios from "axios";
 import { API_URL } from "../../config/apiConfig";
 
 // Import tab screens
 import DeliveryPartnerOverviewScreen from "./tabs/DeliveryPartnerOverviewScreen";
-import DeliveryPartnerOrdersScreen from "./tabs/DeliveryPartnerOrdersScreen";
+import DeliveryPartnerDeliveriesScreen from "./tabs/DeliveryPartnerDeliveriesScreen";
 import DeliveryPartnerHistoryScreen from "./tabs/DeliveryPartnerHistoryScreen";
 import DeliveryPartnerAccountScreen from "./tabs/DeliveryPartnerAccountScreen";
 
@@ -19,11 +20,22 @@ const Tab = createBottomTabNavigator();
 
 const DeliveryPartnerDashboardScreen = ({ navigation }) => {
   const { token, logout } = useAuth();
+  const {
+    enterDeliveryDashboard,
+    exitDeliveryDashboard,
+    setDeliveryPartnerId,
+  } = useDeliveryPartner();
+
   const [deliveryPartnerProfile, setDeliveryPartnerProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    enterDeliveryDashboard();
     fetchDeliveryPartnerProfile();
+
+    return () => {
+      exitDeliveryDashboard();
+    };
   }, []);
 
   const fetchDeliveryPartnerProfile = async () => {
@@ -39,6 +51,7 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
 
       if (response.data.success) {
         setDeliveryPartnerProfile(response.data.data);
+        setDeliveryPartnerId(response.data.data.id);
       }
     } catch (error) {
       console.error("Error fetching delivery partner profile:", error);
@@ -70,7 +83,7 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
         },
         {
           text: "Switch",
-          onPress: () => {
+          onPress: async () => {
             navigation.replace("Dashboard");
           },
         },
@@ -118,7 +131,7 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
 
             if (route.name === "Overview") {
               iconName = focused ? "home" : "home-outline";
-            } else if (route.name === "Orders") {
+            } else if (route.name === "Deliveries") {
               iconName = focused ? "list" : "list-outline";
             } else if (route.name === "History") {
               iconName = focused ? "time" : "time-outline";
@@ -134,9 +147,6 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
             backgroundColor: "white",
             borderTopWidth: 1,
             borderTopColor: "#e5e7eb",
-            paddingBottom: 5,
-            paddingTop: 5,
-            height: 60,
           },
           tabBarLabelStyle: {
             fontSize: 12,
@@ -149,18 +159,20 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
           component={DeliveryPartnerOverviewScreen}
           initialParams={{ deliveryPartnerProfile }}
         />
-        <Tab.Screen name="Orders" component={DeliveryPartnerOrdersScreen} />
-        <Tab.Screen name="History" component={DeliveryPartnerHistoryScreen} />
         <Tab.Screen
-          name="Account"
-          component={(props) => (
+          name="Deliveries"
+          component={DeliveryPartnerDeliveriesScreen}
+        />
+        <Tab.Screen name="History" component={DeliveryPartnerHistoryScreen} />
+        <Tab.Screen name="Account">
+          {(props) => (
             <DeliveryPartnerAccountScreen
               {...props}
               deliveryPartnerProfile={deliveryPartnerProfile}
               onProfileUpdate={fetchDeliveryPartnerProfile}
             />
           )}
-        />
+        </Tab.Screen>
       </Tab.Navigator>
     </>
   );

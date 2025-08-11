@@ -169,14 +169,15 @@ const createOrder = async (req, res) => {
       // Create order
       const [orderResult] = await connection.execute(
         `INSERT INTO orders (
-          user_id, order_number, status, payment_method, payment_status,
+          user_id, seller_id, order_number, status, payment_method, payment_status,
           subtotal, delivery_fee, voucher_discount, total_amount, voucher_id,
           delivery_address_id, delivery_recipient_name, delivery_phone_number,
           delivery_street_address, delivery_barangay, delivery_city, 
           delivery_province, delivery_postal_code, delivery_landmark, delivery_notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           userId,
+          sellerId,
           orderNumber,
           "pending",
           paymentMethod,

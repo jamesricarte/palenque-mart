@@ -12,6 +12,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "../../../context/AuthContext";
+import { useDeliveryPartner } from "../../../context/DeliveryPartnerContext";
 
 const DeliveryPartnerAccountScreen = ({
   route,
@@ -20,6 +21,7 @@ const DeliveryPartnerAccountScreen = ({
   onProfileUpdate,
 }) => {
   const { logout } = useAuth();
+  const { isOnline, currentLocation } = useDeliveryPartner();
 
   const handleEditProfile = () => {
     navigation.navigate("EditDeliveryPartnerProfile", {
@@ -91,21 +93,23 @@ const DeliveryPartnerAccountScreen = ({
               <View className="flex flex-row items-center mt-1">
                 <View
                   className={`w-3 h-3 rounded-full mr-2 ${
-                    deliveryPartnerProfile?.is_online
-                      ? "bg-green-500"
-                      : "bg-gray-400"
+                    isOnline ? "bg-green-500" : "bg-gray-400"
                   }`}
                 />
                 <Text
                   className={`text-sm font-medium ${
-                    deliveryPartnerProfile?.is_online
-                      ? "text-green-600"
-                      : "text-gray-600"
+                    isOnline ? "text-green-600" : "text-gray-600"
                   }`}
                 >
-                  {deliveryPartnerProfile?.is_online ? "Online" : "Offline"}
+                  {isOnline ? "Online" : "Offline"}
                 </Text>
               </View>
+
+              {currentLocation && (
+                <Text className="mt-1 text-sm text-green-600">
+                  Location tracking active
+                </Text>
+              )}
             </View>
           </View>
 

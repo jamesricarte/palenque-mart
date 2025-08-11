@@ -53,12 +53,30 @@ const getSellerOrders = async (req, res) => {
         u.first_name as customer_first_name,
         u.last_name as customer_last_name,
         COUNT(oi.id) as item_count,
-        SUM(oi.total_price) as seller_total_amount
+        SUM(oi.total_price) as seller_total_amount,
+        da.id as delivery_assignment_id,
+        da.status as delivery_status,
+        da.assigned_at,
+        dp.partner_id as delivery_partner_id,
+        dp.vehicle_type as delivery_vehicle_type,
+        dp.rating as delivery_partner_rating,
+        du.first_name as delivery_partner_first_name,
+        du.last_name as delivery_partner_last_name,
+        du.phone as delivery_partner_phone
       FROM orders o
       JOIN order_items oi ON o.id = oi.order_id
       JOIN users u ON o.user_id = u.id
+      LEFT JOIN delivery_assignments da ON o.id = da.order_id
+      LEFT JOIN delivery_partners dp ON da.delivery_partner_id = dp.id
+      LEFT JOIN users du ON dp.user_id = du.id
       WHERE oi.seller_id = ? ${statusFilter}
-      GROUP BY o.id
+      GROUP BY  o.id, o.order_number, o.status, o.payment_method, o.payment_status, o.total_amount, o.delivery_recipient_name, o.delivery_phone_number,
+      o.delivery_street_address, o.delivery_barangay, o.delivery_city,
+      o.delivery_province, o.delivery_landmark, o.delivery_notes,
+      o.created_at, o.updated_at, u.first_name, u.last_name,
+      da.id, da.status, da.assigned_at,
+      dp.partner_id, dp.vehicle_type, dp.rating,
+      du.first_name, du.last_name, du.phone
       ORDER BY o.created_at DESC
       LIMIT ${Number.parseInt(limit)} OFFSET ${offset}`,
       queryParams
@@ -97,9 +115,30 @@ const getSellerOrders = async (req, res) => {
           };
         });
 
+        // Include delivery partner info if available
+        const deliveryPartner = order.delivery_partner_id
+          ? {
+              id: order.delivery_partner_id,
+              first_name: order.delivery_partner_first_name,
+              last_name: order.delivery_partner_last_name,
+              phone: order.delivery_partner_phone,
+              vehicle_type: order.delivery_vehicle_type,
+              rating: order.delivery_partner_rating,
+              assigned_at: order.assigned_at,
+            }
+          : null;
+
         return {
           ...order,
           items: itemsWithImages,
+          delivery_partner: deliveryPartner,
+          delivery_assignment: order.delivery_assignment_id
+            ? {
+                id: order.delivery_assignment_id,
+                status: order.delivery_status,
+                assigned_at: order.assigned_at,
+              }
+            : null,
         };
       })
     );
