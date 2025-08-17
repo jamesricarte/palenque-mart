@@ -11,7 +11,7 @@ export default function useWebSocket(url) {
     socketRef.current = new WebSocket(url);
 
     socketRef.current.onopen = () => {
-      // console.log("WebSocket connected");
+      console.log("WebSocket connected");
       setIsConnected(true);
       setSocket(socketRef.current);
     };

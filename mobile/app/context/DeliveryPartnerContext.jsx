@@ -59,7 +59,6 @@ export const DeliveryPartnerProvider = ({ children }) => {
     let refreshOrderDataTimeout;
 
     if (socket) {
-      console.log("Websocket in deliveryPartner is connected.");
       socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -91,7 +90,6 @@ export const DeliveryPartnerProvider = ({ children }) => {
 
   useEffect(() => {
     if (isConnected && isInDeliveryDashboard && deliveryPartnerId) {
-      console.log("Socket connected — starting location tracking...");
       startLocationTracking();
     } else {
       stopLocationTracking();
@@ -137,29 +135,6 @@ export const DeliveryPartnerProvider = ({ children }) => {
 
   const enterDeliveryDashboard = async () => {
     setIsInDeliveryDashboard(true);
-
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") {
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        });
-
-        const currentPos = {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          timestamp: location.timestamp,
-        };
-
-        setCurrentLocation(currentPos);
-        await setOnlineStatus(true, currentPos);
-      } else {
-        await setOnlineStatus(true);
-      }
-    } catch (error) {
-      console.error("Error getting initial location:", error);
-      await setOnlineStatus(true);
-    }
   };
 
   const exitDeliveryDashboard = async () => {
@@ -209,6 +184,10 @@ export const DeliveryPartnerProvider = ({ children }) => {
       );
 
       setLocationSubscription(subscription);
+      setOnlineStatus(true);
+      console.log(
+        `Delivery partner id: ${deliveryPartnerId} - location tracked`
+      );
     } catch (error) {
       console.error("Error starting location tracking:", error);
     }
@@ -216,7 +195,9 @@ export const DeliveryPartnerProvider = ({ children }) => {
 
   const stopLocationTracking = () => {
     if (locationSubscription) {
-      console.log("stopping location tracking...");
+      console.log(
+        `Stopped location tracking to delivery partner id: ${deliveryPartnerId}`
+      );
       locationSubscription.remove();
       setLocationSubscription(null);
     }

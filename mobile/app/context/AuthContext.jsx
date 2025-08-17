@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [approvalStatusUpdated, setApprovalStatusUpdated] = useState(false);
+  const [socketMessage, setSocketMessage] = useState(null);
 
   useEffect(() => {
     const loadAuthData = async () => {
@@ -46,29 +47,41 @@ export const AuthProvider = ({ children }) => {
   );
 
   useEffect(() => {
-    if (!socket || !isConnected) return;
+    if (socket && isConnected && user) {
+      const userData = {
+        type: "user_data",
+        userId: user.id,
+      };
 
-    console.log("Websocket in authContext is connected.");
-
-    const handleMessage = (event) => {
       try {
-        const message = JSON.parse(event.data);
-        console.log("WebSocket message received:", message);
-
-        if (
-          (message.type === "SELLER_APP_APPROVED" ||
-            message.type === "DELIVERY_PARTNER_APP_APPROVED") &&
-          message.targetUserId === user.id
-        ) {
-          Alert.alert(message.title, message.body);
-          setApprovalStatusUpdated(true);
-        }
+        socket.send(JSON.stringify(userData));
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+        console.error("Error sending consumer user data via WebSocket:", error);
       }
-    };
 
-    socket.onmessage = handleMessage;
+      const handleMessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+
+          if (
+            (message.type === "SELLER_APP_APPROVED" ||
+              message.type === "DELIVERY_PARTNER_APP_APPROVED") &&
+            message.targetUserId === user.id
+          ) {
+            Alert.alert(message.title, message.body);
+            setApprovalStatusUpdated(true);
+          }
+
+          if (message.type === "REFRESH_USER_CONVERSATIONS") {
+            setSocketMessage(message);
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
+      };
+
+      socket.onmessage = handleMessage;
+    }
 
     return () => {
       if (socket) {
@@ -111,6 +124,7 @@ export const AuthProvider = ({ children }) => {
         setUser,
         approvalStatusUpdated,
         resetApprovalStatus,
+        socketMessage,
       }}
     >
       {children}

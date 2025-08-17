@@ -127,7 +127,12 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     if (order) {
       if (deliveryPartnerLocation) {
         setDeliveryPartnerCoordinates(deliveryPartnerLocation);
+        console.log("deliveryPartnerLocation:", deliveryPartnerLocation);
       } else {
+        console.log(
+          "order.delivery_partner?.location:",
+          order.delivery_partner?.location
+        );
         setDeliveryPartnerCoordinates({
           latitude: parseFloat(
             order.delivery_partner?.location?.latitude || null

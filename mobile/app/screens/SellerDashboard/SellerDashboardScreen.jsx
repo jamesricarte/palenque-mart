@@ -14,6 +14,7 @@ import SellerOverviewScreen from "./tabs/SellerOverviewScreen";
 import SellerProductsScreen from "./tabs/SellerProductsScreen";
 import SellerOrdersScreen from "./tabs/SellerOrdersScreen";
 import SellerStoreAccountScreen from "./tabs/SellerStoreAccountScreen";
+import SellerChatScreen from "./tabs/SellerChatScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -120,6 +121,16 @@ const SellerDashboard = () => {
           title: "Orders",
           tabBarIcon: ({ color, size }) => (
             <Feather name="shopping-bag" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="SellerChat"
+        component={SellerChatScreen}
+        options={{
+          title: "Chat",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),
         }}
       />

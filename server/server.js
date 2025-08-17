@@ -15,6 +15,7 @@ const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const addressRoutes = require("./routes/addressRoutes");
 const deliveryPartnerRoutes = require("./routes/deliveryPartnerRoutes"); // Added import
+const chatRoutes = require("./routes/chatRoutes"); // Added chat routes import
 
 const app = express();
 const server = http.createServer(app);
@@ -31,9 +32,11 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/delivery-partner", deliveryPartnerRoutes); // Added route registration
+app.use("/api/chat", chatRoutes); // Added chat routes registration
 
 const wss = new WebSocket.Server({ server });
 let sockets = [];
+const users = new Map();
 const deliveryPartners = new Map(); // Add this line to track delivery partners
 const sellers = new Map(); // Add this line to store connected sellers
 const trackingMap = new Map();
@@ -77,7 +80,19 @@ wss.on("connection", (socket) => {
           lastUpdated: new Date(),
         });
 
-        console.log("Tracked delivery partners:", [...deliveryPartners.keys()]);
+        console.log("Tracked delivery partners by id:", [
+          ...deliveryPartners.keys(),
+        ]);
+      }
+
+      if (data.type === "user_data") {
+        const { userId } = data;
+
+        users.set(userId, {
+          socket: socket,
+        });
+
+        console.log("Connected users by id:", [...users.keys()]);
       }
 
       if (data.type === "seller_user_data") {
@@ -87,7 +102,7 @@ wss.on("connection", (socket) => {
           socket: socket,
         });
 
-        console.log("Connected sellers:", [...sellers.keys()]);
+        console.log("Connected sellers by id:", [...sellers.keys()]);
       }
 
       if (data.type === "track_delivery_partner") {
@@ -143,6 +158,15 @@ wss.on("connection", (socket) => {
       }
     }
 
+    // Remove user from Map when socket closes
+    for (const [userId, userData] of users.entries()) {
+      if (userData.socket === socket) {
+        users.delete(userId);
+        console.log("Remaining connected users:", [...users.keys()]);
+        break;
+      }
+    }
+
     // Remove seller from Map when socket closes
     for (const [sellerId, sellerData] of sellers.entries()) {
       if (sellerData.socket === socket) {
@@ -178,6 +202,7 @@ app.set("sockets", sockets);
 app.set("wss", wss);
 app.set("deliveryPartners", deliveryPartners); // Add this line
 app.set("sellers", sellers); // Add this line
+app.set("users", users); // Add this line
 
 server.listen(port, "0.0.0.0", () => {
   console.log(`Server is running at port ${port}`);

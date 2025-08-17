@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 import axios from "axios";
 
@@ -130,23 +130,51 @@ const AddNewAddressScreen = () => {
     };
 
     try {
-      const result = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
+      const { data } = await axios.get(
+        "https://nominatim.openstreetmap.org/reverse",
+        {
+          params: {
+            lat: latitude,
+            lon: longitude,
+            format: "json",
+            addressdetails: 1,
+          },
+          headers: {
+            "User-Agent": "MyApp/1.0 (contact@example.com)",
+          },
+        }
+      );
 
-      if (result.length > 0) {
-        const address = result[0];
+      if (data && data.address) {
+        const address = {
+          streetNumber: data.address.house_number || "",
+          street:
+            data.address.road ||
+            data.address.residential ||
+            data.address.amenity ||
+            "",
+          barangay: data.address.village || data.address.quarter || "",
+          city:
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            "",
+          region: data.address.city || "",
+          subregion: data.address.state || "",
+          postalCode: data.address.postcode || "",
+        };
         setAddressForm((prev) => ({
           ...prev,
           street_address: getStreetAddress(address),
-          barangay: "",
+          barangay: address.barangay || "",
           city: address.city || address.region || "",
           province: address.subregion || "",
           postal_code: address.postalCode || "",
           latitude,
           longitude,
         }));
+      } else {
+        console.warn("OpenStreetMap returned no address data.");
       }
     } catch (error) {
       console.error("Error reverse geocoding:", error);
@@ -334,6 +362,7 @@ const AddNewAddressScreen = () => {
           <View style={{ height: height * 0.4 }}>
             {locationPermission ? (
               <MapView
+                provider={PROVIDER_GOOGLE}
                 ref={mapRef}
                 style={{ flex: 1 }}
                 region={region}

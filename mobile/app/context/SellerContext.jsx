@@ -23,6 +23,7 @@ export const SellerProvider = ({ children }) => {
   const [deliveryPartnerId, setDeliveryPartnerId] = useState(null);
   const [trackDeliveryPartner, setTrackDeliveryPartner] = useState(false);
   const [deliveryPartnerLocation, setDeliveryPartnerLocation] = useState(null);
+  const [socketMessage, setSocketMessage] = useState(null);
 
   const { socket, isConnected } = useWebSocket(
     token && isInSellerDashboard && triggerWebsocket ? WEBSOCKET_URL : null
@@ -51,6 +52,10 @@ export const SellerProvider = ({ children }) => {
 
           if (data.type === "REFRESH_SELLER_ORDERS") {
             setRefreshOrdersData(true);
+          }
+
+          if (data.type === "REFRESH_SELLER_CONVERSATIONS") {
+            setSocketMessage(data);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -171,6 +176,7 @@ export const SellerProvider = ({ children }) => {
     startTrackingDeliveryPartner,
     stopTrackingDeliveryPartner,
     deliveryPartnerLocation,
+    socketMessage,
   };
 
   return (

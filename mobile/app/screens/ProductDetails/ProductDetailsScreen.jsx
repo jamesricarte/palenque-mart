@@ -34,6 +34,7 @@ const ProductDetailsScreen = () => {
   const [selectedPreparations, setSelectedPreparations] = useState({});
   const [cartCount, setCartCount] = useState(0);
   const [actionType, setActionType] = useState(""); // 'cart' or 'buy'
+  const [conversationId, setConversationId] = useState(null);
 
   const fetchProduct = async () => {
     try {
@@ -63,10 +64,32 @@ const ProductDetailsScreen = () => {
     }
   };
 
+  const fetchConversationId = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/chat/${product.seller_id}/conversation-id`,
+        {
+          sellerId: product.seller_id,
+        }
+      );
+      if (response.data.success) {
+        setConversationId(response.data.data.conversationId);
+      }
+    } catch (error) {
+      console.log("Error fetching conversation id:", error.response.data);
+    }
+  };
+
   useEffect(() => {
     fetchProduct();
     fetchCartCount();
   }, [productId]);
+
+  useEffect(() => {
+    if (product?.seller_id) {
+      fetchConversationId();
+    }
+  }, [product]);
 
   const formatUnitType = (unitType) => {
     const unitMap = {
@@ -180,6 +203,34 @@ const ProductDetailsScreen = () => {
       // Reset preferences
       setSelectedQuantity(1);
       setSelectedPreparations({});
+    }
+  };
+
+  const handleChatWithSeller = async () => {
+    if (!user) {
+      Alert.alert("Login Required", "Please login to chat with sellers", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () => navigation.navigate("Login") },
+      ]);
+      return;
+    }
+
+    if (isOwnProduct()) {
+      Alert.alert("Cannot Chat", "You cannot chat with yourself");
+      return;
+    }
+
+    try {
+      // Navigate to chat conversation screen
+      navigation.navigate("ChatConversation", {
+        conversationId: conversationId,
+        sellerId: product.seller_id,
+        storeName: product.store_name,
+        storeLogo: product.store_logo_key,
+      });
+    } catch (error) {
+      console.error("Error starting chat:", error);
+      Alert.alert("Error", "Failed to start chat");
     }
   };
 
@@ -409,9 +460,7 @@ const ProductDetailsScreen = () => {
           {!isOwnProduct() && (
             <TouchableOpacity
               className="flex-row items-center justify-center p-3 mt-3 border border-orange-600 rounded-lg"
-              onPress={() =>
-                Alert.alert("Chat", "Chat feature will be implemented soon!")
-              }
+              onPress={handleChatWithSeller}
             >
               <Feather name="message-circle" size={20} color="#EA580C" />
               <Text className="ml-2 font-medium text-orange-600">

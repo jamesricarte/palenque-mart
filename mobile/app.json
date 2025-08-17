@@ -14,7 +14,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyCYnz_StMrjKEKNnnCdciltxcNTKa_8yaU"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +25,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.PalenqueMart"
+      "package": "com.anonymous.PalenqueMart",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCYnz_StMrjKEKNnnCdciltxcNTKa_8yaU"
+        }
+      }
     },
     "web": {
       "favicon": "./app/assets/favicon.png",

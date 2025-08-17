@@ -5,40 +5,37 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
   RefreshControl,
 } from "react-native";
 import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 
 import { useAuth } from "../../../context/AuthContext";
+import { useSeller } from "../../../context/SellerContext";
 import { API_URL } from "../../../config/apiConfig";
 import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
 
-const ChatScreen = ({ navigation }) => {
-  const { user, socketMessage } = useAuth();
+const SellerChatScreen = ({ navigation }) => {
+  const { user } = useAuth();
+  const { socketMessage } = useSeller();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchConversations = async (showLoading = true) => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
     if (showLoading) setLoading(true);
 
     try {
-      const response = await axios.get(`${API_URL}/api/chat/conversations`);
+      const response = await axios.get(
+        `${API_URL}/api/chat/seller/conversations`
+      );
       if (response.data.success) {
         setConversations(response.data.data.conversations);
       }
     } catch (error) {
-      console.error("Error fetching conversations:", error);
+      console.error("Error fetching seller conversations:", error);
     } finally {
       if (showLoading) setLoading(false);
       setRefreshing(false);
@@ -52,7 +49,10 @@ const ChatScreen = ({ navigation }) => {
   );
 
   useEffect(() => {
-    if (socketMessage && socketMessage.type === "REFRESH_USER_CONVERSATIONS") {
+    if (
+      socketMessage &&
+      socketMessage.type === "REFRESH_SELLER_CONVERSATIONS"
+    ) {
       fetchConversations(false);
     }
   }, [socketMessage]);
@@ -82,37 +82,25 @@ const ChatScreen = ({ navigation }) => {
     <TouchableOpacity
       className="flex-row items-center p-4 bg-white border-b border-gray-100"
       onPress={() =>
-        navigation.navigate("ChatConversation", {
+        navigation.navigate("SellerChatConversation", {
           conversationId: conversation.id,
-          sellerId: conversation.seller_id,
-          storeName: conversation.store_name,
-          storeLogo: conversation.store_logo_key,
+          userId: conversation.user_id,
+          customerName: `${conversation.customer_first_name} ${conversation.customer_last_name}`,
+          customerPhone: conversation.customer_phone,
         })
       }
     >
-      {/* Store Logo */}
+      {/* Customer Avatar */}
       <View className="mr-3">
-        {conversation.store_logo_key ? (
-          <Image
-            source={{ uri: conversation.store_logo_key }}
-            className="w-12 h-12 rounded-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full">
-            <MaterialCommunityIcons
-              name="storefront-outline"
-              size={20}
-              color="#6B7280"
-            />
-          </View>
-        )}
-        {conversation.user_unread_count > 0 && (
-          <View className="absolute flex items-center justify-center w-5 h-5 bg-orange-600 rounded-full -top-1 -right-1">
+        <View className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
+          <Feather name="user" size={20} color="#1e40af" />
+        </View>
+        {conversation.seller_unread_count > 0 && (
+          <View className="absolute flex items-center justify-center w-5 h-5 bg-blue-600 rounded-full -top-1 -right-1">
             <Text className="text-xs font-bold text-white">
-              {conversation.user_unread_count > 9
+              {conversation.seller_unread_count > 9
                 ? "9+"
-                : conversation.user_unread_count}
+                : conversation.seller_unread_count}
             </Text>
           </View>
         )}
@@ -122,7 +110,7 @@ const ChatScreen = ({ navigation }) => {
       <View className="flex-1">
         <View className="flex-row items-center justify-between mb-1">
           <Text className="text-lg font-semibold text-gray-900">
-            {conversation.store_name}
+            {conversation.customer_first_name} {conversation.customer_last_name}
           </Text>
           <Text className="text-xs text-gray-500">
             {formatLastMessageTime(conversation.last_message_at)}
@@ -130,11 +118,17 @@ const ChatScreen = ({ navigation }) => {
         </View>
 
         <Text
-          className={`text-sm ${conversation.user_unread_count > 0 ? "text-gray-900 font-medium" : "text-gray-600"}`}
+          className={`text-sm ${conversation.seller_unread_count > 0 ? "text-gray-900 font-medium" : "text-gray-600"}`}
           numberOfLines={2}
         >
-          {conversation.last_message_text || "Start a conversation"}
+          {conversation.last_message_text || "No messages yet"}
         </Text>
+
+        {conversation.customer_phone && (
+          <Text className="mt-1 text-xs text-gray-500">
+            {conversation.customer_phone}
+          </Text>
+        )}
       </View>
 
       {/* Arrow Icon */}
@@ -144,39 +138,12 @@ const ChatScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  if (!user) {
-    return (
-      <View className="flex-1 bg-gray-50">
-        {/* Header */}
-        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <Text className="text-2xl font-semibold">Messages</Text>
-        </View>
-
-        <View className="items-center justify-center flex-1 px-6">
-          <Feather name="message-circle" size={80} color="#9CA3AF" />
-          <Text className="mt-4 text-xl font-semibold text-gray-600">
-            Login Required
-          </Text>
-          <Text className="mt-2 text-center text-gray-500">
-            Please login to view your messages
-          </Text>
-          <TouchableOpacity
-            className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
-            onPress={() => navigation.navigate("Login")}
-          >
-            <Text className="font-semibold text-white">Login</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
   if (loading) {
     return (
       <View className="flex-1 bg-gray-50">
         {/* Header */}
         <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <Text className="text-2xl font-semibold">Messages</Text>
+          <Text className="text-2xl font-semibold">Customer Messages</Text>
         </View>
 
         <View className="items-center justify-center flex-1">
@@ -191,10 +158,8 @@ const ChatScreen = ({ navigation }) => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-2xl font-semibold">Messages</Text>
-        <Text className="text-sm text-gray-600">
-          Chat with your favorite sellers
-        </Text>
+        <Text className="text-2xl font-semibold">Customer Messages</Text>
+        <Text className="text-sm text-gray-600">Chat with your customers</Text>
       </View>
 
       {conversations.length === 0 ? (
@@ -207,17 +172,12 @@ const ChatScreen = ({ navigation }) => {
           <View className="items-center justify-center flex-1 px-6">
             <Feather name="message-circle" size={80} color="#9CA3AF" />
             <Text className="mt-4 text-xl font-semibold text-gray-600">
-              No conversations yet
+              No customer messages yet
             </Text>
             <Text className="mt-2 text-center text-gray-500">
-              Start shopping and chat with sellers about their products
+              When customers message you about your products, they'll appear
+              here
             </Text>
-            <TouchableOpacity
-              className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
-              onPress={() => navigation.navigate("Home")}
-            >
-              <Text className="font-semibold text-white">Browse Products</Text>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       ) : (
@@ -239,4 +199,4 @@ const ChatScreen = ({ navigation }) => {
   );
 };
 
-export default ChatScreen;
+export default SellerChatScreen;

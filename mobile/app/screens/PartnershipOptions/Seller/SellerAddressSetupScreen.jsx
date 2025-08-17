@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import MapView, { Marker } from "react-native-maps";
+import axios from "axios";
 import * as Location from "expo-location";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -130,18 +131,51 @@ const SellerAddressSetupScreen = ({ navigation, route }) => {
     };
 
     try {
-      const result = await Location.reverseGeocodeAsync(coordinate);
-      if (result && result.length > 0) {
-        const address = result[0];
+      const { data } = await axios.get(
+        "https://nominatim.openstreetmap.org/reverse",
+        {
+          params: {
+            lat: coordinate.latitude,
+            lon: coordinate.longitude,
+            format: "json",
+            addressdetails: 1,
+          },
+          headers: {
+            "User-Agent": "MyApp/1.0 (contact@example.com)",
+          },
+        }
+      );
+
+      if (data && data.address) {
+        const address = {
+          streetNumber: data.address.house_number || "",
+          street:
+            data.address.road ||
+            data.address.residential ||
+            data.address.amenity ||
+            "",
+          barangay: data.address.village || data.address.quarter || "",
+          city:
+            data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            "",
+          region: data.address.city || "",
+          subregion: data.address.state || "",
+          postalCode: data.address.postcode || "",
+        };
+
         setFormData({
           streetAddress: getStreetAddress(address),
-          barangay: "",
+          barangay: address.barangay || "",
           city: address.city || address.region || "",
           province: address.subregion || "",
           postalCode: address.postalCode || "",
           landmark: "",
         });
         setLocationError("");
+      } else {
+        console.warn("OpenStreetMap returned no address data.");
       }
     } catch (error) {
       console.error("Reverse geocoding error:", error);

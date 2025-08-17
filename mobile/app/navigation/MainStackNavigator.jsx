@@ -44,6 +44,7 @@ import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScr
 import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
 import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
 import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
+import SellerChatConversationScreen from "../screens/SellerDashboard/SellerChatConversationScreen";
 
 import DeliveryPartnerDashboardScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDashboardScreen";
 import EditDeliveryPartnerProfileScreen from "../screens/DeliveryPartnerDashboard/EditDeliveryPartnerProfileScreen";
@@ -58,6 +59,8 @@ import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
 
 import AddressManagementScreen from "../screens/AddressManagement/AddressManagementScreen";
 import AddNewAddressScreen from "../screens/AddressManagement/AddNewAddressScreen";
+
+import ChatConversationScreen from "../screens/Chat/ChatConversationScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -181,8 +184,16 @@ const MainStackNavigator = () => {
       <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} />
       <Stack.Screen name="AddProduct" component={AddProductScreen} />
       <Stack.Screen
+        name="SellerOrderDetails"
+        component={SellerOrderDetailsScreen}
+      />
+      <Stack.Screen
         name="EditStoreProfile"
         component={EditStoreProfileScreen}
+      />
+      <Stack.Screen
+        name="SellerChatConversation"
+        component={SellerChatConversationScreen}
       />
 
       {/* Delivery Partner Dashboard */}
@@ -219,9 +230,10 @@ const MainStackNavigator = () => {
       />
       <Stack.Screen name="AddNewAddress" component={AddNewAddressScreen} />
 
+      {/* Chat */}
       <Stack.Screen
-        name="SellerOrderDetails"
-        component={SellerOrderDetailsScreen}
+        name="ChatConversation"
+        component={ChatConversationScreen}
       />
     </Stack.Navigator>
   );
