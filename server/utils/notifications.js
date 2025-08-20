@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-const WebSocket = require("ws");
 require("dotenv").config();
 
 // Nodemailer transporter for sending emails
@@ -32,8 +31,8 @@ const sendEmail = async (mailOptions) => {
  * @param {number} userId - The ID of the target user.
  * @param {object} payload - The notification payload.
  */
-const sendPushNotification = (wss, userId, payload) => {
-  if (!wss || !wss.clients) {
+const sendPushNotification = (userSocket, userId, payload) => {
+  if (!userSocket || !userSocket.socket || userSocket.socket.readyState !== 1) {
     console.error("WebSocket server not available for push notification.");
     return;
   }
@@ -41,11 +40,8 @@ const sendPushNotification = (wss, userId, payload) => {
   const message = JSON.stringify({ ...payload, targetUserId: userId });
 
   // Broadcast the message; the client will filter based on targetUserId.
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
+  userSocket.socket.send(message);
+  console.log(`Sent application approval notification to user id: ${userId}`);
 };
 
 /**
@@ -53,7 +49,7 @@ const sendPushNotification = (wss, userId, payload) => {
  * @param {object} user - The user object, containing id, email, first_name, and store_name.
  * @param {WebSocket.Server} wss - The WebSocket server instance.
  */
-const sendSellerApprovalNotification = async (user, wss) => {
+const sendSellerApprovalNotification = async (user, userSocket) => {
   // 1. Send Congratulatory Email
   const emailOptions = {
     from: `"Palenque Mart" <${process.env.ADMIN_EMAIL}>`,
@@ -91,7 +87,7 @@ const sendSellerApprovalNotification = async (user, wss) => {
     title: "Application Approved!",
     body: `Congratulations, ${user.first_name}! You can now start selling on Palenque Mart.`,
   };
-  sendPushNotification(wss, user.id, pushPayload);
+  sendPushNotification(userSocket, user.id, pushPayload);
 };
 
 /**
@@ -99,7 +95,7 @@ const sendSellerApprovalNotification = async (user, wss) => {
  * @param {object} user - The user object, containing id, email, first_name, partner_id, and vehicle_type.
  * @param {WebSocket.Server} wss - The WebSocket server instance.
  */
-const sendDeliveryPartnerApprovalNotification = async (user, wss) => {
+const sendDeliveryPartnerApprovalNotification = async (user, userSocket) => {
   // 1. Send Congratulatory Email
   const emailOptions = {
     from: `"Palenque Mart" <${process.env.ADMIN_EMAIL}>`,
@@ -132,13 +128,13 @@ const sendDeliveryPartnerApprovalNotification = async (user, wss) => {
   sendEmail(emailOptions);
 
   // 2. Send Push Notification via WebSocket
-  if (wss) {
+  if (userSocket) {
     const pushPayload = {
       type: "DELIVERY_PARTNER_APP_APPROVED",
       title: "Application Approved!",
       body: `Congratulations, ${user.first_name}! You can now start delivering for Palenque Mart.`,
     };
-    sendPushNotification(wss, user.id, pushPayload);
+    sendPushNotification(userSocket, user.id, pushPayload);
   }
 };
 

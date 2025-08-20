@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import axios from "axios";
 
@@ -362,7 +362,6 @@ const AddNewAddressScreen = () => {
           <View style={{ height: height * 0.4 }}>
             {locationPermission ? (
               <MapView
-                provider={PROVIDER_GOOGLE}
                 ref={mapRef}
                 style={{ flex: 1 }}
                 region={region}

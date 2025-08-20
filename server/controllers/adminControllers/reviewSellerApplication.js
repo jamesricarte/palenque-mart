@@ -171,10 +171,12 @@ const reviewSellerApplication = async (req, res) => {
             }
           }
 
+          const userSockets = req.app.get("users");
+
           // Fetch user details for notification
           const [users] = await connection.execute(
             `SELECT u.id, u.email, u.first_name, ssp.store_name 
-           FROM users u 
+           FROM users u D
            JOIN seller_applications sa ON u.id = sa.user_id 
            LEFT JOIN seller_store_profiles ssp ON sa.id = ssp.application_id 
            WHERE sa.id = ?`,
@@ -182,12 +184,11 @@ const reviewSellerApplication = async (req, res) => {
           );
           const userForNotification = users[0];
 
+          const userSocket = userSockets.get(userForNotification.id);
+
           if (userForNotification) {
             // Send notifications (email and push via WebSocket)
-            sendSellerApprovalNotification(
-              userForNotification,
-              req.app.get("wss")
-            );
+            sendSellerApprovalNotification(userForNotification, userSocket);
           }
         }
       }

@@ -86,15 +86,15 @@ const ChatScreen = ({ navigation }) => {
           conversationId: conversation.id,
           sellerId: conversation.seller_id,
           storeName: conversation.store_name,
-          storeLogo: conversation.store_logo_key,
+          storeLogo: conversation.store_logo_url,
         })
       }
     >
       {/* Store Logo */}
       <View className="mr-3">
-        {conversation.store_logo_key ? (
+        {conversation.store_logo_url ? (
           <Image
-            source={{ uri: conversation.store_logo_key }}
+            source={{ uri: conversation.store_logo_url }}
             className="w-12 h-12 rounded-full"
             resizeMode="cover"
           />

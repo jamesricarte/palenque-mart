@@ -7,12 +7,15 @@ import { DeliveryPartnerProvider } from "./context/DeliveryPartnerContext";
 import { SellerProvider } from "./context/SellerContext";
 import LoadingScreen from "./screens/LoadingScreen";
 import { prettyLog } from "./utils/prettyLog";
+import { useKeyboardFlag } from "./hooks/useKeyboardFlag";
 
 import "../global.css";
 global.prettyLog = prettyLog;
 
 const AppContent = () => {
   const { isLoading } = useAuth();
+
+  useKeyboardFlag();
 
   // Show a loading screen while checking for auth token
   if (isLoading) {

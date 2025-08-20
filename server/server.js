@@ -16,6 +16,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const addressRoutes = require("./routes/addressRoutes");
 const deliveryPartnerRoutes = require("./routes/deliveryPartnerRoutes"); // Added import
 const chatRoutes = require("./routes/chatRoutes"); // Added chat routes import
+const notificationRoutes = require("./routes/notificationRoutes"); // Added notification routes import
 
 const app = express();
 const server = http.createServer(app);
@@ -33,6 +34,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/delivery-partner", deliveryPartnerRoutes); // Added route registration
 app.use("/api/chat", chatRoutes); // Added chat routes registration
+app.use("/api/notifications", notificationRoutes); // Added notification routes registration
 
 const wss = new WebSocket.Server({ server });
 let sockets = [];

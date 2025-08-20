@@ -10,8 +10,12 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { useState, useEffect } from "react";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useState, useEffect, useCallback } from "react";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
@@ -80,10 +84,12 @@ const ProductDetailsScreen = () => {
     }
   };
 
-  useEffect(() => {
-    fetchProduct();
-    fetchCartCount();
-  }, [productId]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProduct();
+      fetchCartCount();
+    }, [productId])
+  );
 
   useEffect(() => {
     if (product?.seller_id) {

@@ -30,7 +30,8 @@
         "googleMaps": {
           "apiKey": "AIzaSyCYnz_StMrjKEKNnnCdciltxcNTKa_8yaU"
         }
-      }
+      },
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./app/assets/favicon.png",

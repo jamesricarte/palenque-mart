@@ -64,9 +64,8 @@ export const AuthProvider = ({ children }) => {
           const message = JSON.parse(event.data);
 
           if (
-            (message.type === "SELLER_APP_APPROVED" ||
-              message.type === "DELIVERY_PARTNER_APP_APPROVED") &&
-            message.targetUserId === user.id
+            message.type === "SELLER_APP_APPROVED" ||
+            message.type === "DELIVERY_PARTNER_APP_APPROVED"
           ) {
             Alert.alert(message.title, message.body);
             setApprovalStatusUpdated(true);

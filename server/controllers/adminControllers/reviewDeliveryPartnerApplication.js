@@ -167,6 +167,8 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
         );
 
         // Send approval notification
+        const userSockets = req.app.get("users");
+
         try {
           const userForNotification = {
             id: application.user_id,
@@ -176,11 +178,13 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
             vehicle_type: application.vehicle_type,
           };
 
+          const userSocket = userSockets.get(userForNotification.id);
+
           // Note: wss should be passed from the main server file
           // For now, we'll just send email notification
           await sendDeliveryPartnerApprovalNotification(
             userForNotification,
-            req.app.get("wss")
+            userSocket
           );
         } catch (notificationError) {
           console.error(

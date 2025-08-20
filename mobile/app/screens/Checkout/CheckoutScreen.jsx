@@ -11,8 +11,12 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { useState, useEffect } from "react";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useState, useCallback } from "react";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
@@ -41,20 +45,22 @@ const CheckoutScreen = () => {
 
   const deliveryFee = 50.0;
 
-  useEffect(() => {
-    if (fromCart && routeItems) {
-      // Use the selected items passed from CartScreen
-      setItems(routeItems);
-      setLoading(false);
-    } else if (!fromCart && routeItems) {
-      // For Buy Now from product details
-      setItems(routeItems);
-      setLoading(false);
-    } else {
-      navigation.goBack();
-    }
-    fetchUserAddresses();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (fromCart && routeItems) {
+        // Use the selected items passed from CartScreen
+        setItems(routeItems);
+        setLoading(false);
+      } else if (!fromCart && routeItems) {
+        // For Buy Now from product details
+        setItems(routeItems);
+        setLoading(false);
+      } else {
+        navigation.goBack();
+      }
+      fetchUserAddresses();
+    }, [])
+  );
 
   const fetchUserAddresses = async () => {
     try {

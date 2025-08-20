@@ -4,8 +4,6 @@ module.exports = updateProfile = async (req, res) => {
   let { id, first_name, last_name, email, phone, birth_date, gender } =
     req.body;
 
-  console.log(req.body);
-
   if (!email || !phone) {
     return res
       .status(400)
