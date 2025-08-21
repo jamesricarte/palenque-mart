@@ -1,7 +1,11 @@
 const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-// Nodemailer transporter for sending emails
+const getLocalIp = require("./getLocalIp");
+const { createNotification } = require("./createNotification");
+
+//nodemailer
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -24,32 +28,75 @@ const sendEmail = async (mailOptions) => {
 };
 
 /**
- * Sends a push notification to a specific user via WebSocket.
- * In a production app, this would integrate with a real Push Notification Service (like FCM or APNs).
- * For now, it notifies active client sessions.
- * @param {WebSocket.Server} wss - The WebSocket server instance.
- * @param {number} userId - The ID of the target user.
- * @param {object} payload - The notification payload.
+ * Send email verification link
+ * @param {string} email - the recipient's email
+ * @returns {Promise} resolves when email sent successfully
  */
-const sendPushNotification = (userSocket, userId, payload) => {
-  if (!userSocket || !userSocket.socket || userSocket.socket.readyState !== 1) {
-    console.error("WebSocket server not available for push notification.");
-    return;
-  }
 
-  const message = JSON.stringify({ ...payload, targetUserId: userId });
+async function sendVerificationEmail(email, verificationType = "new") {
+  //jwt
+  const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
 
-  // Broadcast the message; the client will filter based on targetUserId.
-  userSocket.socket.send(message);
-  console.log(`Sent application approval notification to user id: ${userId}`);
-};
+  const mailOptions = {
+    from: "jamesmabois@gmail.com",
+    to: email,
+    subject: "Welcome to Palenque Mart.",
+    html: `
+        <div style="font-family: Arial, sans-serif; font-size: 16px;">
+      <table align="center" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <h1 style="margin: 0; padding: 20px 0;">You're almost done!</h1>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding: 10px 0;">
+            <p style="margin: 0;">
+              To finish creating your account, please verify your email address by clicking this link:
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding: 20px 0;">
+            <a
+              href="http://${getLocalIp()}:3000/api/verify-email?token=${token}&email=${email}"
+              style="
+                color: white;
+                text-decoration: none;
+                background-color: #ffa500;
+                border-radius: 4px;
+                padding: 10px 20px;
+                display: inline-block;
+                font-family: Arial, sans-serif;
+                font-size: 16px;
+              "
+            >
+              Verify Email Address
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding: 10px 0;">
+            <p style="margin: 0;">If you did not request this, you can safely ignore this email.</p>
+            <p style="margin: 0;">Thank you!</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+          `,
+  };
+
+  sendEmail(mailOptions);
+}
 
 /**
  * Sends both email and push notifications for seller application approval.
  * @param {object} user - The user object, containing id, email, first_name, and store_name.
  * @param {WebSocket.Server} wss - The WebSocket server instance.
  */
-const sendSellerApprovalNotification = async (user, userSocket) => {
+const sendSellerApprovalNotification = async (user) => {
   // 1. Send Congratulatory Email
   const emailOptions = {
     from: `"Palenque Mart" <${process.env.ADMIN_EMAIL}>`,
@@ -79,15 +126,27 @@ const sendSellerApprovalNotification = async (user, userSocket) => {
       </div>
     `,
   };
+
   sendEmail(emailOptions);
 
   // 2. Send Push Notification via WebSocket
-  const pushPayload = {
+  const customPayload = {
     type: "SELLER_APP_APPROVED",
-    title: "Application Approved!",
-    body: `Congratulations, ${user.first_name}! You can now start selling on Palenque Mart.`,
   };
-  sendPushNotification(userSocket, user.id, pushPayload);
+
+  const notificationData = {
+    userId: user.id,
+    title: "Application Approved!",
+    message: `Congratulations, ${user.first_name}! You can now start selling on Palenque Mart.`,
+    type: "system",
+    referenceId: null,
+    referenceType: "seller",
+    action: "open_application_status",
+    deepLink: null,
+    extraData: null,
+  };
+
+  createNotification(notificationData, customPayload);
 };
 
 /**
@@ -128,17 +187,27 @@ const sendDeliveryPartnerApprovalNotification = async (user, userSocket) => {
   sendEmail(emailOptions);
 
   // 2. Send Push Notification via WebSocket
-  if (userSocket) {
-    const pushPayload = {
-      type: "DELIVERY_PARTNER_APP_APPROVED",
-      title: "Application Approved!",
-      body: `Congratulations, ${user.first_name}! You can now start delivering for Palenque Mart.`,
-    };
-    sendPushNotification(userSocket, user.id, pushPayload);
-  }
+  const customPayload = {
+    type: "DELIVERY_PARTNER_APP_APPROVED",
+  };
+
+  const notificationData = {
+    userId: user.id,
+    title: "Application Approved!",
+    message: `Congratulations, ${user.first_name}! You can now start delivering for Palenque Mart.`,
+    type: "system",
+    referenceId: null,
+    referenceType: "delivery_partner",
+    action: "open_application_status",
+    deepLink: null,
+    extraData: null,
+  };
+
+  createNotification(notificationData, customPayload);
 };
 
 module.exports = {
+  sendVerificationEmail,
   sendSellerApprovalNotification,
   sendDeliveryPartnerApprovalNotification,
 };

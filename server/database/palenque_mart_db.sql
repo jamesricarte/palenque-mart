@@ -35,7 +35,7 @@ CREATE TABLE `cart` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -77,7 +77,7 @@ CREATE TABLE `conversations` (
   CONSTRAINT `fk_conversations_last_message` FOREIGN KEY (`last_message_id`) REFERENCES `messages` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_conversations_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_conversations_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -86,7 +86,6 @@ CREATE TABLE `conversations` (
 
 LOCK TABLES `conversations` WRITE;
 /*!40000 ALTER TABLE `conversations` DISABLE KEYS */;
-INSERT INTO `conversations` VALUES (1,4,1,1,'2025-08-19 15:54:35',0,0,1,'2025-08-19 15:54:35','2025-08-19 15:54:45');
 /*!40000 ALTER TABLE `conversations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -209,7 +208,7 @@ CREATE TABLE `delivery_partner_applications` (
 
 LOCK TABLES `delivery_partner_applications` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_applications` DISABLE KEYS */;
-INSERT INTO `delivery_partner_applications` VALUES (1,3,'DPA76870405','motorcycle','BMW-DFDF-2324-46SDFDF','DFGD-23RRD-DSDDS-344','Honda','Click 125','2022','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','098345346723','Parent','approved',NULL,'2025-08-19 07:10:50','2025-08-19 07:13:24','2025-08-19 07:13:24',1);
+INSERT INTO `delivery_partner_applications` VALUES (1,3,'DPA89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','approved',NULL,'2025-08-21 10:06:07','2025-08-21 10:19:46','2025-08-21 10:19:46',1);
 /*!40000 ALTER TABLE `delivery_partner_applications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -245,7 +244,7 @@ CREATE TABLE `delivery_partner_documents` (
 
 LOCK TABLES `delivery_partner_documents` WRITE;
 /*!40000 ALTER TABLE `delivery_partner_documents` DISABLE KEYS */;
-INSERT INTO `delivery_partner_documents` VALUES (1,1,'drivers_license','user_3/DPA76870405/drivers_license-1755587450943.jpeg','images%20(6).jpeg',53886,'image/jpeg','verified',NULL,'2025-08-19 07:10:52','2025-08-19 07:13:04'),(2,1,'vehicle_registration','user_3/DPA76870405/vehicle_registration-1755587452105.jpeg','images%20(7).jpeg',47849,'image/jpeg','verified',NULL,'2025-08-19 07:10:52','2025-08-19 07:13:10'),(4,1,'insurance','user_3/DPA76870405/insurance-1755587452596.png','images%20(1).png',26986,'image/png','pending',NULL,'2025-08-19 07:10:52','2025-08-19 07:10:52');
+INSERT INTO `delivery_partner_documents` VALUES (1,1,'drivers_license','user_3/DPA89506894/drivers_license-1755770767675.jpeg','images%20(6).jpeg',53886,'image/jpeg','verified',NULL,'2025-08-21 10:06:09','2025-08-21 10:19:11'),(2,1,'vehicle_registration','user_3/DPA89506894/vehicle_registration-1755770769482.jpeg','images%20(7).jpeg',47849,'image/jpeg','verified',NULL,'2025-08-21 10:06:09','2025-08-21 10:19:15'),(4,1,'insurance','user_3/DPA89506894/insurance-1755770769911.png','images%20(1).png',26986,'image/png','pending',NULL,'2025-08-21 10:06:10','2025-08-21 10:06:10');
 /*!40000 ALTER TABLE `delivery_partner_documents` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -300,7 +299,7 @@ CREATE TABLE `delivery_partners` (
 
 LOCK TABLES `delivery_partners` WRITE;
 /*!40000 ALTER TABLE `delivery_partners` DISABLE KEYS */;
-INSERT INTO `delivery_partners` VALUES (1,3,1,'DP76870405','motorcycle','BMW-DFDF-2324-46SDFDF','DFGD-23RRD-DSDDS-344','Honda','Click 125','2022','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','098345346723','Parent','delivery-partners/DP76870405/profile_photos/profile_photo_1755587605425.jpeg',0,'available',NULL,NULL,5.00,0,1,'2025-08-19 07:13:25','2025-08-19 13:19:16');
+INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'available',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-08-21 10:21:39');
 /*!40000 ALTER TABLE `delivery_partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -334,7 +333,7 @@ CREATE TABLE `messages` (
   CONSTRAINT `fk_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_messages_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -343,7 +342,6 @@ CREATE TABLE `messages` (
 
 LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
-INSERT INTO `messages` VALUES (1,1,4,'user','Available po?','text',NULL,NULL,1,'2025-08-19 15:54:35','2025-08-19 15:54:45');
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -374,7 +372,7 @@ CREATE TABLE `notifications` (
   KEY `idx_is_read` (`is_read`),
   KEY `idx_created_at` (`created_at`),
   CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -383,7 +381,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-INSERT INTO `notifications` VALUES (23,4,'Order Confirmed','Your order #101 has been confirmed.','order',1,'order','open_order_details','app://orders/101','{\"status\": \"confirmed\", \"orderId\": 101}',0,'2025-08-20 07:41:30','2025-08-20 07:51:09'),(24,4,'Order Shipped','Your order #102 is on the way.','order',1,'order','open_order_details','app://orders/102','{\"status\": \"shipped\", \"orderId\": 102}',1,'2025-08-20 07:41:30','2025-08-20 07:51:18'),(25,4,'Order Cancelled','Your order #103 has been cancelled.','order',1,'order','open_order_details','app://orders/103','{\"status\": \"cancelled\", \"orderId\": 103}',1,'2025-08-20 07:41:30','2025-08-20 07:51:15'),(26,4,'Delivery Assigned','You have been assigned delivery #501.','delivery',1,'delivery_partner','open_delivery_details','app://deliveries/501','{\"priority\": \"high\", \"assignmentId\": 501}',1,'2025-08-20 07:41:30','2025-08-20 07:51:09'),(27,4,'Delivery Completed','Delivery #502 has been completed successfully.','delivery',1,'delivery_partner','open_delivery_details','app://deliveries/502','{\"status\": \"completed\", \"assignmentId\": 502}',1,'2025-08-20 07:41:30','2025-08-20 07:51:24'),(28,4,'Big Sale Today!','Enjoy up to 50% off on selected products.','promotion',1,'product','open_promotion','app://promotions/201','{\"discount\": \"50%\", \"validUntil\": \"2025-08-31\"}',0,'2025-08-20 07:41:30','2025-08-20 07:51:09'),(29,4,'Exclusive Offer for You','Special deal on your favorite seller!','promotion',1,'seller','open_seller_shop','app://sellers/301','{\"sellerId\": 301, \"discountCode\": \"SAVE20\"}',0,'2025-08-20 07:41:30','2025-08-20 07:51:09'),(30,4,'System Maintenance','Scheduled maintenance on 2025-08-20 2:00 AM.','system',NULL,NULL,'open_system_notice','app://system/maintenance','{\"duration\": \"2h\", \"startTime\": \"2025-08-20T02:00:00\"}',0,'2025-08-20 07:41:30','2025-08-20 07:41:30'),(31,4,'Account Update Required','Please verify your account details.','system',1,NULL,'open_account_settings','app://settings/account','{\"userId\": 4, \"requiredAction\": \"verify_details\"}',0,'2025-08-20 07:41:30','2025-08-20 07:51:09'),(32,4,'New Message from Seller','You have a new message in chat with Seller #601.','chat',1,'chat','open_chat','app://chat/601','{\"senderId\": 888, \"unreadCount\": 1, \"conversationId\": 601}',1,'2025-08-20 07:41:30','2025-08-20 07:52:23'),(33,4,'New Group Chat Message','Your delivery team sent a new group chat update.','chat',1,'chat','open_chat','app://chat/602','{\"group\": true, \"senderId\": 777, \"conversationId\": 602}',1,'2025-08-20 07:41:30','2025-08-20 07:52:20');
+INSERT INTO `notifications` VALUES (1,2,'Application Approved!','Congratulations, Boy! You can now start selling on Palenque Mart.','system',NULL,'seller','open_application_status',NULL,'null',0,'2025-08-21 09:56:46','2025-08-21 10:05:30'),(2,3,'Application Approved!','Congratulations, James Mickel! You can now start delivering for Palenque Mart.','system',NULL,'delivery_partner','open_application_status',NULL,'null',1,'2025-08-21 10:19:47','2025-08-21 10:31:37');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -412,7 +410,7 @@ CREATE TABLE `order_items` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_item_status` (`item_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -421,7 +419,6 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,1,1,1,120.00,120.00,'{}','pending',NULL,'2025-08-20 07:32:07','2025-08-20 07:32:07');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -442,7 +439,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -451,7 +448,6 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-20 07:32:07');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -501,7 +497,7 @@ CREATE TABLE `orders` (
   KEY `idx_payment_status` (`payment_status`),
   KEY `idx_voucher_id` (`voucher_id`),
   KEY `idx_delivery_address_id` (`delivery_address_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -510,7 +506,6 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,4,1,'ORD1755675127629139','pending','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'Marita Ricarte','+639771495822','Tomas Cabiles Street','Panal','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-20 07:32:07','2025-08-20 07:32:07');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -543,7 +538,7 @@ CREATE TABLE `products` (
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_is_active` (`is_active`),
   KEY `idx_category` (`category`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -552,7 +547,6 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Bangkulis','',120.00,11,'Fish','Other','per_500g','Harvested this morning','2025-08-19','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1a0c3816-eeb8-4d81-9812-8f8c67394562-photo.jpeg',1,'2025-08-19 15:51:37','2025-08-20 07:32:07');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -591,7 +585,7 @@ CREATE TABLE `seller_addresses` (
 
 LOCK TABLES `seller_addresses` WRITE;
 /*!40000 ALTER TABLE `seller_addresses` DISABLE KEYS */;
-INSERT INTO `seller_addresses` VALUES (1,1,'pickup','Tomas Cabiles Street','Panal','Tabaco','Albay','4511',NULL,13.35243190,123.72136138,'2025-08-19 06:30:52','2025-08-19 06:30:52'),(2,1,'return','Karangahan Boulevard','Bombon','Tabaco','Albay','4511',NULL,13.36137980,123.72876140,'2025-08-19 06:30:52','2025-08-19 06:30:52'),(3,1,'store','Karangahan Boulevard','Bangkilingan','Tabaco','Albay','4511',NULL,13.35982149,123.72350246,'2025-08-19 06:30:52','2025-08-19 06:30:52');
+INSERT INTO `seller_addresses` VALUES (1,1,'pickup','Karangahan Boulevard','Bangkilingan','Tabaco','Albay','4511','Near Melgar Bakery',13.35740334,123.71860340,'2025-08-21 09:55:58','2025-08-21 09:55:58'),(2,1,'return','Jamaica Mansions','Panal','Tabaco','Albay','4511','Behind of club house',13.35240352,123.72115351,'2025-08-21 09:55:58','2025-08-21 09:55:58'),(3,1,'store','Llorente Street','Quinale Cabasan','Tabaco','Albay','4511','Behind City mall',13.35888333,123.73111255,'2025-08-21 09:55:58','2025-08-21 09:55:58');
 /*!40000 ALTER TABLE `seller_addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -628,7 +622,7 @@ CREATE TABLE `seller_applications` (
 
 LOCK TABLES `seller_applications` WRITE;
 /*!40000 ALTER TABLE `seller_applications` DISABLE KEYS */;
-INSERT INTO `seller_applications` VALUES (1,2,'APP85048267','individual','approved',NULL,'2025-08-19 06:30:48','2025-08-19 06:33:15','2025-08-19 06:33:15',1);
+INSERT INTO `seller_applications` VALUES (1,2,'APP70155528','individual','approved',NULL,'2025-08-21 09:55:55','2025-08-21 09:56:44','2025-08-21 09:56:44',1);
 /*!40000 ALTER TABLE `seller_applications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -694,7 +688,7 @@ CREATE TABLE `seller_documents` (
 
 LOCK TABLES `seller_documents` WRITE;
 /*!40000 ALTER TABLE `seller_documents` DISABLE KEYS */;
-INSERT INTO `seller_documents` VALUES (1,1,'government_id','user_2/APP85048267/government_id-1755585048283.png','UMID_EMV_sample.png',3902179,'image/png','verified',NULL,'2025-08-19 06:30:52','2025-08-19 06:31:58'),(2,1,'selfie_with_id','user_2/APP85048267/selfie_with_id-1755585051613.jpeg','selfie_with_id.jpeg',19097,'image/jpeg','verified',NULL,'2025-08-19 06:30:52','2025-08-19 06:32:04'),(3,1,'bank_statement','user_2/APP85048267/bank_statement-1755585051831.png','images.png',19164,'image/png','pending',NULL,'2025-08-19 06:30:52','2025-08-19 06:30:52');
+INSERT INTO `seller_documents` VALUES (1,1,'government_id','user_2/APP70155528/government_id-1755770155565.png','UMID_EMV_sample.png',3902179,'image/png','verified',NULL,'2025-08-21 09:55:58','2025-08-21 09:56:32'),(2,1,'selfie_with_id','user_2/APP70155528/selfie_with_id-1755770157231.jpeg','selfie_with_id.jpeg',18972,'image/jpeg','verified',NULL,'2025-08-21 09:55:58','2025-08-21 09:56:36'),(3,1,'bank_statement','user_2/APP70155528/bank_statement-1755770157654.png','images%20(1).png',26986,'image/png','pending',NULL,'2025-08-21 09:55:58','2025-08-21 09:55:58');
 /*!40000 ALTER TABLE `seller_documents` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -724,7 +718,7 @@ CREATE TABLE `seller_store_profiles` (
 
 LOCK TABLES `seller_store_profiles` WRITE;
 /*!40000 ALTER TABLE `seller_store_profiles` DISABLE KEYS */;
-INSERT INTO `seller_store_profiles` VALUES (1,1,'James Store','Wonderful fresh seller store','sellers/SELL85195886/store_logos/store_logo_1755585197097.jpeg','2025-08-19 06:30:52','2025-08-19 06:33:17');
+INSERT INTO `seller_store_profiles` VALUES (1,1,'Boy Banat Store','Fresh seller','sellers/SELL70204724/store_logos/store_logo_1755770205878.jpeg','2025-08-21 09:55:58','2025-08-21 09:56:46');
 /*!40000 ALTER TABLE `seller_store_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -762,7 +756,7 @@ CREATE TABLE `sellers` (
 
 LOCK TABLES `sellers` WRITE;
 /*!40000 ALTER TABLE `sellers` DISABLE KEYS */;
-INSERT INTO `sellers` VALUES (1,2,1,'SELL85195886','individual','James Store','Wonderful fresh seller store','sellers/SELL85195886/store_logos/store_logo_1755585197097.jpeg',1,'2025-08-19 06:33:15','2025-08-19 06:33:17');
+INSERT INTO `sellers` VALUES (1,2,1,'SELL70204724','individual','Boy Banat Store','Fresh seller','sellers/SELL70204724/store_logos/store_logo_1755770205878.jpeg',1,'2025-08-21 09:56:44','2025-08-21 09:56:46');
 /*!40000 ALTER TABLE `sellers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -794,7 +788,7 @@ CREATE TABLE `user_addresses` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_is_default` (`is_default`),
   KEY `idx_coordinates` (`latitude`,`longitude`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -803,7 +797,6 @@ CREATE TABLE `user_addresses` (
 
 LOCK TABLES `user_addresses` WRITE;
 /*!40000 ALTER TABLE `user_addresses` DISABLE KEYS */;
-INSERT INTO `user_addresses` VALUES (1,4,'home','Marita Ricarte','+639771495822','Tomas Cabiles Street','Panal','Tabaco','Albay','4511','',13.35258710,123.72160020,0,'2025-08-20 07:31:52','2025-08-20 07:31:52');
 /*!40000 ALTER TABLE `user_addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -841,7 +834,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2b$10$.XCLqvtKmsvLjYlwJtFydesWreC1nDMsBZ06ScWr6DmQyA/9aOJLy',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 06:43:52','2025-07-17 07:01:30'),(2,'James','Ricarte','uhenyou@gmail.com','$2b$10$eAJ61J9Gs748twiiAOtklOGyLCsU4HRbVEAtznaa5hPdkA.T96BwO','+639771495824',NULL,'2003-01-03','male','user',1,'2025-08-19 06:24:57','2025-08-19 06:25:58'),(3,'James Mickel','Ricarte','jamesmickelricarte@gmail.com','$2b$10$I2CzV./Izs8lWscoy4XwquulzEcbB/WsP9LxUy8Oj/lzcd72rVMPG','+639771495823',NULL,'2003-01-03',NULL,'user',1,'2025-08-19 06:37:19','2025-08-19 06:38:58'),(4,'Marita','Ricarte','maritaricarte@gmail.com','$2b$10$XB.NhQ9nQ1Wkb5uaqkdz0eW7bLtTW5bOVMVuKufNw9cUGG3zec3A.','+639771495822',NULL,NULL,NULL,'user',1,'2025-08-19 13:58:35','2025-08-19 15:42:19');
+INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2b$10$.XCLqvtKmsvLjYlwJtFydesWreC1nDMsBZ06ScWr6DmQyA/9aOJLy',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 06:43:52','2025-07-17 07:01:30'),(2,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$Yef/Ilvzh7I7cPCEXKnkEejwmNYoup7mujWOsJsil0MUVSuwdWc9K','+639771495823',NULL,'2003-01-03','male','user',1,'2025-08-21 07:03:31','2025-08-21 07:06:15'),(3,'James Mickel','Ricarte','jamesmickelricarte@gmail.com','$2b$10$3Z.5toj.ap4oFlg1TxUBtet6/PLdqGpn5QmMRdWzFDGMaNyGv0S/e','+639771495822',NULL,'2003-01-03','male','user',1,'2025-08-21 10:00:16','2025-08-21 10:01:58'),(4,'James','Ricarte','uhenyou@gmail.com','$2b$10$LkH7AwAazGYdJDgq3ErQAuc1dH0xx41krItqxn7go9BViFWVYG11W',NULL,NULL,NULL,NULL,'user',1,'2025-08-21 10:49:44','2025-08-21 10:49:44');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -895,4 +888,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-20 16:44:16
+-- Dump completed on 2025-08-21 19:44:32

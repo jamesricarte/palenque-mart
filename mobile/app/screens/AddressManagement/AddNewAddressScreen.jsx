@@ -130,7 +130,7 @@ const AddNewAddressScreen = () => {
     };
 
     try {
-      const { data } = await axios.get(
+      const response = await axios.get(
         "https://nominatim.openstreetmap.org/reverse",
         {
           params: {
@@ -144,6 +144,8 @@ const AddNewAddressScreen = () => {
           },
         }
       );
+
+      const data = response.data;
 
       if (data && data.address) {
         const address = {
@@ -177,7 +179,35 @@ const AddNewAddressScreen = () => {
         console.warn("OpenStreetMap returned no address data.");
       }
     } catch (error) {
-      console.error("Error reverse geocoding:", error);
+      console.error(
+        "OpenStreetMap reverse geocoding failed, falling back to Google reverse geocoding"
+      );
+
+      try {
+        const result = await Location.reverseGeocodeAsync({
+          latitude,
+          longitude,
+        });
+
+        if (result.length > 0) {
+          const address = result[0];
+          setAddressForm((prev) => ({
+            ...prev,
+            street_address: getStreetAddress(address),
+            barangay: "",
+            city: address.city || address.region || "",
+            province: address.subregion || "",
+            postal_code: address.postalCode || "",
+            latitude,
+            longitude,
+          }));
+        }
+      } catch (error) {
+        console.warn(
+          "Fallback google reverse geocoding failed:",
+          error.message
+        );
+      }
     }
   };
 

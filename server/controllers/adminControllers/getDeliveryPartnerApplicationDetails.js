@@ -36,18 +36,15 @@ const getDeliveryPartnerApplicationDetails = async (req, res) => {
     const application = applications[0];
 
     // Parse JSON fields safely
-    try {
-      application.service_areas = application.service_areas
+
+    application.service_areas =
+      typeof application.service_areas === "string"
         ? JSON.parse(application.service_areas)
-        : [];
-      application.availability_hours = application.availability_hours
+        : application.service_area || [];
+    application.availability_hours =
+      typeof application.availability_hours === "string"
         ? JSON.parse(application.availability_hours)
-        : {};
-    } catch (parseError) {
-      console.error("Error parsing JSON fields:", parseError);
-      application.service_areas = [];
-      application.availability_hours = {};
-    }
+        : application.availability_hours || {};
 
     // Get documents
     const [documents] = await db.execute(

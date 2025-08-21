@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const db = require("../../config/db");
 const formValidator = require("../../utils/formValidator");
-const sendVerificationEmail = require("../../utils/sendVerificationEmail");
+const { sendVerificationEmail } = require("../../utils/sendEmails");
 const sendOTP = require("../../utils/sendOTP");
 
 const login = async (req, res) => {

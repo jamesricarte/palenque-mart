@@ -113,7 +113,7 @@ const AdminDeliveryPartnerApplicationDetailsScreen = ({
       );
 
       if (response.data.success) {
-        Alert.alert("Success", `Application ${action}ed successfully`, [
+        Alert.alert("Success", `Application approved successfully`, [
           {
             text: "OK",
             onPress: () =>

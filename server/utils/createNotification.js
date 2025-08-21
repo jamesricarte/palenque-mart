@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { users } = require("./socketStore");
 
 /**
  * Creates a notification in the database
@@ -14,7 +15,7 @@ const db = require("../config/db");
  * @param {Object} [notificationData.extraData] - Optional extra data as JSON object
  * @returns {Promise<Object>} The created notification object or error
  */
-const createNotification = async (notificationData) => {
+const createNotification = async (notificationData, customPayload = null) => {
   try {
     const {
       userId,
@@ -63,7 +64,7 @@ const createNotification = async (notificationData) => {
 
     // Convert extraData to JSON string if it's an object
     const extraDataJson =
-      typeof extraData === "string" ? JSON.stringify(extraData) : extraDataJson;
+      typeof extraData === "object" ? JSON.stringify(extraData) : extraData;
 
     // Insert notification into database
     const [result] = await db.execute(
@@ -100,6 +101,34 @@ const createNotification = async (notificationData) => {
         typeof notification.extra_data === "string"
           ? JSON.parse(notification.extra_data)
           : notification.extra_data;
+    }
+
+    /**
+     * Sends a push notification to a specific user via WebSocket.
+     * In a production app, this would integrate with a real Push Notification Service (like FCM or APNs).
+     * For now, it notifies active client sessions.
+     */
+
+    const userSocket = users.get(userId);
+
+    const payload = {
+      type: customPayload?.type || type,
+      title: customPayload?.title || title,
+      body: customPayload?.body || message,
+    };
+
+    const socketMessage = JSON.stringify(payload);
+
+    // Broadcast the message to specific socket.
+    if (userSocket && userSocket.socket && userSocket.socket.readyState === 1) {
+      userSocket.socket.send(socketMessage);
+      console.log(
+        `Sent notification update to user with id of ${userId} via Websocket`
+      );
+    } else {
+      console.log(
+        "Failed sending websocket to user for a notification update. User's socket is not present"
+      );
     }
 
     return {

@@ -1,6 +1,6 @@
 const db = require("../../config/db");
 const supabase = require("../../config/supabase");
-const { sendSellerApprovalNotification } = require("../../utils/notifications");
+const { sendSellerApprovalNotification } = require("../../utils/sendEmails");
 
 const reviewSellerApplication = async (req, res) => {
   try {
@@ -171,24 +171,21 @@ const reviewSellerApplication = async (req, res) => {
             }
           }
 
-          const userSockets = req.app.get("users");
-
           // Fetch user details for notification
           const [users] = await connection.execute(
             `SELECT u.id, u.email, u.first_name, ssp.store_name 
-           FROM users u D
+           FROM users u 
            JOIN seller_applications sa ON u.id = sa.user_id 
            LEFT JOIN seller_store_profiles ssp ON sa.id = ssp.application_id 
            WHERE sa.id = ?`,
             [application.id]
           );
+
           const userForNotification = users[0];
 
-          const userSocket = userSockets.get(userForNotification.id);
-
           if (userForNotification) {
-            // Send notifications (email and push via WebSocket)
-            sendSellerApprovalNotification(userForNotification, userSocket);
+            // Send notifications (email, create notification, and push via WebSocket)
+            sendSellerApprovalNotification(userForNotification);
           }
         }
       }

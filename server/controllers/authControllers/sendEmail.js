@@ -1,7 +1,7 @@
 const db = require("../../config/db");
 
 const formValidator = require("../../utils/formValidator");
-const sendVerificationEmail = require("../../utils/sendVerificationEmail");
+const { sendVerificationEmail } = require("../../utils/sendEmails");
 
 module.exports = sendEmail = async (req, res) => {
   const { email, editing } = req.body;

@@ -2,7 +2,7 @@ const db = require("../../config/db");
 const supabase = require("../../config/supabase");
 const {
   sendDeliveryPartnerApprovalNotification,
-} = require("../../utils/notifications");
+} = require("../../utils/sendEmails");
 
 const reviewDeliveryPartnerApplication = async (req, res) => {
   try {
@@ -167,8 +167,6 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
         );
 
         // Send approval notification
-        const userSockets = req.app.get("users");
-
         try {
           const userForNotification = {
             id: application.user_id,
@@ -178,14 +176,8 @@ const reviewDeliveryPartnerApplication = async (req, res) => {
             vehicle_type: application.vehicle_type,
           };
 
-          const userSocket = userSockets.get(userForNotification.id);
-
-          // Note: wss should be passed from the main server file
           // For now, we'll just send email notification
-          await sendDeliveryPartnerApprovalNotification(
-            userForNotification,
-            userSocket
-          );
+          await sendDeliveryPartnerApprovalNotification(userForNotification);
         } catch (notificationError) {
           console.error(
             "Error sending approval notification:",

@@ -18,6 +18,15 @@ const deliveryPartnerRoutes = require("./routes/deliveryPartnerRoutes"); // Adde
 const chatRoutes = require("./routes/chatRoutes"); // Added chat routes import
 const notificationRoutes = require("./routes/notificationRoutes"); // Added notification routes import
 
+// Requiring whole socketStore for usage of let sockets assignment
+const socketStore = require("./utils/socketStore");
+const {
+  users,
+  deliveryPartners,
+  sellers,
+  trackingMap,
+} = require("./utils/socketStore");
+
 const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT;
@@ -37,14 +46,9 @@ app.use("/api/chat", chatRoutes); // Added chat routes registration
 app.use("/api/notifications", notificationRoutes); // Added notification routes registration
 
 const wss = new WebSocket.Server({ server });
-let sockets = [];
-const users = new Map();
-const deliveryPartners = new Map(); // Add this line to track delivery partners
-const sellers = new Map(); // Add this line to store connected sellers
-const trackingMap = new Map();
 
 wss.on("connection", (socket) => {
-  sockets.push(socket);
+  socketStore.sockets.push(socket);
   console.log("WebSocket client connected");
 
   // Handle delivery partner location updates
@@ -147,7 +151,7 @@ wss.on("connection", (socket) => {
   });
 
   socket.on("close", () => {
-    sockets = sockets.filter((s) => s !== socket);
+    socketStore.sockets = socketStore.sockets.filter((s) => s !== socket);
 
     // Remove delivery partner from Map when socket closes
     for (const [partnerId, partnerData] of deliveryPartners.entries()) {
@@ -200,7 +204,7 @@ wss.on("connection", (socket) => {
   });
 });
 
-app.set("sockets", sockets);
+app.set("sockets", socketStore.sockets);
 app.set("wss", wss);
 app.set("deliveryPartners", deliveryPartners); // Add this line
 app.set("sellers", sellers); // Add this line

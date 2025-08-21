@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   RefreshControl,
   ScrollView,
+  ActivityIndicator,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "@expo/vector-icons/Feather";
@@ -197,42 +199,51 @@ const NotificationsScreen = ({ navigation }) => {
 
   const FilterButton = ({ filterType, label, count }) => (
     <TouchableOpacity
-      className={`px-4 py-2 rounded-full mr-3 ${filter === filterType ? "bg-orange-600" : "bg-gray-100"}`}
+      className={`px-4 py-2 rounded-full mr-3 ${
+        filter === filterType ? "bg-orange-600" : "bg-gray-100"
+      }`}
       onPress={() => setFilter(filterType)}
     >
       <Text
-        className={`text-sm font-medium ${filter === filterType ? "text-white" : "text-gray-700"}`}
+        className={`text-sm font-medium ${
+          filter === filterType ? "text-white" : "text-gray-700"
+        }`}
       >
         {label} {count > 0 && `(${count})`}
       </Text>
     </TouchableOpacity>
   );
 
-  const renderNotificationItem = (item, index) => (
-    <TouchableOpacity
-      key={item.id}
-      className={`p-4 border-b border-gray-100 ${!item.is_read ? "bg-blue-50" : "bg-white"}`}
-      onPress={() => handleNotificationPress(item)}
-    >
-      <View className="flex-row items-start gap-3">
-        <View className="mt-1">{getNotificationIcon(item.type)}</View>
-        <View className="flex-1">
-          <Text className="mb-1 text-base font-semibold text-gray-900">
-            {item.title}
-          </Text>
-          <Text className="mb-2 text-sm leading-5 text-gray-600">
-            {item.message}
-          </Text>
-          <Text className="text-xs text-gray-400">
-            {formatTimeAgo(item.created_at)}
-          </Text>
+  const renderNotificationItem = ({ item, index }) => {
+    if (!item) return null;
+    return (
+      <TouchableOpacity
+        key={item.id ?? index}
+        className={`p-4 border-b border-gray-100 ${
+          !item.is_read ? "bg-blue-50" : "bg-white"
+        }`}
+        onPress={() => handleNotificationPress(item)}
+      >
+        <View className="flex-row items-start gap-3">
+          <View className="mt-1">{getNotificationIcon(item.type)}</View>
+          <View className="flex-1">
+            <Text className="mb-1 text-base font-semibold text-gray-900">
+              {item.title}
+            </Text>
+            <Text className="mb-2 text-sm leading-5 text-gray-600">
+              {item.message}
+            </Text>
+            <Text className="text-xs text-gray-400">
+              {formatTimeAgo(item.created_at)}
+            </Text>
+          </View>
+          {!item.is_read && (
+            <View className="w-2 h-2 mt-2 bg-orange-600 rounded-full" />
+          )}
         </View>
-        {!item.is_read && (
-          <View className="w-2 h-2 mt-2 bg-orange-600 rounded-full" />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const getEmptyStateMessage = () => {
     switch (filter) {
@@ -256,6 +267,22 @@ const NotificationsScreen = ({ navigation }) => {
   };
 
   const emptyState = getEmptyStateMessage();
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-gray-50">
+        {/* Header */}
+        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+          <Text className="text-2xl font-semibold">Notifications</Text>
+        </View>
+
+        <View className="items-center justify-center flex-1">
+          <ActivityIndicator size="large" color="#F16B44" />
+          <Text className="mt-4 text-gray-600">Loading notifications...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -296,14 +323,13 @@ const NotificationsScreen = ({ navigation }) => {
       </View>
 
       {/* Content */}
-      {filteredNotifications.length === 0 ? (
-        <ScrollView
-          contentContainerStyle={{ flex: 1 }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          <View className="items-center justify-center flex-1 px-6">
+      <FlatList
+        contentContainerStyle={{ flex: 1 }}
+        data={filteredNotifications}
+        keyExtractor={(item, index) => item?.id?.toString() ?? index.toString()}
+        renderItem={renderNotificationItem}
+        ListEmptyComponent={() => (
+          <View className="items-center justify-center flex-1 px-6 py-10">
             <Feather name="bell" size={80} color="#9CA3AF" />
             <Text className="mt-4 text-xl font-semibold text-gray-600">
               {emptyState.title}
@@ -312,21 +338,16 @@ const NotificationsScreen = ({ navigation }) => {
               {emptyState.subtitle}
             </Text>
           </View>
-        </ScrollView>
-      ) : (
-        <ScrollView
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={["#F16B44"]}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-        >
-          {filteredNotifications.map(renderNotificationItem)}
-        </ScrollView>
-      )}
+        )}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#F16B44"]}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 };
