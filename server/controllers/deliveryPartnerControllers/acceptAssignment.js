@@ -62,6 +62,12 @@ const acceptAssignment = async (req, res) => {
       [assignment.order_id]
     );
 
+    // Update order items statuses to rider_assigned
+    await db.execute(
+      "UPDATE order_items SET item_status = 'rider_assigned' WHERE order_id = ?",
+      [assignment.order_id]
+    );
+
     // Update delivery partner status to occupied
     await db.execute(
       "UPDATE delivery_partners SET status = 'occupied' WHERE id = ?",

@@ -11,8 +11,16 @@ const getUserOrders = async (req, res) => {
     const queryParams = [userId];
 
     if (status && status !== "all") {
-      statusFilter = "AND o.status = ?";
-      queryParams.push(status);
+      if (status === "pending") {
+        statusFilter = "AND o.status IN (?, ?, ?)";
+        queryParams.push("pending", "confirmed", "preparing");
+      } else if (status === "on_the_way") {
+        statusFilter = "AND o.status IN (?, ?)";
+        queryParams.push("rider_assigned", "out_for_delivery");
+      } else {
+        statusFilter = "AND o.status = ?";
+        queryParams.push(status);
+      }
     }
 
     // Get orders with first store logo and first product details for each order

@@ -67,6 +67,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       {
         value: "confirmed",
         label: "Accept Order",
+        message: "accepted",
         color: "#10B981",
         icon: "check-circle",
         description: "Accept and confirm this order",
@@ -74,6 +75,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       {
         value: "cancelled",
         label: "Decline Order",
+        message: "declined",
         color: "#EF4444",
         icon: "x-circle",
         description: "Decline this order",
@@ -83,6 +85,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       {
         value: "preparing",
         label: "Start Preparing",
+        message: "started preparing",
         color: "#8B5CF6",
         icon: "clock",
         description: "Begin preparing the order items",
@@ -92,6 +95,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       {
         value: "ready_for_pickup",
         label: "Mark Ready",
+        message: "marked ready",
         color: "#10B981",
         icon: "package",
         description: "Order is ready for pickup by delivery partner",
@@ -217,7 +221,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         }
         Alert.alert(
           "Success",
-          `Order ${actionData.label.toLowerCase()} successfully`
+          `Order ${actionData.message.toLowerCase()} successfully`
         );
         fetchOrderDetails();
         setStatusModalVisible(false);

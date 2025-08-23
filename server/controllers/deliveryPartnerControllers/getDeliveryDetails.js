@@ -185,7 +185,7 @@ const getDeliveryDetails = async (req, res) => {
     if (assignment.store_logo_key) {
       try {
         const { data } = supabase.storage
-          .from("vendors")
+          .from("vendor-assets")
           .getPublicUrl(assignment.store_logo_key);
         storeLogoUrl = data.publicUrl;
       } catch (error) {

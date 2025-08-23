@@ -53,6 +53,7 @@ const OrderDetailsScreen = () => {
       confirmed: "bg-blue-100 text-blue-800",
       preparing: "bg-purple-100 text-purple-800",
       ready_for_pickup: "bg-indigo-100 text-indigo-800",
+      rider_assigned: "bg-orange-100 text-orange-800",
       out_for_delivery: "bg-orange-100 text-orange-800",
       delivered: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800",
@@ -67,7 +68,8 @@ const OrderDetailsScreen = () => {
       confirmed: "Confirmed",
       preparing: "Preparing",
       ready_for_pickup: "Ready for Pickup",
-      out_for_delivery: "Out for Delivery",
+      rider_assigned: "On the Way",
+      out_for_delivery: "On the Way",
       delivered: "Delivered",
       cancelled: "Cancelled",
       refunded: "Refunded",
@@ -215,7 +217,7 @@ const OrderDetailsScreen = () => {
             <View className="flex-row justify-between">
               <Text className="text-gray-600">Payment Status</Text>
               <Text className="text-gray-900 capitalize">
-                {order.payment_status.replace("_", " ")}
+                {order.payment_status.replace(/_/g, " ")}
               </Text>
             </View>
           </View>
@@ -428,7 +430,7 @@ const OrderDetailsScreen = () => {
                 <View className="items-center justify-center w-3 h-3 mt-1 mr-3 bg-orange-600 rounded-full" />
                 <View className="flex-1">
                   <Text className="font-medium text-gray-900 capitalize">
-                    {history.status.replace("_", " ")}
+                    {history.status.replace(/_/g, " ")}
                   </Text>
                   <Text className="text-sm text-gray-600">
                     {formatDate(history.created_at)}

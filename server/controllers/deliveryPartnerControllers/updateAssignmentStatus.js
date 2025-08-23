@@ -95,6 +95,12 @@ const updateAssignmentStatus = async (req, res) => {
       assignment.order_id,
     ]);
 
+    // Update order items statuses to status update
+    await db.execute(
+      "UPDATE order_items SET item_status = ? WHERE order_id = ?",
+      [orderStatus, assignment.order_id]
+    );
+
     // If delivered or cancelled, update delivery partner status back to available
     if (status === "delivered" || status === "cancelled") {
       await db.execute(

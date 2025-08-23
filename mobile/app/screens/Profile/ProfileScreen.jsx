@@ -82,6 +82,7 @@ const ProfileScreen = ({ navigation }) => {
           if (responseData?.success) {
             setUser(responseData.data);
             setProfileData(responseData.data);
+            setIsEditing(false);
           }
           setMessage(responseData);
           setSnackBarVisible(true);
@@ -126,6 +127,7 @@ const ProfileScreen = ({ navigation }) => {
   useEffect(() => {
     if (JSON.stringify(profileData) !== JSON.stringify(user)) {
       setProfileChanges(true);
+      setIsEditing(true);
     } else {
       setProfileChanges(false);
     }
@@ -292,8 +294,11 @@ const ProfileScreen = ({ navigation }) => {
 
             <TouchableOpacity
               className="relative"
-              onPress={() => isEditing && setDatePickerVisible(true)}
-              disabled={!isEditing}
+              onPress={() => {
+                if (!user.birth_date) setDatePickerVisible(true);
+                else isEditing && setDatePickerVisible(true);
+              }}
+              disabled={!user.birth_date ? false : !isEditing}
             >
               <View
                 className={`flex-row items-center justify-between p-3 border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
@@ -316,8 +321,11 @@ const ProfileScreen = ({ navigation }) => {
 
             <TouchableOpacity
               className="relative"
-              onPress={() => isEditing && setGenderPickerVisible(true)}
-              disabled={!isEditing}
+              onPress={() => {
+                if (!user.birth_date) setGenderPickerVisible(true);
+                else isEditing && setGenderPickerVisible(true);
+              }}
+              disabled={!user.birth_date ? false : !isEditing}
             >
               <View
                 className={`flex-row items-center justify-between p-3 border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}

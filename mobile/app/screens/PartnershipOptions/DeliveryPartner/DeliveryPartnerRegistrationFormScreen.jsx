@@ -7,12 +7,14 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Pressable,
 } from "react-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useAuth } from "../../../context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
   const { user } = useAuth();
@@ -24,11 +26,11 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
   // Form state
   const [formData, setFormData] = useState({
     // Personal Details (pre-filled from user account)
-    firstName: user.first_name || "",
-    lastName: user.last_name || "",
-    email: user.email || "",
-    phone: user.phone || "",
-    dateOfBirth: user.birth_date || "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
 
     // Vehicle & License Details
     vehicleType: vehicleType,
@@ -70,6 +72,20 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
 
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.first_name || "",
+        lastName: user.last_name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        dateOfBirth: user.birth_date || "",
+      }));
+      setShowErrors(false);
+    }, [user])
+  );
 
   const updateFormData = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -228,9 +244,28 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const changeInProfileAlert = (nextAlert = false) => {
+    Alert.alert(
+      `${nextAlert ? "All fields required!" : "Notice"}`,
+      `${!nextAlert ? "Your personal details are pre-filled from your account. " : ""}To change these details, please update them in your Profile Settings.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Go to Profile Settings",
+          onPress: () => navigation.navigate("Profile"),
+        },
+      ]
+    );
+  };
+
   const handleNext = () => {
     if (!validateCurrentStep()) {
       setShowErrors(true);
+
+      if (currentStep === 1) {
+        changeInProfileAlert(true);
+      }
+
       return;
     }
 
@@ -276,6 +311,24 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
         Please verify your personal details
       </Text>
 
+      {/* Identity Verification Warning */}
+      <View className="p-4 mb-6 border rounded-lg bg-amber-50 border-amber-200">
+        <View className="flex flex-row items-start">
+          <Ionicons name="warning" size={20} color="#f59e0b" />
+          <View className="flex-1 ml-3">
+            <Text className="mb-1 font-semibold text-amber-800">
+              Important Notice
+            </Text>
+            <Text className="text-sm text-amber-700">
+              Please ensure all information matches your real identity details
+              exactly as they appear on your official documents. This
+              information will be verified against the documents you submit in
+              the next steps.
+            </Text>
+          </View>
+        </View>
+      </View>
+
       {/* Pre-filled Fields Notice */}
       <View className="p-4 mb-6 border border-green-200 rounded-lg bg-green-50">
         <View className="flex flex-row items-start">
@@ -294,69 +347,96 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">First Name *</Text>
-        <TextInput
-          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-          value={formData.firstName}
-          editable={false}
-          placeholder="Enter your first name"
-        />
+        <Pressable onPress={() => changeInProfileAlert()}>
+          <TextInput
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+            value={formData.firstName}
+            editable={false}
+            placeholder="Enter your first name"
+          />
+        </Pressable>
         <Text className="mt-1 text-xs text-gray-500">
           Change in Profile Settings
         </Text>
+        {errors.firstName && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">{errors.firstName}</Text>
+        )}
       </View>
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Last Name *</Text>
-        <TextInput
-          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-          value={formData.lastName}
-          editable={false}
-          placeholder="Enter your last name"
-        />
+        <Pressable onPress={() => changeInProfileAlert()}>
+          <TextInput
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+            value={formData.lastName}
+            editable={false}
+            placeholder="Enter your last name"
+          />
+        </Pressable>
         <Text className="mt-1 text-xs text-gray-500">
           Change in Profile Settings
         </Text>
+        {errors.lastName && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">{errors.lastName}</Text>
+        )}
       </View>
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Email Address *</Text>
-        <TextInput
-          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-          value={formData.email}
-          editable={false}
-          placeholder="Enter your email"
-          keyboardType="email-address"
-        />
+        <Pressable onPress={() => changeInProfileAlert()}>
+          <TextInput
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+            value={formData.email}
+            editable={false}
+            placeholder="Enter your email"
+            keyboardType="email-address"
+          />
+        </Pressable>
         <Text className="mt-1 text-xs text-gray-500">
           Change in Profile Settings
         </Text>
+        {errors.email && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">{errors.email}</Text>
+        )}
       </View>
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Phone Number *</Text>
-        <TextInput
-          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-          value={formData.phone}
-          editable={false}
-          placeholder="Enter your phone number"
-          keyboardType="phone-pad"
-        />
+        <Pressable onPress={() => changeInProfileAlert()}>
+          <TextInput
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+            value={formData.phone}
+            editable={false}
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+          />
+        </Pressable>
         <Text className="mt-1 text-xs text-gray-500">
           Change in Profile Settings
         </Text>
+        {errors.phone && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">{errors.phone}</Text>
+        )}
       </View>
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Date of Birth *</Text>
-        <TextInput
-          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-          value={formData.dateOfBirth}
-          editable={false}
-          placeholder="DD/MM/YYYY"
-        />
+        <Pressable onPress={() => changeInProfileAlert()}>
+          <TextInput
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+            value={formData.dateOfBirth}
+            editable={false}
+            placeholder="DD/MM/YYYY"
+          />
+        </Pressable>
         <Text className="mt-1 text-xs text-gray-500">
           Change in Profile Settings
         </Text>
+        {errors.dateOfBirth && showErrors && (
+          <Text className="mt-1 text-sm text-red-500">
+            {errors.dateOfBirth}
+          </Text>
+        )}
       </View>
     </View>
   );

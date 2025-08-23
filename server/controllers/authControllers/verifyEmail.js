@@ -20,12 +20,21 @@ module.exports = verifyEmail = async (req, res) => {
             success: true,
           })
         );
+
+        console.log(
+          `Email verified, sent websocket to all connected sockets with email: ${email}`
+        );
       }
     });
 
     return res.status(200).send("Email Verified!");
   } catch (error) {
-    console.error(error);
+    if (error.name === "TokenExpiredError")
+      console.error(
+        "Verification Failed. User's verification token have already expired."
+      );
+    else console.error(error);
+
     return res
       .status(500)
       .send(

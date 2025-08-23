@@ -6,13 +6,16 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  Alert,
+  Pressable,
 } from "react-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 
 import { useAuth } from "../../../context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const SellerRegistrationFormScreen = ({ navigation, route }) => {
   const { user } = useAuth();
@@ -24,15 +27,15 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
   // Form state
   const [formData, setFormData] = useState({
     // Personal/Business Details
-    firstName: user.first_name || "",
-    lastName: user.last_name || "",
+    firstName: "",
+    lastName: "",
     businessName: "",
     businessRegNumber: "",
     businessType: "",
     contactPerson: "",
-    email: user.email || "",
-    phone: user.phone || "",
-    dateOfBirth: user.birth_date || "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
     businessAddress: "",
 
     // Address Details - New structure
@@ -66,6 +69,20 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
 
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.first_name || "",
+        lastName: user.last_name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        dateOfBirth: user.birth_date || "",
+      }));
+      setShowErrors(false);
+    }, [user])
+  );
 
   const updateFormData = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -215,9 +232,28 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const changeInProfileAlert = (nextAlert = false) => {
+    Alert.alert(
+      `${nextAlert ? "All fields required!" : "Notice"}`,
+      `${!nextAlert ? "Your personal details are pre-filled from your account. " : ""}To change these details, please update them in your Profile Settings.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Go to Profile Settings",
+          onPress: () => navigation.navigate("Profile"),
+        },
+      ]
+    );
+  };
+
   const handleNext = () => {
     if (!validateCurrentStep()) {
       setShowErrors(true);
+
+      if (currentStep === 1) {
+        changeInProfileAlert(true);
+      }
+
       return;
     }
 
@@ -304,12 +340,14 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         <>
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">First Name *</Text>
-            <TextInput
-              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-              value={formData.firstName}
-              editable={false}
-              placeholder="Enter your first name"
-            />
+            <Pressable onPress={() => changeInProfileAlert()}>
+              <TextInput
+                className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+                value={formData.firstName}
+                editable={false}
+                placeholder="Enter your first name"
+              />
+            </Pressable>
             <Text className="mt-1 text-xs text-gray-500">
               Change in Profile Settings
             </Text>
@@ -322,12 +360,14 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">Last Name *</Text>
-            <TextInput
-              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-              value={formData.lastName}
-              editable={false}
-              placeholder="Enter your last name"
-            />
+            <Pressable onPress={() => changeInProfileAlert()}>
+              <TextInput
+                className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+                value={formData.lastName}
+                editable={false}
+                placeholder="Enter your last name"
+              />
+            </Pressable>
             <Text className="mt-1 text-xs text-gray-500">
               Change in Profile Settings
             </Text>
@@ -340,12 +380,14 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
 
           <View className="mb-4">
             <Text className="mb-2 text-sm font-medium">Date of Birth *</Text>
-            <TextInput
-              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-              value={formData.dateOfBirth}
-              editable={false}
-              placeholder="DD/MM/YYYY"
-            />
+            <Pressable onPress={() => changeInProfileAlert()}>
+              <TextInput
+                className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+                value={formData.dateOfBirth}
+                editable={false}
+                placeholder="DD/MM/YYYY"
+              />
+            </Pressable>
             <Text className="mt-1 text-xs text-gray-500">
               Change in Profile Settings
             </Text>
@@ -428,13 +470,15 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Email Address *</Text>
-        <TextInput
-          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-          value={formData.email}
-          editable={false}
-          placeholder="Enter your email"
-          keyboardType="email-address"
-        />
+        <Pressable onPress={() => changeInProfileAlert()}>
+          <TextInput
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+            value={formData.email}
+            editable={false}
+            placeholder="Enter your email"
+            keyboardType="email-address"
+          />
+        </Pressable>
         <Text className="mt-1 text-xs text-gray-500">
           Change in Profile Settings
         </Text>
@@ -445,13 +489,15 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
 
       <View className="mb-4">
         <Text className="mb-2 text-sm font-medium">Phone Number *</Text>
-        <TextInput
-          className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
-          value={formData.phone}
-          editable={false}
-          placeholder="Enter your phone number"
-          keyboardType="phone-pad"
-        />
+        <Pressable onPress={() => changeInProfileAlert()}>
+          <TextInput
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg"
+            value={formData.phone}
+            editable={false}
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+          />
+        </Pressable>
         <Text className="mt-1 text-xs text-gray-500">
           Change in Profile Settings
         </Text>

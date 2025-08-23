@@ -8,7 +8,7 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -16,7 +16,6 @@ import axios from "axios";
 
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
-import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation";
 
 const OrdersScreen = () => {
   const navigation = useNavigation();
@@ -27,12 +26,13 @@ const OrdersScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("all");
 
+  const firstLoadRef = useRef(true);
+
   const statusOptions = [
     { key: "all", label: "All Orders" },
     { key: "pending", label: "Pending" },
-    { key: "confirmed", label: "Confirmed" },
-    { key: "preparing", label: "Preparing" },
-    { key: "out_for_delivery", label: "Out for Delivery" },
+    { key: "ready_for_pickup", label: "Ready for Pickup" },
+    { key: "on_the_way", label: "On the Way" },
     { key: "delivered", label: "Delivered" },
     { key: "cancelled", label: "Cancelled" },
   ];
@@ -63,7 +63,9 @@ const OrdersScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchOrders();
+      const showLoading = firstLoadRef.current; // only first time
+      firstLoadRef.current = false;
+      fetchOrders(showLoading);
     }, [user, selectedStatus])
   );
 
@@ -78,6 +80,7 @@ const OrdersScreen = () => {
       confirmed: "bg-blue-100 text-blue-800",
       preparing: "bg-purple-100 text-purple-800",
       ready_for_pickup: "bg-indigo-100 text-indigo-800",
+      rider_assigned: "bg-orange-100 text-orange-800",
       out_for_delivery: "bg-orange-100 text-orange-800",
       delivered: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800",
@@ -92,7 +95,8 @@ const OrdersScreen = () => {
       confirmed: "Confirmed",
       preparing: "Preparing",
       ready_for_pickup: "Ready for Pickup",
-      out_for_delivery: "Out for Delivery",
+      rider_assigned: "On the Way",
+      out_for_delivery: "On the Way",
       delivered: "Delivered",
       cancelled: "Cancelled",
       refunded: "Refunded",
@@ -109,6 +113,116 @@ const OrdersScreen = () => {
       minute: "2-digit",
     });
   };
+
+  const renderOrderCard = (order) => (
+    <TouchableOpacity
+      key={order.id}
+      className="p-4 mb-4 bg-white rounded-lg shadow-sm"
+      onPress={() => navigation.navigate("OrderDetails", { orderId: order.id })}
+    >
+      <View className="flex-row items-center justify-between mb-3">
+        <Text className="text-lg font-semibold text-gray-900">
+          {order.order_number}
+        </Text>
+        <View
+          className={`px-2 py-1 rounded-full ${getStatusColor(order.status)}`}
+        >
+          <Text className="text-xs font-medium">
+            {getStatusLabel(order.status)}
+          </Text>
+        </View>
+      </View>
+
+      <View className="flex-row items-center mb-2">
+        {order.store_logo_url ? (
+          <Image
+            source={{ uri: order.store_logo_url }}
+            className="w-6 h-6 mr-2 rounded-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="flex items-center justify-center w-6 h-6 mr-2 bg-gray-200 rounded-full">
+            <MaterialCommunityIcons
+              name="storefront-outline"
+              size={12}
+              color="#6B7280"
+            />
+          </View>
+        )}
+        <Text className="text-sm text-gray-600">
+          {order.store_names || "Multiple stores"}
+        </Text>
+      </View>
+
+      {/* First product display with image */}
+      {order.first_product_name && (
+        <View className="flex-row items-center p-2 mb-3 rounded-md bg-gray-50">
+          {order.first_product_image_url ? (
+            <Image
+              source={{ uri: order.first_product_image_url }}
+              className="w-12 h-12 mr-3 rounded-md"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-200 rounded-md">
+              <MaterialCommunityIcons
+                name="image-off-outline"
+                size={20}
+                color="#6B7280"
+              />
+            </View>
+          )}
+          <View className="flex-1">
+            <Text
+              className="text-sm font-medium text-gray-800"
+              numberOfLines={1}
+            >
+              {order.first_product_name}
+            </Text>
+            <View className="flex-row items-center justify-between mt-1">
+              <Text className="text-xs text-gray-500">
+                {order.first_product_quantity} x ₱
+                {Number.parseFloat(order.first_product_price).toFixed(2)}
+              </Text>
+              {order.item_count > 1 && (
+                <Text className="text-xs font-medium text-orange-600">
+                  +{order.item_count - 1} more
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
+
+      <View className="flex-row items-center justify-between mb-2">
+        <Text className="text-sm text-gray-600">
+          {order.item_count} item{order.item_count !== 1 ? "s" : ""}
+        </Text>
+        <Text className="text-lg font-semibold text-orange-600">
+          ₱{Number.parseFloat(order.total_amount).toFixed(2)}
+        </Text>
+      </View>
+
+      <View className="flex-row items-center justify-between">
+        <Text className="text-xs text-gray-500">
+          {formatDate(order.created_at)}
+        </Text>
+        <View className="flex-row items-center">
+          <MaterialCommunityIcons name="cash" size={14} color="#059669" />
+          <Text className="ml-1 text-xs text-gray-500">Cash on Delivery</Text>
+        </View>
+      </View>
+
+      {order.status === "delivered" && (
+        <View className="flex-row items-center pt-2 mt-2 border-t border-gray-200">
+          <Feather name="check-circle" size={14} color="#059669" />
+          <Text className="ml-1 text-xs text-green-600">
+            Delivered on {formatDate(order.delivered_at)}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 
   if (!user) {
     return (
@@ -154,7 +268,6 @@ const OrdersScreen = () => {
         </View>
 
         <View className="items-center justify-center flex-1">
-          <PersonalizedLoadingAnimation />
           <Text className="mt-4 text-gray-600">Loading orders...</Text>
         </View>
       </View>
@@ -172,11 +285,10 @@ const OrdersScreen = () => {
           <Text className="ml-4 text-xl font-semibold">My Orders</Text>
         </View>
       </View>
-
       {/* Status Filter */}
       <View className="p-4 bg-white border-b border-gray-200">
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="flex-row space-x-2">
+          <View className="flex-row gap-3">
             {statusOptions.map((option) => (
               <TouchableOpacity
                 key={option.key}
@@ -194,14 +306,16 @@ const OrdersScreen = () => {
         </ScrollView>
       </View>
 
-      {orders.length === 0 ? (
-        <ScrollView
-          contentContainerStyle={{ flex: 1 }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          <View className="items-center justify-center flex-1 px-6">
+      <ScrollView
+        className="flex-1 p-4"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {orders.length > 0 ? (
+          orders.map(renderOrderCard)
+        ) : (
+          <View className="items-center justify-center px-6 flex-1 h-[70vh]">
             <Feather name="shopping-bag" size={80} color="#9CA3AF" />
             <Text className="mt-4 text-xl font-semibold text-gray-600">
               No orders found
@@ -209,7 +323,7 @@ const OrdersScreen = () => {
             <Text className="mt-2 text-center text-gray-500">
               {selectedStatus === "all"
                 ? "You haven't placed any orders yet"
-                : `No ${selectedStatus} orders found`}
+                : `No ${selectedStatus.replace(/_/g, " ")} orders found`}
             </Text>
             <TouchableOpacity
               className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
@@ -218,136 +332,8 @@ const OrdersScreen = () => {
               <Text className="font-semibold text-white">Start Shopping</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      ) : (
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ padding: 16 }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          {orders.map((order) => (
-            <TouchableOpacity
-              key={order.id}
-              className="p-4 mb-4 bg-white rounded-lg shadow-sm"
-              onPress={() =>
-                navigation.navigate("OrderDetails", { orderId: order.id })
-              }
-            >
-              <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-lg font-semibold text-gray-900">
-                  {order.order_number}
-                </Text>
-                <View
-                  className={`px-2 py-1 rounded-full ${getStatusColor(order.status)}`}
-                >
-                  <Text className="text-xs font-medium">
-                    {getStatusLabel(order.status)}
-                  </Text>
-                </View>
-              </View>
-
-              <View className="flex-row items-center mb-2">
-                {order.store_logo_url ? (
-                  <Image
-                    source={{ uri: order.store_logo_url }}
-                    className="w-6 h-6 mr-2 rounded-full"
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View className="flex items-center justify-center w-6 h-6 mr-2 bg-gray-200 rounded-full">
-                    <MaterialCommunityIcons
-                      name="storefront-outline"
-                      size={12}
-                      color="#6B7280"
-                    />
-                  </View>
-                )}
-                <Text className="text-sm text-gray-600">
-                  {order.store_names || "Multiple stores"}
-                </Text>
-              </View>
-
-              {/* First product display with image */}
-              {order.first_product_name && (
-                <View className="flex-row items-center p-2 mb-3 rounded-md bg-gray-50">
-                  {order.first_product_image_url ? (
-                    <Image
-                      source={{ uri: order.first_product_image_url }}
-                      className="w-12 h-12 mr-3 rounded-md"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-200 rounded-md">
-                      <MaterialCommunityIcons
-                        name="image-off-outline"
-                        size={20}
-                        color="#6B7280"
-                      />
-                    </View>
-                  )}
-                  <View className="flex-1">
-                    <Text
-                      className="text-sm font-medium text-gray-800"
-                      numberOfLines={1}
-                    >
-                      {order.first_product_name}
-                    </Text>
-                    <View className="flex-row items-center justify-between mt-1">
-                      <Text className="text-xs text-gray-500">
-                        {order.first_product_quantity} x ₱
-                        {Number.parseFloat(order.first_product_price).toFixed(
-                          2
-                        )}
-                      </Text>
-                      {order.item_count > 1 && (
-                        <Text className="text-xs font-medium text-orange-600">
-                          +{order.item_count - 1} more
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-                </View>
-              )}
-
-              <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-sm text-gray-600">
-                  {order.item_count} item{order.item_count !== 1 ? "s" : ""}
-                </Text>
-                <Text className="text-lg font-semibold text-orange-600">
-                  ₱{Number.parseFloat(order.total_amount).toFixed(2)}
-                </Text>
-              </View>
-
-              <View className="flex-row items-center justify-between">
-                <Text className="text-xs text-gray-500">
-                  {formatDate(order.created_at)}
-                </Text>
-                <View className="flex-row items-center">
-                  <MaterialCommunityIcons
-                    name="cash"
-                    size={14}
-                    color="#059669"
-                  />
-                  <Text className="ml-1 text-xs text-gray-500">
-                    Cash on Delivery
-                  </Text>
-                </View>
-              </View>
-
-              {order.status === "delivered" && (
-                <View className="flex-row items-center pt-2 mt-2 border-t border-gray-200">
-                  <Feather name="check-circle" size={14} color="#059669" />
-                  <Text className="ml-1 text-xs text-green-600">
-                    Delivered on {formatDate(order.delivered_at)}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
+        )}
+      </ScrollView>
     </View>
   );
 };
