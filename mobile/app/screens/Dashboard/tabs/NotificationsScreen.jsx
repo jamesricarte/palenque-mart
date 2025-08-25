@@ -29,6 +29,11 @@ const NotificationsScreen = ({ navigation }) => {
   const [filter, setFilter] = useState("all"); // all, unread, read
 
   const fetchNotifications = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await axios.get(`${API_URL}/api/notifications/user`);
 
@@ -96,7 +101,7 @@ const NotificationsScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchNotifications();
-    }, [user.id])
+    }, [user?.id])
   );
 
   const handleNotificationPress = (notification) => {
@@ -267,6 +272,33 @@ const NotificationsScreen = ({ navigation }) => {
   };
 
   const emptyState = getEmptyStateMessage();
+
+  if (!user) {
+    return (
+      <View className="flex-1 bg-gray-50">
+        {/* Header */}
+        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+          <Text className="text-2xl font-semibold">Notifications</Text>
+        </View>
+
+        <View className="items-center justify-center flex-1 px-6">
+          <Feather name="bell" size={80} color="#9CA3AF" />
+          <Text className="mt-4 text-xl font-semibold text-gray-600">
+            Login Required
+          </Text>
+          <Text className="mt-2 text-center text-gray-500">
+            Please login to view your notifications
+          </Text>
+          <TouchableOpacity
+            className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text className="font-semibold text-white">Login</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   if (loading) {
     return (

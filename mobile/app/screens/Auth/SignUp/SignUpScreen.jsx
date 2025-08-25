@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
 import {
@@ -17,9 +19,7 @@ import axios from "axios";
 import GoogleIcon from "../../../assets/images/Google.png";
 import FacebookIcon from "../../../assets/images/Facebook.png";
 import PhilIcon from "../../../assets/images/PhilFlag.png";
-// import MarketDesign from '../../../assets/images/MarketDesign.png';
 
-// import { API_URL } from "@env";
 import { API_URL } from "../../../config/apiConfig";
 import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
 
@@ -31,12 +31,33 @@ const SignUpScreen = ({ navigation }) => {
   const [mobileNumber, setMobileNumber] = useState(null);
   const [countryCode, setCountryCode] = useState("+63");
 
-  const [isFieldValid, setIsFieldValid] = useState(false);
-
   const [message, setMessage] = useState(null);
 
+  const strictEmailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const mobileFormat = /^(\+639\d{9}|09\d{9}|9\d{9})$/;
+
   const signUp = async () => {
-    if (!isFieldValid) return;
+    if (
+      (signUpOption === "email" && !email) ||
+      (signUpOption === "mobileNumber" && !mobileNumber)
+    ) {
+      setMessage({
+        message: "All fields required.",
+        error: { code: "ALL_FIELDS_REQUIRED" },
+      });
+      return;
+    }
+
+    if (signUpOption === "email" && !strictEmailFormat.test(email)) {
+      setMessage({ message: "Invalid email" });
+      return;
+    } else if (
+      signUpOption === "mobileNumber" &&
+      !mobileFormat.test(mobileNumber)
+    ) {
+      setMessage({ message: "Invalid mobile number format" });
+      return;
+    }
 
     const righMobileFormat = countryCode + mobileNumber;
 
@@ -88,42 +109,30 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    let isValid = true;
-    const strictEmailFormat =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const mobileFormat = /^(\+639\d{9}|09\d{9}|9\d{9})$/;
-
-    if (signUpOption === "email") {
-      if (strictEmailFormat.test(email)) isValid = true;
-      else isValid = false;
-    } else if (signUpOption === "mobileNumber") {
+    if (signUpOption === "mobileNumber") {
       if (mobileFormat.test(mobileNumber)) {
-        isValid = true;
         setMobileNumber(mobileNumber.replace(/^(0|\+63)/, ""));
-      } else isValid = false;
+      }
     }
 
-    setIsFieldValid(isValid);
     setMessage(null);
   }, [email, mobileNumber, signUpOption]);
 
   return (
     <View className="relative flex-1 px-6 py-16 bg-white">
-      {/* <View className="absolute top-0 right-0">
-        <Image source={MarketDesign} style={{width: 400, height:200, transform: [{ rotate: '30deg' }]}}/>
-        </View> */}
-
       <View className="mb-10">
-        <Pressable
+        <TouchableOpacity
           className="self-start p-2 rounded-full bg-grey"
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <View className="mb-10">
-        <Text className="text-3xl font-semibold">Create your account</Text>
+        <Text className="text-3xl font-semibold text-black">
+          Create your account
+        </Text>
         <Text className="text-lg font-normal text-primary">
           Be part of something fresh.
         </Text>
@@ -132,10 +141,10 @@ const SignUpScreen = ({ navigation }) => {
       {signUpOption === "email" ? (
         <TextInput
           key="email"
-          className={`w-full p-4 text-lg bg-grey rounded-md text-black${
-            message && !message?.success ? "border-error" : "border-black"
+          className={`w-full p-4 text-lg bg-grey rounded-md text-black ${
+            message && !message?.success ? "border border-red-500" : ""
           }`}
-          placeholder="Sign up with Email Address"
+          placeholder="Email Address"
           placeholderTextColor="#9E9E9E"
           keyboardType="email-address"
           includeFontPadding={false}
@@ -144,13 +153,13 @@ const SignUpScreen = ({ navigation }) => {
         />
       ) : (
         <View className="flex-row gap-2">
-          <View className="flex-row items-center gap-1 px-2 text-lg rounded-md bg-grey">
+          <View
+            className={`flex-row items-center gap-1 px-2 text-lg rounded-md bg-grey ${message && !message?.success ? "border border-red-500" : ""}`}
+          >
             <Image source={PhilIcon} style={{ width: 20, height: 20 }} />
             <TextInput
               key="country-code"
-              className={` text-black ${
-                message && !message?.success ? "border-error" : "border-black"
-              }`}
+              className="text-black"
               keyboardType="default"
               includeFontPadding={false}
               value={countryCode}
@@ -160,10 +169,10 @@ const SignUpScreen = ({ navigation }) => {
 
           <TextInput
             key="mobile"
-            className={`flex-1 p-4 text-lg bg-grey rounded-md ${
-              message && !message?.success ? "border-error" : "border-black"
+            className={`flex-1 p-4 text-lg bg-grey rounded-md text-black ${
+              message && !message?.success ? "border border-red-500" : ""
             }`}
-            placeholder="Sign up with Mobile Number"
+            placeholder="Mobile Number"
             placeholderTextColor="#9E9E9E"
             keyboardType="phone-pad"
             includeFontPadding={false}
@@ -174,7 +183,7 @@ const SignUpScreen = ({ navigation }) => {
       )}
 
       {message && !message?.success && (
-        <Text className="mt-3 text-error">{message?.message}</Text>
+        <Text className="mt-3 text-red-500">{message?.message}</Text>
       )}
 
       <View className="items-end mt-2">
@@ -185,27 +194,18 @@ const SignUpScreen = ({ navigation }) => {
               : setSignUpOption("email")
           }
         >
-          <Text className=" text-primary">
+          <Text className="text-primary">
             {signUpOption === "email" ? "Use mobile number?" : "Use email?"}
           </Text>
         </Pressable>
       </View>
 
-      <Pressable
-        className={`flex items-center justify-center w-full p-4 mt-6 rounded-md ${
-          !isFieldValid ? "bg-grey" : "bg-primary"
-        }`}
+      <TouchableOpacity
+        className="flex items-center justify-center w-full p-4 mt-6 rounded-md bg-primary"
         onPress={signUp}
-        disabled={!isFieldValid}
       >
-        <Text
-          className={`text-lg font-semibold ${
-            !isFieldValid ? "text-darkgrey" : "text-white"
-          }`}
-        >
-          Sign up
-        </Text>
-      </Pressable>
+        <Text className="text-lg font-semibold text-white">Sign up</Text>
+      </TouchableOpacity>
 
       <View className="flex-row items-center w-full my-10">
         <View className="flex-1 h-0.5 bg-grey" />
@@ -214,7 +214,7 @@ const SignUpScreen = ({ navigation }) => {
       </View>
 
       <View className="flex w-full gap-4">
-        <Pressable
+        <TouchableOpacity
           className="items-center justify-center p-4 border rounded-md border-primary"
           onPress={() => {}}
         >
@@ -226,9 +226,9 @@ const SignUpScreen = ({ navigation }) => {
           <Text className="text-lg text-center text-primary">
             Continue with Google
           </Text>
-        </Pressable>
+        </TouchableOpacity>
 
-        <Pressable
+        <TouchableOpacity
           className="items-center justify-center p-4 border rounded-md border-primary"
           onPress={() => {}}
         >
@@ -240,7 +240,7 @@ const SignUpScreen = ({ navigation }) => {
           <Text className="text-lg text-center text-primary">
             Continue with Facebook
           </Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <View className="flex items-center gap-4 mt-auto">
@@ -253,9 +253,9 @@ const SignUpScreen = ({ navigation }) => {
         <View className="flex flex-row gap-1">
           <Text className="text-lg text-black">Already have an account?</Text>
 
-          <Pressable onPress={() => navigation.replace("Login")}>
+          <TouchableOpacity onPress={() => navigation.replace("Login")}>
             <Text className="text-lg text-primary">Login</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </View>
 

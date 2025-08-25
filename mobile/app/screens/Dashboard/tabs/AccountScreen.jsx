@@ -1,22 +1,34 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
-import axios from "axios";
-import { API_URL } from "../../../config/apiConfig";
-
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
+import axios from "axios";
+
+import { useAuth } from "../../../context/AuthContext";
+import { API_URL } from "../../../config/apiConfig";
 import DefaultLoadingAnimation from "../../../components/DefaultLoadingAnimation";
 import Snackbar from "../../../components/Snackbar";
 
-import { useAuth } from "../../../context/AuthContext";
-
-const AccountScreen = ({ navigation }) => {
+const AccountScreen = () => {
+  const navigation = useNavigation();
   const { user, logout } = useAuth();
   const route = useRoute();
 
@@ -25,12 +37,70 @@ const AccountScreen = ({ navigation }) => {
   const [snackBarVisible, setSnackBarVisible] = useState(false);
   const [cartCount, setCartCount] = useState(0);
 
-  const orderCategories = [
-    { icon: "package", label: "To Pay", count: 2 },
-    { icon: "truck", label: "To Ship", count: 1 },
-    { icon: "box", label: "To Receive", count: 0 },
-    { icon: "star", label: "To Rate", count: 3 },
+  const navigationOptions = [
+    {
+      id: "orders",
+      title: "My Orders",
+      subtitle: "Track your order history",
+      icon: "receipt-outline",
+      iconType: "ionicon",
+      onPress: () => navigation.navigate("Orders"),
+    },
+
+    {
+      id: "partnership",
+      title: "Partnership Options",
+      subtitle: "Become a seller or delivery partner",
+      icon: "storefront-outline",
+      iconType: "material-community-icon",
+      onPress: () => navigation.navigate("PartnershipOptions"),
+    },
   ];
+
+  const accountOptions = [
+    {
+      id: "notifications",
+      title: "Notifications",
+      subtitle: "Manage notification preferences",
+      icon: "notifications-outline",
+      iconType: "ionicon",
+      onPress: () => navigation.navigate("Notifications"),
+    },
+    {
+      id: "help",
+      title: "Help & Support",
+      subtitle: "Get help and contact support",
+      icon: "help-circle-outline",
+      iconType: "ionicon",
+      onPress: () => console.log("Help pressed"),
+    },
+    {
+      id: "logout",
+      title: "Logout",
+      subtitle: "Sign out of your account",
+      icon: "log-out",
+      iconType: "feather",
+      onPress: () => handleLogoutClick(),
+      isDestructive: true,
+    },
+  ];
+
+  const renderIcon = (iconName, iconType, color = "#374151", size = 20) => {
+    switch (iconType) {
+      case "ionicon":
+        return <Ionicons name={iconName} size={size} color={color} />;
+      case "feather":
+        return <Feather name={iconName} size={size} color={color} />;
+      case "material":
+        return <MaterialIcons name={iconName} size={size} color={color} />;
+      case "material-community-icon":
+        return (
+          <MaterialCommunityIcons name={iconName} size={size} color={color} />
+        );
+      default:
+        return <Feather name="circle" size={size} color={color} />;
+    }
+  };
 
   const handleLogoutClick = () => {
     Alert.alert(
@@ -94,140 +164,261 @@ const AccountScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50">
-        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <Text className="text-xl font-semibold">Your Account</Text>
+      <View className="h-screen bg-gray-50">
+        {/* Header */}
+        <View className="px-4 pt-16 pb-6 bg-white border-b border-gray-200">
+          <View className="flex flex-row items-center justify-between">
+            <Text className="text-2xl font-semibold text-gray-900">
+              Account
+            </Text>
+            <View className="flex flex-row gap-4">
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Cart")}
+                className="relative p-2"
+              >
+                <Ionicons name="bag-outline" size={24} color="black" />
+                {cartCount > 0 && (
+                  <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
+                    <Text className="text-xs font-bold text-white">
+                      {cartCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Settings")}
+                className="p-2"
+              >
+                <Ionicons name="settings-outline" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
         <View className="items-center justify-center flex-1">
-          <Text className="text-gray-500">Loading user information...</Text>
+          <ActivityIndicator size="large" color="#F16B44" />
+          <Text className="mt-4 text-gray-500">
+            Loading user information...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View className="flex-1 bg-gray-50">
+        {/* Header */}
+        <View className="px-4 pt-16 pb-6 bg-white border-b border-gray-200">
+          <View className="flex flex-row items-center justify-between">
+            <Text className="text-2xl font-semibold text-gray-900">
+              Account
+            </Text>
+            <View className="flex flex-row gap-4">
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Cart")}
+                className="relative p-2"
+              >
+                <Ionicons name="bag-outline" size={24} color="black" />
+                {cartCount > 0 && (
+                  <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
+                    <Text className="text-xs font-bold text-white">
+                      {cartCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Settings")}
+                className="p-2"
+              >
+                <Ionicons name="settings-outline" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Login Required */}
+        <View className="items-center justify-center flex-1 px-6">
+          <Feather name="user" size={80} color="#9CA3AF" />
+          <Text className="mt-4 text-xl font-semibold text-gray-600">
+            Login Required
+          </Text>
+          <Text className="mt-2 text-center text-gray-500">
+            Please login to access your account
+          </Text>
+          <TouchableOpacity
+            className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text className="font-semibold text-white">Login</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
   }
 
   return (
-    <View className="flex-1">
-      <ScrollView className="flex-1 bg-gray-50">
-        {/* Header */}
-        <View className="flex gap-5 px-6 pt-16 pb-5 bg-white border-b border-gray-300">
-          <View className="flex flex-row justify-end gap-5">
+    <View className="flex-1 bg-gray-50">
+      {/* Header */}
+      <View className="px-4 pt-16 pb-6 bg-white border-b border-gray-200">
+        <View className="flex flex-row items-center justify-between">
+          <Text className="text-2xl font-semibold text-gray-900">Account</Text>
+          <View className="flex flex-row gap-4">
             <TouchableOpacity
               onPress={() => navigation.navigate("Cart")}
-              className="relative"
+              className="relative p-2"
             >
-              <Feather name="shopping-cart" size={22} color="black" />
+              <Ionicons name="bag-outline" size={24} color="black" />
               {cartCount > 0 && (
-                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
+                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
                   <Text className="text-xs font-bold text-white">
                     {cartCount}
                   </Text>
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
-              <Feather name="settings" size={22} color="black" />
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Settings")}
+              className="p-2"
+            >
+              <Ionicons name="settings-outline" size={24} color="black" />
             </TouchableOpacity>
-          </View>
-
-          {/* Profile Section */}
-          {user ? (
-            <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-              <View className="flex flex-row items-center gap-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                <MaterialIcons name="account-circle" size={50} color="black" />
-                <View className="flex-1">
-                  <Text className="text-lg font-semibold">
-                    {user.first_name} {user.last_name}
-                  </Text>
-                  <Text className="text-sm text-gray-600">
-                    {user.email ? user.email : user.phone}
-                  </Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="gray" />
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View className="flex flex-row justify-center gap-8 pt-5">
-              <TouchableOpacity
-                className="px-3 py-2 border border-black rounded-xl"
-                onPress={() => navigation.push("Login")}
-              >
-                <Text className="text-xl">Login</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="px-3 py-2 bg-black rounded-xl"
-                onPress={() => navigation.push("SignUp")}
-              >
-                <Text className="text-xl text-white">Sign up</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {/* Orders Section */}
-        <View className="p-6 mt-4 bg-white border-b border-gray-200">
-          <View className="flex flex-row items-center justify-between mb-4">
-            <Text className="text-xl font-semibold">My Orders</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Orders")}>
-              <Text className="text-black">View All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="flex flex-row justify-between">
-            {orderCategories.map((category, index) => (
-              <TouchableOpacity
-                key={index}
-                className="flex items-center flex-1"
-              >
-                <View className="relative">
-                  <View className="flex items-center justify-center w-12 h-12 border border-gray-300 rounded-lg">
-                    <Feather name={category.icon} size={20} color="black" />
-                  </View>
-                  {category.count > 0 && (
-                    <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
-                      <Text className="text-xs font-bold text-white">
-                        {category.count}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Text className="mt-2 text-xs text-center text-gray-700">
-                  {category.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
           </View>
         </View>
+      </View>
 
-        {/* Partnership Section */}
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Profile Section */}
         <TouchableOpacity
-          className="bg-white border-b border-gray-200"
-          onPress={() => navigation.navigate("PartnershipOptions")}
+          className="flex flex-row items-center p-4 mx-4 mt-6 bg-white border border-gray-200 shadow-sm rounded-xl"
+          onPress={() => navigation.navigate("Profile")}
         >
-          <View className="flex flex-row items-center gap-4 p-6">
-            <FontAwesome6 name="store" size={22} color="black" />
-            <View className="flex-1">
-              <Text className="text-lg font-semibold">Partnership Options</Text>
-              <Text className="text-sm text-gray-600">
-                Become a seller or partner
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={20} color="gray" />
+          <View className="flex items-center justify-center w-16 h-16 mr-4 overflow-hidden bg-orange-100 rounded-full">
+            {user?.profile_picture ? (
+              <Image
+                source={{
+                  uri: user.profile_picture,
+                }}
+                className="w-full h-full"
+                style={{ resizeMode: "cover" }}
+              />
+            ) : (
+              <Feather name="user" size={32} color="#FF5C00" />
+            )}
           </View>
+          <View className="flex-1">
+            <Text className="text-lg font-semibold text-gray-900">
+              {user.first_name} {user.last_name}
+            </Text>
+            <Text className="text-sm text-gray-600">
+              {user.email ? user.email : user.phone}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="gray" />
         </TouchableOpacity>
 
-        {/* Logout Section */}
-        {user && (
-          <View className="mt-4 mb-8 bg-white">
-            <TouchableOpacity
-              className="flex flex-row items-center gap-4 p-6"
-              onPress={handleLogoutClick}
-            >
-              <AntDesign name="logout" size={20} color="#ef4444" />
-              <Text className="flex-1 text-lg text-red-500">Logout</Text>
-            </TouchableOpacity>
+        {/* Main Navigation Options */}
+        <View className="mx-4 mt-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <View className="p-4 border-b border-gray-100">
+            <Text className="text-lg font-semibold text-gray-900">
+              Quick Actions
+            </Text>
           </View>
-        )}
+
+          {navigationOptions.map((option, index) => (
+            <TouchableOpacity
+              key={option.id}
+              className={`flex-row items-center p-4 ${
+                index !== navigationOptions.length - 1
+                  ? "border-b border-gray-100"
+                  : ""
+              }`}
+              onPress={option.onPress}
+              activeOpacity={0.7}
+            >
+              <View className="flex items-center justify-center w-10 h-10 mr-4 bg-orange-100 rounded-full">
+                {renderIcon(option.icon, option.iconType, "#EA580C", 20)}
+              </View>
+
+              <View className="flex-1">
+                <Text className="text-base font-medium text-gray-900">
+                  {option.title}
+                </Text>
+                <Text className="text-sm text-gray-500">{option.subtitle}</Text>
+              </View>
+
+              <Feather name="chevron-right" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Account Options */}
+        <View className="mx-4 mt-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <View className="p-4 border-b border-gray-100">
+            <Text className="text-lg font-semibold text-gray-900">
+              Account Options
+            </Text>
+          </View>
+
+          {accountOptions.map((option, index) => (
+            <TouchableOpacity
+              key={option.id}
+              className={`flex-row items-center p-4 ${
+                index !== accountOptions.length - 1
+                  ? "border-b border-gray-100"
+                  : ""
+              }`}
+              onPress={option.onPress}
+              activeOpacity={0.7}
+            >
+              <View
+                className={`flex items-center justify-center w-10 h-10 mr-4 rounded-full ${
+                  option.isDestructive ? "bg-red-100" : "bg-gray-100"
+                }`}
+              >
+                {renderIcon(
+                  option.icon,
+                  option.iconType,
+                  option.isDestructive ? "#DC2626" : "#374151",
+                  20
+                )}
+              </View>
+
+              <View className="flex-1">
+                <Text
+                  className={`text-base font-medium ${option.isDestructive ? "text-red-600" : "text-gray-900"}`}
+                >
+                  {option.title}
+                </Text>
+                <Text className="text-sm text-gray-500">{option.subtitle}</Text>
+              </View>
+
+              <Feather name="chevron-right" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* App Info */}
+        <View className="mx-4 mt-6 mb-8 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <View className="p-4">
+            <View className="flex-row items-center justify-center">
+              <MaterialCommunityIcons
+                name="storefront"
+                size={24}
+                color="#EA580C"
+              />
+              <Text className="ml-2 text-lg font-semibold text-gray-900">
+                PalenqueMart
+              </Text>
+            </View>
+            <Text className="mt-2 text-sm text-center text-gray-500">
+              Version 1.0.0
+            </Text>
+            <Text className="mt-1 text-xs text-center text-gray-400">
+              Your trusted local marketplace
+            </Text>
+          </View>
+        </View>
       </ScrollView>
 
       <DefaultLoadingAnimation visible={logoutLoading} version={2} />

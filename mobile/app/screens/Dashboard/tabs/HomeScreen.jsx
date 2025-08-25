@@ -12,6 +12,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
 import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 
@@ -205,32 +206,41 @@ const HomeScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View className="flex-1 bg-white">
-        {/* Top Nav */}
-        <View className="flex gap-3 px-4 pt-16 pb-5 border-b border-gray-300">
-          <Text className="text-2xl font-semibold">Palenque Mart</Text>
+        <View className="flex gap-4 px-4 pt-16 pb-6 bg-white border-b border-gray-200">
           <View className="flex flex-row items-center justify-between">
-            <View>
+            <Image
+              source={require("../../../assets/images/Palenque-Logo-v1.png")}
+              className="h-16 w-52"
+              resizeMode="cover"
+            />
+            <TouchableOpacity
+              onPress={() => navigation.push("Cart")}
+              className="relative p-2"
+            >
+              <Ionicons name="bag-outline" size={24} color="black" />
+              {cartCount > 0 && (
+                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
+                  <Text className="text-xs font-bold text-white">
+                    {cartCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+          <View className="flex flex-row items-center">
+            <View className="relative flex-1">
               <TextInput
-                className="p-3 border-2 border-gray-800 rounded-lg w-60"
-                placeholder="Search item"
+                className="p-3 pr-10 text-base border border-gray-200 bg-gray-50 rounded-xl"
+                placeholder="Search products, stores..."
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-            </View>
-            <View className="flex flex-row gap-4">
-              <TouchableOpacity
-                onPress={() => navigation.push("Cart")}
-                className="relative"
-              >
-                <Feather name="shopping-cart" size={24} color="black" />
-                {cartCount > 0 && (
-                  <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
-                    <Text className="text-xs font-bold text-white">
-                      {cartCount}
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+              <Ionicons
+                name="search"
+                size={20}
+                color="#6B7280"
+                style={{ position: "absolute", right: 12, top: 12 }}
+              />
             </View>
           </View>
         </View>
@@ -245,32 +255,41 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Top Nav */}
-      <View className="flex gap-3 px-4 pt-16 pb-5 bg-white border-b border-gray-300">
-        <Text className="text-2xl font-semibold">Palenque Mart</Text>
+      <View className="flex gap-4 px-4 pt-16 pb-6 bg-white border-b border-gray-200">
         <View className="flex flex-row items-center justify-between">
-          <View>
+          <Image
+            source={require("../../../assets/images/Palenque-Logo-v1.png")}
+            className="h-16 w-52"
+            resizeMode="cover"
+          />
+          <TouchableOpacity
+            onPress={() => navigation.push("Cart")}
+            className="relative p-2"
+          >
+            <Ionicons name="bag-outline" size={24} color="black" />
+            {cartCount > 0 && (
+              <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
+                <Text className="text-xs font-bold text-white">
+                  {cartCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+        <View className="flex flex-row items-center">
+          <View className="relative flex-1">
             <TextInput
-              className="p-3 border-2 border-gray-800 rounded-lg w-60"
-              placeholder="Search item"
+              className="p-3 pr-10 text-base border border-gray-200 bg-gray-50 rounded-xl"
+              placeholder="Search products, stores..."
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-          </View>
-          <View className="flex flex-row gap-4">
-            <TouchableOpacity
-              onPress={() => navigation.push("Cart")}
-              className="relative"
-            >
-              <Feather name="shopping-cart" size={24} color="black" />
-              {cartCount > 0 && (
-                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
-                  <Text className="text-xs font-bold text-white">
-                    {cartCount}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+            <Ionicons
+              name="search"
+              size={20}
+              color="#6B7280"
+              style={{ position: "absolute", right: 12, top: 12 }}
+            />
           </View>
         </View>
       </View>
@@ -341,19 +360,21 @@ const HomeScreen = ({ navigation }) => {
       {/* Authentication Buttons - Fixed at bottom */}
       {!user && (
         <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300">
-          <View className="flex flex-row justify-center gap-8 px-6 py-6">
+          <View className="flex flex-row justify-center gap-4 px-6 py-6">
             <TouchableOpacity
-              className="flex-1 px-6 py-3 border border-black rounded-xl max-w-32"
+              className="flex-1 px-6 py-3 border-2 border-black rounded-xl max-w-32"
               onPress={() => navigation.push("Login")}
             >
-              <Text className="text-lg font-medium text-center">Login</Text>
+              <Text className="text-lg font-semibold text-center text-black">
+                Login
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               className="flex-1 px-6 py-3 bg-black rounded-xl max-w-32"
               onPress={() => navigation.push("SignUp")}
             >
-              <Text className="text-lg font-medium text-center text-white">
+              <Text className="text-lg font-semibold text-center text-white">
                 Sign up
               </Text>
             </TouchableOpacity>

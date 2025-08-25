@@ -1,12 +1,9 @@
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+"use client";
 
-import Ionicons from "@expo/vector-icons/Ionicons";
-import {
-  CommonActions,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
+import { View, Text, TouchableOpacity, TextInput } from "react-native";
 import { useEffect, useRef, useState } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import axios from "axios";
 
@@ -33,9 +30,10 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
 
   const numDigits = 6;
   const [otp, setOTP] = useState(Array(numDigits).fill(""));
+  const [focusedIndex, setFocusedIndex] = useState(0);
 
   const inputs = Array(numDigits)
-    .fill()
+    .fill(null)
     .map(() => useRef(null));
 
   const handleChange = (text, index) => {
@@ -46,17 +44,40 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
 
       if (text && index < numDigits - 1) {
         inputs[index + 1].current.focus();
+        setFocusedIndex(index + 1);
       }
 
       setVerificationCode(newOTP.join(""));
     }
   };
 
+  const focusOnLastEmptyInput = () => {
+    const lastEmptyIndex = otp.findIndex((digit) => digit === "");
+    const targetIndex = lastEmptyIndex === -1 ? numDigits - 1 : lastEmptyIndex;
+    inputs[targetIndex].current.focus();
+    setFocusedIndex(targetIndex);
+  };
+
   const handleKeyPress = (e, index) => {
-    if (e.nativeEvent.key === "Backspace" && index > 0) {
-      inputs[index - 1].current.focus();
+    if (e.nativeEvent.key === "Backspace") {
+      if (otp[index] !== "") {
+        // If current input has value, clear it
+        const newOTP = [...otp];
+        newOTP[index] = "";
+        setOTP(newOTP);
+        setVerificationCode(newOTP.join(""));
+      } else if (index > 0) {
+        // If current input is empty, move to previous input and clear it
+        const newOTP = [...otp];
+        newOTP[index - 1] = "";
+        setOTP(newOTP);
+        setVerificationCode(newOTP.join(""));
+        inputs[index - 1].current.focus();
+        setFocusedIndex(index - 1);
+      }
     } else if (/^\d+$/.test(e.nativeEvent.key) && index < numDigits - 1) {
       inputs[index + 1].current.focus();
+      setFocusedIndex(index + 1);
       const newOTP = [...otp];
       newOTP[index + 1] = e.nativeEvent.key;
       setOTP(newOTP);
@@ -70,11 +91,13 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
       return;
     }
 
+    if (message) setMessage(null);
+
     setLoading(true);
     const startTime = Date.now();
     let responseData;
 
-    let formData = {
+    const formData = {
       otp: verificationCode,
       mobileNumber: route.params?.mobileNumber,
     };
@@ -205,66 +228,73 @@ const MobileNumberVerificationScreen = ({ navigation }) => {
   }, [resendOtpTimeout]);
 
   return (
-    <View className="relative">
-      <View className="p-3 border-b border-gray-300 pt-14">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="black" />
+    <View className="relative flex-1 px-6 py-16 bg-white">
+      <View className="mb-10">
+        <TouchableOpacity
+          className="self-start p-2 rounded-full bg-grey"
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
         </TouchableOpacity>
       </View>
 
-      <View className="p-6 h-[87%]">
-        <View className="flex items-center">
-          <View className="pt-10 pb-16">
-            <Text className="text-3xl font-semibold">Palenque Mart</Text>
-          </View>
-        </View>
+      <View className="mb-10">
+        <Text className="text-3xl font-semibold text-black">
+          Verify your number
+        </Text>
+        <Text className="text-lg font-normal text-primary">
+          Enter the 6-digit code sent to your mobile.
+        </Text>
+      </View>
 
-        <Text className="mb-5 text-3xl font-bold">
-          Verify your mobile number
+      <View className="mb-6">
+        <Text className="mb-4 text-base text-darkgrey">
+          Code sent to{" "}
+          <Text className="font-medium text-black">
+            {route.params?.mobileNumber}
+          </Text>
         </Text>
 
-        <Text className="mb-5">
-          Enter 6-digit code sent to your mobile number{" "}
-          <Text className="font-bold">{route.params?.mobileNumber}</Text>
-        </Text>
-
-        <View className="flex flex-row gap-4">
+        <View className="flex flex-row justify-between gap-3">
           {otp.map((digit, index) => (
             <TextInput
               key={index}
               ref={inputs[index]}
-              className={`w-10 text-lg text-center border-b ${message && !message?.success ? "border-red-500" : "border-black"} `}
+              className={`flex-1 p-4 text-xl text-center bg-grey rounded-md text-black ${
+                message && !message?.success ? "border border-red-500" : ""
+              } ${focusedIndex === index ? "border-2 border-primary" : ""}`}
               keyboardType="number-pad"
               value={digit}
               onChangeText={(text) => handleChange(text, index)}
               onKeyPress={(e) => handleKeyPress(e, index)}
+              onFocus={() => {
+                focusOnLastEmptyInput();
+              }}
+              caretHidden={true}
               maxLength={1}
             />
           ))}
         </View>
+      </View>
 
-        {message && !message?.success && (
-          <Text className="mt-3 text-red-500">{message?.message}</Text>
-        )}
+      {message && !message?.success && (
+        <Text className="mt-3 text-red-500">{message?.message}</Text>
+      )}
 
-        <View className="flex gap-4 mt-10">
-          <TouchableOpacity
-            className={`flex items-center justify-center px-4 py-3 rounded-md w-1/2 ${
-              resendOtpTimeout > 0 ? "bg-gray-300 opacity-60" : " bg-orange-600"
-            }`}
-            onPress={sendCodeAgain}
-            disabled={resendOtpTimeout > 0}
-          >
-            <Text className="text-xl text-white ">Send code again</Text>
-          </TouchableOpacity>
-
-          {resendOtpTimeout > 0 && (
-            <Text className="text-lg">
-              Try again in {resendOtpTimeout}{" "}
-              {`${resendOtpTimeout > 1 ? "seconds" : "second"}`}
-            </Text>
-          )}
-        </View>
+      <View className="mt-6">
+        <TouchableOpacity
+          className={`flex items-center justify-center w-full p-4 rounded-md ${
+            resendOtpTimeout > 0 ? "bg-gray-300" : "bg-primary"
+          }`}
+          onPress={sendCodeAgain}
+          disabled={resendOtpTimeout > 0}
+        >
+          <Text className="text-lg font-semibold text-white">
+            {resendOtpTimeout > 0
+              ? `Resend in ${resendOtpTimeout}s`
+              : "Send code again"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <PersonalizedLoadingAnimation visible={loading} />

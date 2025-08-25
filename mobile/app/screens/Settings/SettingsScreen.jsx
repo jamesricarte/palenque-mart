@@ -4,7 +4,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
+import { useAuth } from "../../context/AuthContext";
+
 const SettingsScreen = ({ navigation }) => {
+  const { user } = useAuth();
+
   const settingsOptions = [
     {
       id: "addresses",
@@ -42,6 +46,37 @@ const SettingsScreen = ({ navigation }) => {
       onPress: () => console.log("About pressed"),
     },
   ];
+
+  if (!user) {
+    return (
+      <View className="flex-1 bg-gray-50">
+        {/* Header */}
+        <View className="flex-row items-center p-4 pt-16 bg-white border-b border-gray-300">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={30} color="black" />
+          </TouchableOpacity>
+          <Text className="ml-4 text-xl font-semibold">Settings</Text>
+        </View>
+
+        {/* Login Required */}
+        <View className="items-center justify-center flex-1 px-6">
+          <Feather name="user" size={80} color="#9CA3AF" />
+          <Text className="mt-4 text-xl font-semibold text-gray-600">
+            Login Required
+          </Text>
+          <Text className="mt-2 text-center text-gray-500">
+            Please login to access settings
+          </Text>
+          <TouchableOpacity
+            className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text className="font-semibold text-white">Login</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-gray-50">

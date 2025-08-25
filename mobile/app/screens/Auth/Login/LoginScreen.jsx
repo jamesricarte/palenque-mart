@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
   Keyboard,
+  Image,
 } from "react-native";
 import { CommonActions } from "@react-navigation/native";
 
@@ -17,6 +18,8 @@ import Feather from "@expo/vector-icons/Feather";
 import axios from "axios";
 
 import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
+import GoogleIcon from "../../../assets/images/Google.png";
+import FacebookIcon from "../../../assets/images/Facebook.png";
 
 import { API_URL } from "../../../config/apiConfig";
 import { useAuth } from "../../../context/AuthContext";
@@ -37,8 +40,11 @@ const LoginScreen = ({ navigation }) => {
   const mobileRegex = /^(\+639\d{9}|09\d{9}|9\d{9})$/;
 
   const handleLogin = async () => {
-    if (phoneEmail === "" || password === "") {
-      setMessage({ message: "All fields required." });
+    if (!phoneEmail || !password) {
+      setMessage({
+        message: "All fields required.",
+        error: { code: "ALL_FIELDS_REQUIRED" },
+      });
       return;
     }
 
@@ -183,101 +189,131 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View className="flex-1">
-      <View className="p-3 border-b border-gray-300 pt-14">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="black" />
+    <View className="relative flex-1 px-6 py-16 bg-white">
+      <View className="mb-10">
+        <TouchableOpacity
+          className="self-start p-2 rounded-full bg-grey"
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 p-6">
-        <View className="flex items-center">
-          <View className="pt-10 pb-16">
-            <Text className="text-3xl font-semibold">Palenque Mart</Text>
-          </View>
-        </View>
+      <View className="mb-10">
+        <Text className="text-3xl font-semibold text-black">
+          Login your account
+        </Text>
+        <Text className="text-lg font-normal text-primary">
+          Your market access starts here.
+        </Text>
+      </View>
 
-        <View className="flex gap-5">
+      <View className="flex gap-5">
+        <TextInput
+          className={`w-full p-4 text-lg bg-grey rounded-md text-black ${
+            message?.error?.code === "INVALID_FORMAT" ||
+            (message?.error?.code === "ALL_FIELDS_REQUIRED" && !phoneEmail)
+              ? "border border-red-500"
+              : ""
+          }`}
+          placeholder="Email Address or Mobile"
+          placeholderTextColor="#9E9E9E"
+          keyboardType="email-address"
+          includeFontPadding={false}
+          value={phoneEmail}
+          onChangeText={setPhoneEmail}
+        />
+
+        <View className="relative">
           <TextInput
-            className={`w-full p-3 text-lg border rounded-md ${message?.error?.code === "INVALID_FORMAT" ? "border-red-500" : "border-black"}`}
-            placeholder="Email/Phone"
-            keyboardType="email-address"
+            className={`w-full p-4 text-lg bg-grey rounded-md text-black ${
+              message?.error?.code === "INCORRECT_PASSWORD" ||
+              message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ||
+              (message?.error?.code === "ALL_FIELDS_REQUIRED" && !password)
+                ? "border border-red-500"
+                : ""
+            }`}
+            placeholder="Password"
+            placeholderTextColor="#9E9E9E"
+            keyboardType="default"
+            secureTextEntry={!showPassword}
             includeFontPadding={false}
-            value={phoneEmail}
-            onChangeText={setPhoneEmail}
+            value={password}
+            onChangeText={setPassword}
           />
 
-          <View>
-            <TextInput
-              className={`w-full p-3 text-lg border rounded-md ${message?.error?.code === "INCORRECT_PASSWORD" || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
-              placeholder="Password"
-              keyboardType="default"
-              secureTextEntry={!showPassword}
-              includeFontPadding={false}
-              value={password}
-              onChangeText={setPassword}
-            />
-
+          <TouchableOpacity
+            className="absolute transform -translate-y-1/2 right-4 top-1/2"
+            onPress={() => setShowPassword(!showPassword)}
+          >
             <Feather
-              className="absolute transform -translate-y-1/2 right-6 top-1/2"
               name={showPassword ? "eye-off" : "eye"}
               size={20}
-              color="black"
-              onPress={() => setShowPassword(!showPassword)}
+              color="#9E9E9E"
             />
-          </View>
+          </TouchableOpacity>
         </View>
+      </View>
 
+      <View className="items-end mt-4">
         <TouchableOpacity>
-          <Text className="w-full mt-4 text-right text-gray-600">
-            Forgot password?
+          <Text className="text-primary">Forgot password?</Text>
+        </TouchableOpacity>
+      </View>
+
+      {message && !message?.success && (
+        <Text className="mt-3 text-red-500">{message.message}</Text>
+      )}
+
+      <TouchableOpacity
+        className="flex items-center justify-center w-full p-4 mt-6 rounded-md bg-primary"
+        onPress={handleLogin}
+      >
+        <Text className="text-lg font-semibold text-white">Login</Text>
+      </TouchableOpacity>
+
+      <View className="flex-row items-center w-full my-10">
+        <View className="flex-1 h-0.5 bg-grey" />
+        <Text className="mx-4 text-darkgrey">Or login with</Text>
+        <View className="flex-1 h-0.5 bg-grey" />
+      </View>
+
+      <View className="flex w-full gap-4">
+        <TouchableOpacity
+          className="items-center justify-center p-4 border rounded-md border-primary"
+          onPress={() => {}}
+        >
+          <Image
+            className="absolute left-4"
+            source={GoogleIcon}
+            style={{ width: 20, height: 20 }}
+          />
+          <Text className="text-lg text-center text-primary">
+            Continue with Google
           </Text>
         </TouchableOpacity>
 
-        {message && !message?.success && (
-          <Text className="text-red-500">{message.message}</Text>
-        )}
-
         <TouchableOpacity
-          className={`flex items-center justify-center w-full px-4 py-3 mt-4 rounded-md bg-orange-600`}
-          onPress={handleLogin}
+          className="items-center justify-center p-4 border rounded-md border-primary"
+          onPress={() => {}}
         >
-          <Text className="text-xl text-white">Log in</Text>
+          <Image
+            className="absolute left-4"
+            source={FacebookIcon}
+            style={{ width: 21, height: 21 }}
+          />
+          <Text className="text-lg text-center text-primary">
+            Continue with Facebook
+          </Text>
         </TouchableOpacity>
+      </View>
 
-        <View className="flex-row items-center w-full mt-5 mb-8">
-          <View className="flex-1 h-0.5 bg-gray-300" />
-          <Text className="mx-4 text-dark-grey">Or login with</Text>
-          <View className="flex-1 h-0.5 bg-gray-300" />
-        </View>
-
-        <View className="flex w-full gap-4">
-          <TouchableOpacity
-            className="py-3 border border-gray-400 rounded-lg"
-            onPress={() => {}}
-          >
-            <Text className="text-base text-center text-black">
-              Continue with Google
-            </Text>
+      <View className="flex items-center gap-4 mt-auto">
+        <View className="flex flex-row gap-1">
+          <Text className="text-lg text-black">Don't have an account?</Text>
+          <TouchableOpacity onPress={() => navigation.replace("SignUp")}>
+            <Text className="text-lg text-primary">Sign Up</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            className="py-3 border border-gray-400 rounded-lg"
-            onPress={() => {}}
-          >
-            <Text className="text-base text-center text-black">
-              Continue with Facebook
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View className="flex items-center gap-4 mt-auto">
-          <View className="flex flex-row gap-2">
-            <Text className="text-gray-600">Don't have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.replace("SignUp")}>
-              <Text className="text-orange-500">Sign up</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </View>
 

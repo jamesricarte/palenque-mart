@@ -8,8 +8,12 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { useState, useCallback, useRef } from "react";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useState, useCallback, useRef, useEffect } from "react";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
@@ -19,6 +23,7 @@ import { API_URL } from "../../config/apiConfig";
 
 const OrdersScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { user } = useAuth();
 
   const [orders, setOrders] = useState([]);
@@ -27,6 +32,12 @@ const OrdersScreen = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   const firstLoadRef = useRef(true);
+
+  useEffect(() => {
+    if (route.params?.initialStatus) {
+      setSelectedStatus(route.params.initialStatus);
+    }
+  }, [route.params?.initialStatus]);
 
   const statusOptions = [
     { key: "all", label: "All Orders" },

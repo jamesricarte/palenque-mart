@@ -164,7 +164,7 @@ const CustomDatePicker = ({ visible, onClose, onDateSelect, initialDate }) => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="flex-1 py-3 bg-black rounded-lg"
+              className="flex-1 py-3 bg-orange-600 rounded-lg"
               onPress={handleConfirm}
             >
               <Text className="font-medium text-center text-white">

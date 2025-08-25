@@ -3,7 +3,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Entypo from "@expo/vector-icons/Entypo";
 import HomeScreen from "./tabs/HomeScreen";
 import LiveStreamingScreen from "./tabs/LiveStreamingScreen";
 import ChatScreen from "./tabs/ChatScreen";
@@ -19,18 +18,32 @@ const DashboardScreen = () => {
   return (
     <Tab.Navigator
       initialRouteName="Home"
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: "#F16B44",
-        tabBarStyle: !user ? { display: "none" } : {},
-      }}
+        tabBarInactiveTintColor: "#8f8f8f",
+        tabBarStyle: !user
+          ? { display: "none" }
+          : {
+              backgroundColor: "#ffffff",
+              borderTopColor: "#e5e7eb",
+              borderTopWidth: 1,
+            },
+        tabBarLabelStyle: {
+          fontSize: 11,
+        },
+      })}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -38,8 +51,12 @@ const DashboardScreen = () => {
         name="Live Streams"
         component={LiveStreamingScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="videocam" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialIcons
+              name={focused ? "videocam" : "videocam"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -47,8 +64,12 @@ const DashboardScreen = () => {
         name="Chat"
         component={ChatScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Entypo name="chat" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "chatbubbles" : "chatbubbles-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -56,8 +77,12 @@ const DashboardScreen = () => {
         name="Notifications"
         component={NotificationsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="notifications" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "notifications" : "notifications-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -65,8 +90,12 @@ const DashboardScreen = () => {
         name="Account"
         component={AccountScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="account-circle" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "person" : "person-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

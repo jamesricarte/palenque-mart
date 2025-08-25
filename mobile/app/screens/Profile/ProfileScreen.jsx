@@ -10,7 +10,6 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
-  Animated,
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -149,56 +148,58 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1"
+      className="flex-1 bg-gray-50"
       behavior={
         Platform.OS === "android" && !keyBoardVisibility ? null : "padding"
       }
       keyboardVerticalOffset={0}
     >
-      <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-300">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
+      <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <View className="flex flex-row items-center">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="ml-4 text-xl font-semibold text-gray-900">
+            Profile
+          </Text>
+        </View>
       </View>
 
-      <ScrollView className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1">
         <View className="items-center py-8 bg-white border-b border-gray-200">
           <View className="relative">
-            <MaterialIcons name="account-circle" size={100} color="black" />
-            <TouchableOpacity className="absolute bottom-0 right-0 p-2 bg-black rounded-full">
+            <View className="flex items-center justify-center w-24 h-24 overflow-hidden bg-gray-100 rounded-full">
+              {user?.profile_picture ? (
+                <Image
+                  source={{
+                    uri: deliveryPartnerProfile.profile_picture_url,
+                  }}
+                  className="w-full h-full"
+                  style={{ resizeMode: "cover" }}
+                />
+              ) : (
+                <Feather name="user" size={50} color="black" />
+              )}
+            </View>
+            <TouchableOpacity className="absolute bottom-0 right-0 p-2 bg-orange-600 border-2 border-white rounded-full">
               <Feather name="camera" size={16} color="white" />
             </TouchableOpacity>
           </View>
 
-          <Text className="mt-3 text-lg font-semibold">
+          <Text className="mt-4 text-xl font-semibold text-gray-900">
             {user.first_name} {user.last_name}
           </Text>
 
-          <Text className="text-sm text-gray-600">
+          <Text className="mt-1 text-sm text-gray-600">
             {user.email ? user.email : user.phone}
           </Text>
-
-          <View className="flex-row w-full mt-4 justify-evenly">
-            <TouchableOpacity className="items-center">
-              <Text>0</Text>
-              <Text>Likes</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center">
-              <Text>0</Text>
-              <Text>Followers</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center">
-              <Text>0</Text>
-              <Text>Followings</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
-        <View className="p-6 mt-4 bg-white">
+        <View className="p-6 mx-4 mt-6 bg-white shadow-sm rounded-xl">
           <View className="flex-row items-center justify-between mb-6">
-            <Text className="text-xl font-semibold">Personal Information</Text>
+            <Text className="text-xl font-semibold text-gray-900">
+              Personal Information
+            </Text>
 
             <TouchableOpacity
               onPress={() => {
@@ -221,7 +222,7 @@ const ProfileScreen = ({ navigation }) => {
               </Text>
 
               <TextInput
-                className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
+                className={`p-3 text-base border rounded-xl border-gray-200 ${isEditing ? "bg-white" : "bg-gray-100"}`}
                 value={profileData.first_name}
                 onChangeText={(text) => handleInputChange("first_name", text)}
                 editable={isEditing}
@@ -234,7 +235,7 @@ const ProfileScreen = ({ navigation }) => {
               </Text>
 
               <TextInput
-                className={`p-3 text-base border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
+                className={`p-3 text-base border rounded-xl border-gray-200 ${isEditing ? "bg-white" : "bg-gray-100"}`}
                 value={profileData.last_name}
                 onChangeText={(text) => handleInputChange("last_name", text)}
                 editable={isEditing}
@@ -248,13 +249,13 @@ const ProfileScreen = ({ navigation }) => {
             </Text>
 
             <TouchableOpacity onPress={() => navigation.navigate("EditEmail")}>
-              <View>
-                <Text className="p-3 text-base bg-white border border-gray-300 rounded-lg">
+              <View className="relative">
+                <Text className="p-3 text-base bg-white border border-gray-200 rounded-xl">
                   {profileData.email}
                 </Text>
 
                 <Feather
-                  className="absolute transform -translate-y-1/2 top-1/2 right-5"
+                  className="absolute transform -translate-y-1/2 top-1/2 right-4"
                   name="edit-2"
                   size={16}
                   color="black"
@@ -271,13 +272,13 @@ const ProfileScreen = ({ navigation }) => {
             <TouchableOpacity
               onPress={() => navigation.navigate("EditMobileNumber")}
             >
-              <View>
-                <Text className="p-3 text-base bg-white border border-gray-300 rounded-lg">
+              <View className="relative">
+                <Text className="p-3 text-base bg-white border border-gray-200 rounded-xl">
                   {profileData.phone}
                 </Text>
 
                 <Feather
-                  className="absolute transform -translate-y-1/2 top-1/2 right-5"
+                  className="absolute transform -translate-y-1/2 top-1/2 right-4"
                   name="edit-2"
                   size={16}
                   color="black"
@@ -301,14 +302,18 @@ const ProfileScreen = ({ navigation }) => {
               disabled={!user.birth_date ? false : !isEditing}
             >
               <View
-                className={`flex-row items-center justify-between p-3 border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
+                className={`flex-row items-center justify-between p-3 border rounded-xl border-gray-200 ${isEditing ? "bg-white" : "bg-gray-100"}`}
               >
                 <Text
-                  className={`text-base ${profileData.birth_date ? "text-black" : "text-gray-500"}`}
+                  className={`text-base ${profileData.birth_date ? "text-gray-900" : "text-gray-500"}`}
                 >
                   {formatDisplayDate(profileData.birth_date)}
                 </Text>
-                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={isEditing ? "black" : "#6b7280"}
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -328,28 +333,36 @@ const ProfileScreen = ({ navigation }) => {
               disabled={!user.birth_date ? false : !isEditing}
             >
               <View
-                className={`flex-row items-center justify-between p-3 border border-gray-300 rounded-lg ${isEditing ? "bg-white" : "bg-gray-100"}`}
+                className={`flex-row items-center justify-between p-3 border rounded-xl border-gray-200 ${isEditing ? "bg-white" : "bg-gray-100"}`}
               >
                 <Text
-                  className={`text-base ${profileData.gender ? "text-black" : "text-gray-500"}`}
+                  className={`text-base ${profileData.gender ? "text-gray-900" : "text-gray-500"}`}
                 >
                   {formatDisplayGender(profileData.gender)}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#6B7280" />
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color={isEditing ? "black" : "#6b7280"}
+                />
               </View>
             </TouchableOpacity>
           </View>
         </View>
+
+        <View className="h-8" />
       </ScrollView>
 
       {profileChanges && (
-        <View className="flex flex-row gap-3 p-4 bg-white border-t border-gray-300">
+        <View className="p-4 bg-white border-t border-gray-200">
           <TouchableOpacity
-            className="flex-1 py-3 bg-black rounded-lg"
+            className="py-4 bg-orange-600 rounded-xl"
             onPress={handleSave}
             disabled={!profileChanges}
           >
-            <Text className="text-lg text-center text-white">Save Changes</Text>
+            <Text className="text-lg font-semibold text-center text-white">
+              Save Changes
+            </Text>
           </TouchableOpacity>
         </View>
       )}

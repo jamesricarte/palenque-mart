@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+"use client";
 
-import { View, Text, TouchableOpacity, Modal } from "react-native";
+import { useEffect, useState } from "react";
 
-import {
-  CommonActions,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
+import { View, Text, TouchableOpacity } from "react-native";
+
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
@@ -174,53 +172,72 @@ const EmailSentVerificationScreen = ({ navigation }) => {
 
   return (
     <>
-      <View className="p-3 border-b border-gray-300 pt-14">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="black" />
-        </TouchableOpacity>
-      </View>
+      <View className="relative flex-1 px-6 pt-16 pb-12 bg-white">
+        <View className="mb-6">
+          <TouchableOpacity
+            className="self-start p-2 rounded-full bg-grey"
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
+          </TouchableOpacity>
+        </View>
 
-      {!initialLoading && (
-        <>
-          <View className="flex items-center gap-4 p-8 pt-24">
-            <View className="pt-10 pb-8">
-              <Feather name="mail" size={50} color="black" />
-            </View>
-            <Text className="text-2xl font-bold text-center">
-              Before we proceed creating your account, please verify your email
-              first.
-            </Text>
-            <Text className="text-lg text-center">
-              We have sent a verification link to your email:{" "}
-              {route.params?.email}
-            </Text>
-          </View>
-
-          <View className="flex gap-4 p-5 pb-10 mt-auto border-t border-gray-300">
-            <TouchableOpacity
-              className="flex items-center justify-center w-full px-4 py-3 border border-gray-600 rounded-md"
-              onPress={resendEmail}
-              disabled={resendEmailTimeout > 0}
-            >
-              <Text
-                className={`text-xl ${resendEmailTimeout > 0 ? "text-gray-400" : "text-gray-600"} `}
-              >
-                {resendEmailTimeout > 0
-                  ? `Resend again after ${resendEmailTimeout} ${resendEmailTimeout > 1 ? "seconds" : "second"}`
-                  : "Resend verification link"}
+        {!initialLoading && (
+          <>
+            <View className="mb-10">
+              <Text className="text-3xl font-semibold text-black">
+                Check your email
               </Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
+              <Text className="text-lg font-normal text-primary">
+                We've sent a verification link to your inbox.
+              </Text>
+            </View>
 
-      <DefaultLoadingAnimation visible={initialLoading || loading} />
+            <View className="flex items-center justify-center flex-1">
+              <View className="items-center mb-8">
+                <View className="items-center justify-center w-20 h-20 mb-6 rounded-full bg-grey">
+                  <Feather name="mail" size={32} color="gray" />
+                </View>
 
-      <Snackbar
-        visible={snackBarVisible}
-        onDismiss={setSnackBarVisible}
-        text={message?.message}
-      />
+                <Text className="mb-4 text-xl font-medium text-center text-black">
+                  Verify your email address
+                </Text>
+
+                <Text className="text-base text-center text-darkgrey">
+                  We sent a verification link to{"\n"}
+                  <Text className="font-medium text-black">
+                    {route.params?.email}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+
+            <View className="mt-auto">
+              <TouchableOpacity
+                className={`flex items-center justify-center w-full p-4 rounded-md ${
+                  resendEmailTimeout > 0 ? "bg-gray-300" : "bg-primary"
+                }`}
+                onPress={resendEmail}
+                disabled={resendEmailTimeout > 0}
+              >
+                <Text className="text-lg font-semibold text-white">
+                  {resendEmailTimeout > 0
+                    ? `Resend in ${resendEmailTimeout}s`
+                    : "Resend verification email"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+
+        <DefaultLoadingAnimation visible={initialLoading || loading} />
+
+        <Snackbar
+          visible={snackBarVisible}
+          onDismiss={setSnackBarVisible}
+          text={message?.message}
+        />
+      </View>
     </>
   );
 };

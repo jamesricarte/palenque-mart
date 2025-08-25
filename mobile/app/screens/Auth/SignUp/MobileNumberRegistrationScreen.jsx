@@ -1,8 +1,9 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, Image } from "react-native";
 import { useRoute } from "@react-navigation/native";
-
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import axios from "axios";
@@ -11,6 +12,7 @@ import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadin
 import Snackbar from "../../../components/Snackbar";
 
 import { API_URL } from "../../../config/apiConfig";
+import PhilIcon from "../../../assets/images/PhilFlag.png";
 
 const MobileNumberRegistrationScreen = ({ navigation }) => {
   const route = useRoute();
@@ -34,14 +36,16 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
       return;
     }
 
-    const righMobileFormat = countryCode + mobileNumber;
+    if (message) setMessage(null);
+
+    const rightMobileFormat = countryCode + mobileNumber;
 
     setLoading(true);
     const startTime = Date.now();
     let responseData;
 
-    let formData = {
-      mobileNumber: righMobileFormat,
+    const formData = {
+      mobileNumber: rightMobileFormat,
       editing: true,
     };
 
@@ -61,14 +65,14 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
       console.log(error.response.data);
       responseData = error.response.data;
     } finally {
-      const elapseTime = Date.now() - startTime;
+      const elapsedTime = Date.now() - startTime;
       const minimumTime = 2000;
 
       setTimeout(
         () => {
           setLoading(false);
           if (responseData.success) {
-            let params = { mobileNumber: responseData.data.mobileNumber };
+            const params = { mobileNumber: responseData.data.mobileNumber };
 
             if (responseData?.data?.email) {
               params.email = responseData.data.email;
@@ -79,97 +83,89 @@ const MobileNumberRegistrationScreen = ({ navigation }) => {
             setMessage(responseData);
           }
         },
-        Math.max(0, minimumTime - elapseTime)
+        Math.max(0, minimumTime - elapsedTime)
       );
     }
   };
 
   useEffect(() => {
-    let isValid = true;
+    let isValid = false;
     const mobileFormat = /^(\+639\d{9}|09\d{9}|9\d{9})$/;
 
     if (mobileFormat.test(mobileNumber)) {
       isValid = true;
       setMobileNumber(mobileNumber.replace(/^(0|\+63)/, ""));
-    } else isValid = false;
+    }
 
     setIsFieldValid(isValid);
-    setMessage(null);
   }, [mobileNumber]);
 
   return (
-    <View className="relative">
-      <View className="p-3 border-b border-gray-300 pt-14">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="black" />
+    <View className="relative flex-1 px-6 py-16 bg-white">
+      <View className="mb-10">
+        <TouchableOpacity
+          className="self-start p-2 rounded-full bg-grey"
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
         </TouchableOpacity>
       </View>
 
-      <View className="p-6 h-[87%]">
-        <View className="flex items-center">
-          <View className="pt-10 pb-16">
-            <Text className="text-3xl font-semibold">Palenque Mart</Text>
-          </View>
-        </View>
-
-        <Text className="mb-5 text-3xl font-bold">
-          Verify your mobile number?
+      <View className="mb-10">
+        <Text className="text-3xl font-semibold text-black">
+          Enter your mobile number
         </Text>
-
-        <Text className="mb-5">
-          We need this to verify and secure your account
+        <Text className="text-lg font-normal text-primary">
+          We'll send you a verification code to confirm your number.
         </Text>
+      </View>
+
+      <View className="mb-6">
         <View className="flex-row gap-2">
+          <View
+            className={`flex-row items-center gap-1 px-2 text-lg rounded-md bg-grey ${message && !message?.success ? "border border-red-500" : ""}`}
+          >
+            <Image source={PhilIcon} style={{ width: 20, height: 20 }} />
+            <TextInput
+              key="country-code"
+              className="text-black"
+              keyboardType="default"
+              includeFontPadding={false}
+              value={countryCode}
+              editable={false}
+            />
+          </View>
+
           <TextInput
-            key="country-code"
-            className={` p-3 text-lg border rounded-md text-black ${
-              message && !message?.success ? "border-red-500" : "border-black"
+            className={`flex-1 px-4 py-4 text-lg bg-grey rounded-md text-black ${
+              message && !message?.success ? "border border-red-500" : ""
             }`}
-            keyboardType="default"
-            includeFontPadding={false}
-            value={countryCode}
-            editable={false}
-          />
-          <TextInput
-            key="mobile"
-            className={`flex-1 p-3 text-lg border  rounded-md ${
-              message && !message?.success ? "border-red-500" : "border-black"
-            }`}
-            placeholder="Sign up with Mobile Number"
-            keyboardType="phone-pad"
-            includeFontPadding={false}
+            placeholder="Mobile Number"
+            placeholderTextColor="#9E9E9E"
             value={mobileNumber}
             onChangeText={setMobileNumber}
+            keyboardType="phone-pad"
           />
         </View>
-
         {message && !message?.success && (
           <Text className="mt-3 text-red-500">{message?.message}</Text>
         )}
-
-        <TouchableOpacity
-          className={`flex items-center justify-center w-full px-4 py-3 mt-4 rounded-md ${
-            !isFieldValid ? "bg-gray-300 opacity-60" : "bg-orange-600"
-          }`}
-          onPress={verifyMobileNumber}
-          disabled={!isFieldValid}
-        >
-          <Text className="text-xl text-white">Continue</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="px-4 py-3 mt-4 bg-orange-500 rounded-md"
-          onPress={() => navigation.pop()}
-        >
-          <Text className="text-center text-white">Skip</Text>
-        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+        className="flex items-center justify-center w-full p-4 rounded-md bg-primary"
+        onPress={verifyMobileNumber}
+      >
+        <Text className="text-lg font-semibold text-white">
+          Send Verification Code
+        </Text>
+      </TouchableOpacity>
 
       <PersonalizedLoadingAnimation visible={loading} />
 
       <Snackbar
         visible={snackBarVisible}
-        onDismiss={setSnackBarVisible}
+        onDismiss={() => setSnackBarVisible(false)}
         text={message?.message}
       />
     </View>

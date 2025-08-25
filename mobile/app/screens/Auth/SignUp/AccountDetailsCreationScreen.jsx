@@ -1,11 +1,9 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
-import {
-  useRoute,
-  CommonActions,
-  useNavigation,
-} from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
@@ -61,7 +59,7 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
     const startTime = Date.now();
     let responseData;
 
-    let formData = {
+    const formData = {
       firstName: firstName,
       lastName: lastName,
       password: password,
@@ -183,107 +181,135 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
   }, [message]);
 
   return (
-    <View className="relative">
-      <View className="p-3 border-b border-gray-300 pt-14">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="black" />
+    <View className="relative flex-1 px-6 py-16 bg-white">
+      <View className="mb-10">
+        <TouchableOpacity
+          className="self-start p-2 rounded-full bg-grey"
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
         </TouchableOpacity>
       </View>
 
-      <View className="p-6 h-[87%]">
-        <View className="flex items-center">
-          <View className="pt-10 pb-16">
-            <Text className="text-3xl font-semibold">Palenque Mart</Text>
-          </View>
+      <View className="mb-10">
+        <Text className="text-3xl font-semibold text-black">
+          Complete your profile
+        </Text>
+        <Text className="text-lg font-normal text-primary">
+          Let's set up your Palenque Mart account.
+        </Text>
+      </View>
+
+      <View className="flex gap-5">
+        <View className="flex flex-row gap-4">
+          <TextInput
+            className={`flex-1 p-4 text-lg bg-grey rounded-md text-black ${
+              message?.error?.code == "ALL_REQUIRED" && firstName == ""
+                ? "border border-red-500"
+                : ""
+            }`}
+            placeholder="First Name"
+            placeholderTextColor="#9E9E9E"
+            includeFontPadding={false}
+            value={firstName}
+            onChangeText={setFirstName}
+          />
+          <TextInput
+            className={`flex-1 p-4 text-lg bg-grey rounded-md text-black ${
+              message?.error?.code == "ALL_REQUIRED" && lastName == ""
+                ? "border border-red-500"
+                : ""
+            }`}
+            placeholder="Last Name"
+            placeholderTextColor="#9E9E9E"
+            includeFontPadding={false}
+            value={lastName}
+            onChangeText={setLastName}
+          />
         </View>
 
-        <Text className="mb-5 text-3xl font-bold">Let's get you started!</Text>
+        <View className="relative">
+          <TextInput
+            className={`w-full p-4 text-lg bg-grey rounded-md text-black ${
+              (message?.error?.code == "ALL_REQUIRED" && password == "") ||
+              message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET"
+                ? "border border-red-500"
+                : ""
+            }`}
+            placeholder="Password"
+            placeholderTextColor="#9E9E9E"
+            secureTextEntry={!showPassword}
+            includeFontPadding={false}
+            value={password}
+            onChangeText={setPassword}
+          />
 
-        <Text className="mb-5">
-          First, let's create your Palenque Mart account with{" "}
-          {route.params?.email}
-        </Text>
-
-        <View className="flex gap-5">
-          <View className="flex flex-row gap-4">
-            <TextInput
-              key="first name"
-              className={`flex-1 p-3 text-lg border  rounded-md ${message?.error?.code == "ALL_REQUIRED" && firstName == "" ? "border-red-500" : "border-black"}`}
-              placeholder="First Name"
-              includeFontPadding={false}
-              value={firstName}
-              onChangeText={setFirstName}
-            />
-            <TextInput
-              key="last name"
-              className={`flex-1 p-3 text-lg border rounded-md ${message?.error?.code == "ALL_REQUIRED" && lastName == "" ? "border-red-500" : "border-black"}`}
-              placeholder="Last Name"
-              includeFontPadding={false}
-              value={lastName}
-              onChangeText={setLastName}
-            />
-          </View>
-
-          <View>
-            <TextInput
-              key="password"
-              className={`w-full p-3 text-lg border rounded-md ${(message?.error?.code == "ALL_REQUIRED" && password == "") || message?.error?.code === "PASSWORD_REQUIREMENT_NOT_MET" ? "border-red-500" : "border-black"}`}
-              placeholder="Password"
-              secureTextEntry={!showPassword}
-              includeFontPadding={false}
-              value={password}
-              onChangeText={setPassword}
-            />
-
+          <TouchableOpacity
+            className="absolute transform -translate-y-1/2 right-4 top-1/2"
+            onPress={() => setShowPassword(!showPassword)}
+          >
             <Feather
-              className="absolute transform -translate-y-1/2 right-6 top-1/2"
               name={showPassword ? "eye-off" : "eye"}
               size={20}
-              color="black"
-              onPress={() => setShowPassword(!showPassword)}
+              color="#9E9E9E"
             />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {message && <Text className="mt-3 text-red-500">{message.message}</Text>}
+
+      {password !== "" && (
+        <View className="p-4 mt-4 rounded-md bg-grey">
+          <Text className="mb-3 text-base text-black">
+            Password strength:{" "}
+            <Text
+              className={`font-semibold ${
+                passwordStrength === "Strong"
+                  ? "text-green-600"
+                  : passwordStrength === "Good"
+                    ? "text-yellow-600"
+                    : "text-red-500"
+              }`}
+            >
+              {passwordStrength}
+            </Text>
+          </Text>
+
+          <View className="gap-1">
+            <Text
+              className={`text-sm ${hasMinLength ? "text-green-600" : "text-darkgrey"}`}
+            >
+              ✓ At least 6 characters
+            </Text>
+            <Text
+              className={`text-sm ${hasUppercase ? "text-green-600" : "text-darkgrey"}`}
+            >
+              ✓ At least one uppercase letter (A-Z)
+            </Text>
+            <Text
+              className={`text-sm ${hasLowercase ? "text-green-600" : "text-darkgrey"}`}
+            >
+              ✓ At least one lowercase letter (a-z)
+            </Text>
+            <Text
+              className={`text-sm ${hasDigit ? "text-green-600" : "text-darkgrey"}`}
+            >
+              ✓ At least one number (0-9)
+            </Text>
           </View>
         </View>
+      )}
 
-        {message && (
-          <Text className="mt-4 text-red-500">{message.message}</Text>
-        )}
-
-        {password !== "" && (
-          <View className="mt-4">
-            <Text className="mb-3">
-              Password strength
-              <Text className="font-bold"> {passwordStrength}</Text>
-            </Text>
-
-            <Text
-              className={`${hasMinLength ? "text-green-700" : "text-black"}`}
-            >
-              At least 6 characters
-            </Text>
-            <Text
-              className={`${hasUppercase ? "text-green-700" : "text-black"}`}
-            >
-              At least one uppercase letter (A-Z)
-            </Text>
-            <Text
-              className={`${hasLowercase ? "text-green-700" : "text-black"}`}
-            >
-              At least one lowecase letter (a-z)
-            </Text>
-            <Text className={`${hasDigit ? "text-green-700" : "text-black"}`}>
-              At least one number (0-9)
-            </Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          className={`flex items-center justify-center w-full px-4 py-3 mt-6  rounded-md ${isFieldValid && isPasswordValid ? "bg-orange-600" : "bg-gray-300 opacity-60"}`}
-          onPress={createAccount}
-        >
-          <Text className="text-xl text-white">Continue</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        className={`flex items-center justify-center w-full p-4 mt-6 rounded-md ${
+          isFieldValid && isPasswordValid ? "bg-primary" : "bg-gray-300"
+        }`}
+        onPress={createAccount}
+        disabled={!(isFieldValid && isPasswordValid)}
+      >
+        <Text className="text-lg font-semibold text-white">Create Account</Text>
+      </TouchableOpacity>
 
       <PersonalizedLoadingAnimation visible={loading} />
 
