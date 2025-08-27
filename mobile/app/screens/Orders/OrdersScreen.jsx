@@ -45,6 +45,7 @@ const OrdersScreen = () => {
     { key: "ready_for_pickup", label: "Ready for Pickup" },
     { key: "on_the_way", label: "On the Way" },
     { key: "delivered", label: "Delivered" },
+    { key: "to_review", label: "To Review" },
     { key: "cancelled", label: "Cancelled" },
   ];
 
@@ -123,6 +124,14 @@ const OrdersScreen = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const isReviewTimeExpired = (deliveredAt) => {
+    if (!deliveredAt) return false;
+    const deliveryDate = new Date(deliveredAt);
+    const now = new Date();
+    const diffInDays = (now - deliveryDate) / (1000 * 60 * 60 * 24);
+    return diffInDays > 2;
   };
 
   const renderOrderCard = (order) => (
@@ -232,6 +241,34 @@ const OrdersScreen = () => {
           </Text>
         </View>
       )}
+
+      {order.status === "delivered" &&
+        order.can_review === 1 &&
+        !isReviewTimeExpired(order.delivered_at) && (
+          <TouchableOpacity
+            className="flex-row items-center justify-center p-3 mt-3 bg-orange-600 rounded-lg"
+            onPress={() =>
+              navigation.navigate("OrderDetails", {
+                orderId: order.id,
+                showReviewForm: true,
+              })
+            }
+          >
+            <Feather name="star" size={16} color="white" />
+            <Text className="ml-2 font-medium text-white">Write Review</Text>
+          </TouchableOpacity>
+        )}
+
+      {order.status === "delivered" &&
+        order.can_review === 1 &&
+        isReviewTimeExpired(order.delivered_at) && (
+          <View className="flex-row items-center justify-center p-3 mt-3 bg-gray-100 rounded-lg">
+            <Feather name="clock" size={16} color="#6B7280" />
+            <Text className="ml-2 text-sm text-gray-600">
+              Review time expired (2 days limit)
+            </Text>
+          </View>
+        )}
     </TouchableOpacity>
   );
 
@@ -334,7 +371,9 @@ const OrdersScreen = () => {
             <Text className="mt-2 text-center text-gray-500">
               {selectedStatus === "all"
                 ? "You haven't placed any orders yet"
-                : `No ${selectedStatus.replace(/_/g, " ")} orders found`}
+                : selectedStatus === "to_review"
+                  ? "No orders available for review"
+                  : `No ${selectedStatus.replace(/_/g, " ")} orders found`}
             </Text>
             <TouchableOpacity
               className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"

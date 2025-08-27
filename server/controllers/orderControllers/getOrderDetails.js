@@ -47,6 +47,33 @@ const getOrderDetails = async (req, res) => {
       [orderId]
     );
 
+    let orderProductReview = null;
+    let orderSellerReview = null;
+
+    if (items.length > 0) {
+      const [orderProductReviewRows] = await db.execute(
+        `SELECT pr.*, rm.storage_key, rm.media_type, rm.file_name
+         FROM product_reviews pr
+         LEFT JOIN review_media rm ON pr.id = rm.review_id AND rm.review_type = 'product'
+         WHERE pr.user_id = ? AND pr.order_id = ?`,
+        [userId, orderId]
+      );
+
+      const [orderSellerReviewRows] = await db.execute(
+        `SELECT * FROM seller_reviews 
+         WHERE user_id = ? AND seller_id = ? AND order_id = ?`,
+        [userId, items[0].seller_id, orderId]
+      );
+
+      if (orderProductReviewRows.length > 0) {
+        orderProductReview = orderProductReviewRows[0];
+      }
+
+      if (orderSellerReviewRows.length > 0) {
+        orderSellerReview = orderSellerReviewRows[0];
+      }
+    }
+
     // Generate public URLs for images
     const itemsWithImages = items.map((item) => {
       let productImageUrl = null;
@@ -102,6 +129,8 @@ const getOrderDetails = async (req, res) => {
       landmark: order.delivery_landmark,
       items: itemsWithImages,
       statusHistory,
+      orderProductReview,
+      orderSellerReview,
     };
 
     res.json({

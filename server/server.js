@@ -17,15 +17,7 @@ const addressRoutes = require("./routes/addressRoutes");
 const deliveryPartnerRoutes = require("./routes/deliveryPartnerRoutes"); // Added import
 const chatRoutes = require("./routes/chatRoutes"); // Added chat routes import
 const notificationRoutes = require("./routes/notificationRoutes"); // Added notification routes import
-
-// Requiring whole socketStore for usage of let sockets assignment
-const socketStore = require("./utils/socketStore");
-const {
-  users,
-  deliveryPartners,
-  sellers,
-  trackingMap,
-} = require("./utils/socketStore");
+const reviewRoutes = require("./routes/reviewRoutes"); // Added review routes import
 
 const app = express();
 const server = http.createServer(app);
@@ -44,6 +36,15 @@ app.use("/api/addresses", addressRoutes);
 app.use("/api/delivery-partner", deliveryPartnerRoutes); // Added route registration
 app.use("/api/chat", chatRoutes); // Added chat routes registration
 app.use("/api/notifications", notificationRoutes); // Added notification routes registration
+app.use("/api/reviews", reviewRoutes); // Added review routes registration
+
+const socketStore = require("./utils/socketStore");
+const {
+  users,
+  deliveryPartners,
+  sellers,
+  trackingMap,
+} = require("./utils/socketStore");
 
 const wss = new WebSocket.Server({ server });
 
@@ -51,7 +52,6 @@ wss.on("connection", (socket) => {
   socketStore.sockets.push(socket);
   console.log("WebSocket client connected");
 
-  // Handle delivery partner location updates
   socket.on("message", (message) => {
     try {
       const data = JSON.parse(message);
@@ -206,9 +206,9 @@ wss.on("connection", (socket) => {
 
 app.set("sockets", socketStore.sockets);
 app.set("wss", wss);
-app.set("deliveryPartners", deliveryPartners); // Add this line
-app.set("sellers", sellers); // Add this line
-app.set("users", users); // Add this line
+app.set("deliveryPartners", deliveryPartners);
+app.set("sellers", sellers);
+app.set("users", users);
 
 server.listen(port, "0.0.0.0", () => {
   console.log(`Server is running at port ${port}`);

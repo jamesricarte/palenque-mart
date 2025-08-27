@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -19,7 +20,6 @@ import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSeller } from "../../context/SellerContext";
 import { API_URL } from "../../config/apiConfig";
-import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation";
 
 const SellerChatConversationScreen = ({ route, navigation }) => {
   const { conversationId, userId, customerName, customerPhone } = route.params;
@@ -204,7 +204,7 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
         </View>
 
         <View className="items-center justify-center flex-1">
-          <PersonalizedLoadingAnimation />
+          <ActivityIndicator size="large" color="#2563eb" />
           <Text className="mt-4 text-gray-600">Loading messages...</Text>
         </View>
       </View>
@@ -293,7 +293,7 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
           disabled={!newMessage.trim() || sending}
         >
           {sending ? (
-            <PersonalizedLoadingAnimation visible={true} />
+            <ActivityIndicator size="small" color="#9CA3AF" />
           ) : (
             <Feather
               name="send"

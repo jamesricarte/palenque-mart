@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  FlatList,
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -19,6 +20,7 @@ import {
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
+import ReviewItem from "../../components/ReviewItem"; // Import ReviewItem component
 
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
@@ -40,6 +42,20 @@ const ProductDetailsScreen = () => {
   const [actionType, setActionType] = useState(""); // 'cart' or 'buy'
   const [conversationId, setConversationId] = useState(null);
 
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewFilter, setReviewFilter] = useState("all"); // 'all', '5', '4', '3', '2', '1'
+  const [reviewSort, setReviewSort] = useState("newest"); // 'newest', 'oldest', 'highest', 'lowest', 'helpful'
+  const [showReviewFilters, setShowReviewFilters] = useState(false);
+  const [selectedMediaModal, setSelectedMediaModal] = useState(null);
+  const [reviewPagination, setReviewPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
+  const [loadingMoreReviews, setLoadingMoreReviews] = useState(false);
+
   const fetchProduct = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/products/${productId}`);
@@ -53,6 +69,43 @@ const ProductDetailsScreen = () => {
       navigation.goBack();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async (page = 1, resetReviews = true) => {
+    if (page === 1) {
+      setReviewsLoading(true);
+    } else {
+      setLoadingMoreReviews(true);
+    }
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/reviews/product/${productId}`,
+        {
+          params: {
+            filter: reviewFilter,
+            sort: reviewSort,
+            page,
+            limit: 4, // Set limit to 4 reviews per page
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const newReviews = response.data.data.reviews;
+        if (resetReviews || page === 1) {
+          setReviews(newReviews);
+        } else {
+          setReviews((prev) => [...prev, ...newReviews]);
+        }
+        setReviewPagination(response.data.data.pagination);
+      }
+    } catch (error) {
+      console.error("Error fetching reviews:", error.response?.data);
+    } finally {
+      setReviewsLoading(false);
+      setLoadingMoreReviews(false);
     }
   };
 
@@ -97,6 +150,12 @@ const ProductDetailsScreen = () => {
     }
   }, [product]);
 
+  useEffect(() => {
+    if (product) {
+      fetchReviews(1, true);
+    }
+  }, [product, reviewFilter, reviewSort]);
+
   const formatUnitType = (unitType) => {
     const unitMap = {
       per_kilo: "Per Kilo",
@@ -114,6 +173,43 @@ const ProductDetailsScreen = () => {
   const formatDate = (dateString) => {
     if (!dateString) return null;
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const renderStarRating = (rating, size = 16) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Feather
+          key={i}
+          name="star"
+          size={size}
+          color={i <= rating ? "#F59E0B" : "#E5E7EB"}
+          style={{ marginRight: 2 }}
+        />
+      );
+    }
+    return <View className="flex-row">{stars}</View>;
+  };
+
+  const handleReviewHelpful = async (reviewId, isHelpful) => {
+    if (!user) {
+      Alert.alert("Login Required", "Please login to rate reviews");
+      return;
+    }
+
+    try {
+      await axios.post(`${API_URL}/api/reviews/helpful`, {
+        reviewId,
+        reviewType: "product",
+        isHelpful,
+      });
+
+      // Refresh reviews to update helpful count
+      fetchReviews(1, true);
+    } catch (error) {
+      console.error("Error rating review:", error);
+      Alert.alert("Error", "Failed to rate review");
+    }
   };
 
   const isOwnProduct = () => {
@@ -249,6 +345,35 @@ const ProductDetailsScreen = () => {
     ];
 
     return parts.filter((part) => part && part.trim() !== "").join(", ");
+  };
+
+  const handleMediaPress = (media) => {
+    setSelectedMediaModal(media);
+  };
+
+  const loadMoreReviews = () => {
+    if (reviewPagination.hasNextPage && !loadingMoreReviews) {
+      fetchReviews(reviewPagination.currentPage + 1, false);
+    }
+  };
+
+  const getFilterDisplayText = () => {
+    if (reviewFilter === "all") return "All Ratings";
+    return `${reviewFilter} Stars`;
+  };
+
+  const getNoReviewsMessage = () => {
+    if (reviewFilter === "all") {
+      return {
+        title: "No reviews yet",
+        subtitle: "Be the first to review this product",
+      };
+    } else {
+      return {
+        title: `No ${reviewFilter} star reviews`,
+        subtitle: "Try selecting a different rating filter",
+      };
+    }
   };
 
   if (loading) {
@@ -565,6 +690,108 @@ const ProductDetailsScreen = () => {
             Last updated: {new Date(product.updated_at).toLocaleDateString()}
           </Text>
         </View>
+
+        <View className="mt-2 bg-white">
+          <View className="p-4 border-b border-gray-200">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-lg font-semibold text-gray-900">
+                Reviews ({reviews.length || 0})
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowReviewFilters(true)}
+                className="flex-row items-center px-3 py-2 bg-gray-100 rounded-lg"
+              >
+                <Feather name="filter" size={16} color="#6B7280" />
+                <Text className="ml-1 text-sm text-gray-600">
+                  Filter & Sort
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row items-center mb-3">
+              <Text className="mr-2 text-sm text-gray-600">Showing:</Text>
+              <View className="px-2 py-1 bg-orange-100 rounded-full">
+                <Text className="text-xs font-medium text-orange-800">
+                  {getFilterDisplayText()}
+                </Text>
+              </View>
+            </View>
+
+            {/* Rating Summary */}
+            {product.average_rating > 0 && (
+              <View className="flex-row items-center mb-4">
+                <View className="flex-row items-center mr-4">
+                  {renderStarRating(Math.round(product.average_rating), 20)}
+                  <Text className="ml-2 text-xl font-bold text-gray-900">
+                    {product.average_rating.toFixed(1)}
+                  </Text>
+                </View>
+                <Text className="text-gray-600">
+                  Based on {product.review_count} reviews
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Reviews List */}
+          <View className="p-4">
+            {reviewsLoading ? (
+              <View className="items-center py-8">
+                <ActivityIndicator size="large" color="#EA580C" />
+                <Text className="mt-2 text-gray-600">Loading reviews...</Text>
+              </View>
+            ) : reviews.length === 0 ? (
+              <View className="items-center py-8">
+                <Feather name="message-square" size={48} color="#9CA3AF" />
+                <Text className="mt-2 text-lg font-medium text-gray-600">
+                  {getNoReviewsMessage().title}
+                </Text>
+                <Text className="text-gray-500">
+                  {getNoReviewsMessage().subtitle}
+                </Text>
+              </View>
+            ) : (
+              <>
+                <FlatList
+                  data={reviews}
+                  renderItem={({ item }) => (
+                    <ReviewItem
+                      review={item}
+                      onHelpful={handleReviewHelpful}
+                      onMediaPress={handleMediaPress}
+                    />
+                  )}
+                  keyExtractor={(item) => item.id.toString()}
+                  scrollEnabled={false}
+                  showsVerticalScrollIndicator={false}
+                />
+
+                {reviewPagination.hasNextPage && (
+                  <TouchableOpacity
+                    className="items-center p-4 mt-4 border border-orange-600 rounded-lg"
+                    onPress={loadMoreReviews}
+                    disabled={loadingMoreReviews}
+                  >
+                    {loadingMoreReviews ? (
+                      <ActivityIndicator color="#EA580C" />
+                    ) : (
+                      <Text className="font-medium text-orange-600">
+                        Load More Reviews
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                <View className="items-center mt-4">
+                  <Text className="text-sm text-gray-500">
+                    Showing {reviews.length} of {reviewPagination.totalItems}{" "}
+                    reviews
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
       </ScrollView>
 
       {/* Action Buttons */}
@@ -599,6 +826,138 @@ const ProductDetailsScreen = () => {
           </View>
         </View>
       )}
+
+      <Modal
+        transparent
+        visible={showReviewFilters}
+        animationType="slide"
+        onRequestClose={() => setShowReviewFilters(false)}
+      >
+        <View
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="justify-end flex-1">
+            <View className="p-6 bg-white rounded-t-3xl max-h-[70%]">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-semibold">
+                  Filter & Sort Reviews
+                </Text>
+                <TouchableOpacity onPress={() => setShowReviewFilters(false)}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Filter by Rating */}
+                <View className="mb-6">
+                  <Text className="mb-3 text-lg font-medium">
+                    Filter by Rating
+                  </Text>
+                  <View className="flex-row flex-wrap">
+                    {["all", "5", "4", "3", "2", "1"].map((filter) => (
+                      <TouchableOpacity
+                        key={filter}
+                        onPress={() => {
+                          setReviewFilter(filter);
+                          setShowReviewFilters(false);
+                        }}
+                        className={`px-4 py-2 mr-2 mb-2 rounded-full border ${
+                          reviewFilter === filter
+                            ? "bg-orange-600 border-orange-600"
+                            : "bg-white border-gray-300"
+                        }`}
+                      >
+                        <Text
+                          className={`${reviewFilter === filter ? "text-white" : "text-gray-700"}`}
+                        >
+                          {filter === "all" ? "All Ratings" : `${filter} Stars`}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Sort Options */}
+                <View className="mb-4">
+                  <Text className="mb-3 text-lg font-medium">Sort by</Text>
+                  {[
+                    { key: "newest", label: "Newest First" },
+                    { key: "oldest", label: "Oldest First" },
+                    { key: "highest", label: "Highest Rating" },
+                    { key: "lowest", label: "Lowest Rating" },
+                    { key: "helpful", label: "Most Helpful" },
+                  ].map((sort) => (
+                    <TouchableOpacity
+                      key={sort.key}
+                      onPress={() => {
+                        setReviewSort(sort.key);
+                        setShowReviewFilters(false);
+                      }}
+                      className={`flex-row items-center p-3 mb-2 rounded-lg ${
+                        reviewSort === sort.key ? "bg-orange-50" : "bg-gray-50"
+                      }`}
+                    >
+                      <View
+                        className={`w-5 h-5 rounded-full border-2 mr-3 items-center justify-center ${
+                          reviewSort === sort.key
+                            ? "bg-orange-600 border-orange-600"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {reviewSort === sort.key && (
+                          <View className="w-2 h-2 bg-white rounded-full" />
+                        )}
+                      </View>
+                      <Text className="flex-1">{sort.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        transparent
+        visible={selectedMediaModal !== null}
+        animationType="fade"
+        onRequestClose={() => setSelectedMediaModal(null)}
+      >
+        <View
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.9)" }}
+        >
+          <View className="items-center justify-center flex-1">
+            <TouchableOpacity
+              onPress={() => setSelectedMediaModal(null)}
+              className="absolute z-10 p-2 top-16 right-4"
+            >
+              <Feather name="x" size={28} color="white" />
+            </TouchableOpacity>
+
+            {selectedMediaModal && (
+              <View className="items-center justify-center w-full h-full">
+                {selectedMediaModal.media_type === "image" ? (
+                  <Image
+                    source={{ uri: selectedMediaModal.url }}
+                    className="w-full h-full"
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <View className="items-center justify-center flex-1">
+                    <Feather name="play-circle" size={64} color="white" />
+                    <Text className="mt-4 text-lg text-white">
+                      Video playback coming soon
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Preference Modal */}
       <Modal

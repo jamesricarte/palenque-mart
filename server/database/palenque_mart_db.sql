@@ -35,7 +35,7 @@ CREATE TABLE `cart` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,6 +44,7 @@ CREATE TABLE `cart` (
 
 LOCK TABLES `cart` WRITE;
 /*!40000 ALTER TABLE `cart` DISABLE KEYS */;
+INSERT INTO `cart` VALUES (2,4,1,1,'2025-08-24 07:19:18','2025-08-24 07:19:18');
 /*!40000 ALTER TABLE `cart` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -77,7 +78,7 @@ CREATE TABLE `conversations` (
   CONSTRAINT `fk_conversations_last_message` FOREIGN KEY (`last_message_id`) REFERENCES `messages` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_conversations_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_conversations_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -86,6 +87,7 @@ CREATE TABLE `conversations` (
 
 LOCK TABLES `conversations` WRITE;
 /*!40000 ALTER TABLE `conversations` DISABLE KEYS */;
+INSERT INTO `conversations` VALUES (1,3,1,20,'2025-08-26 04:29:47',0,0,1,'2025-08-24 13:20:10','2025-08-26 05:42:46'),(2,4,1,17,'2025-08-25 09:32:48',0,0,1,'2025-08-25 09:27:17','2025-08-26 04:25:38');
 /*!40000 ALTER TABLE `conversations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -115,7 +117,7 @@ CREATE TABLE `delivery_assignments` (
   KEY `idx_order_id` (`order_id`),
   KEY `idx_delivery_partner_id` (`delivery_partner_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,7 +126,7 @@ CREATE TABLE `delivery_assignments` (
 
 LOCK TABLES `delivery_assignments` WRITE;
 /*!40000 ALTER TABLE `delivery_assignments` DISABLE KEYS */;
-INSERT INTO `delivery_assignments` VALUES (1,2,1,'delivered','2025-08-22 14:51:28','2025-08-22 14:55:31','2025-08-22 14:56:17',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-22 14:50:15','2025-08-22 14:56:17'),(2,1,1,'delivered','2025-08-22 15:13:36','2025-08-22 15:15:36','2025-08-22 15:18:43',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-22 15:08:20','2025-08-22 15:18:43'),(3,3,1,'rider_assigned','2025-08-23 04:20:13',NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 04:18:14','2025-08-23 04:20:13'),(4,6,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 08:39:47','2025-08-23 08:39:47'),(5,5,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 08:42:09','2025-08-23 08:42:09'),(6,4,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 08:44:14','2025-08-23 08:44:14'),(7,7,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 08:46:01','2025-08-23 08:46:01'),(8,8,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 08:49:32','2025-08-23 08:49:32'),(9,9,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 08:50:55','2025-08-23 08:50:55'),(10,10,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 08:51:27','2025-08-23 08:51:27'),(11,11,NULL,'looking_for_rider',NULL,NULL,NULL,NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-23 15:14:48','2025-08-23 15:14:48');
+INSERT INTO `delivery_assignments` VALUES (1,1,1,'delivered','2025-08-27 11:43:38','2025-08-27 11:43:55','2025-08-27 11:44:06',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-27 11:43:29','2025-08-27 11:44:06'),(2,2,1,'delivered','2025-08-27 11:51:31','2025-08-27 11:51:37','2025-08-27 11:51:47',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-27 11:51:24','2025-08-27 11:51:47');
 /*!40000 ALTER TABLE `delivery_assignments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -152,7 +154,7 @@ CREATE TABLE `delivery_candidates` (
   KEY `idx_status` (`status`),
   CONSTRAINT `fk_delivery_candidates_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `delivery_assignments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_delivery_candidates_partner` FOREIGN KEY (`delivery_partner_id`) REFERENCES `delivery_partners` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -161,7 +163,7 @@ CREATE TABLE `delivery_candidates` (
 
 LOCK TABLES `delivery_candidates` WRITE;
 /*!40000 ALTER TABLE `delivery_candidates` DISABLE KEYS */;
-INSERT INTO `delivery_candidates` VALUES (1,1,1,0.70,'accepted','2025-08-22 14:50:15','2025-08-22 14:51:28','2025-08-22 14:50:15','2025-08-22 14:51:28'),(2,2,1,0.69,'accepted','2025-08-22 15:08:20','2025-08-22 15:13:36','2025-08-22 15:08:20','2025-08-22 15:13:36'),(3,3,1,0.71,'accepted','2025-08-23 04:18:14','2025-08-23 04:20:13','2025-08-23 04:18:14','2025-08-23 04:20:13');
+INSERT INTO `delivery_candidates` VALUES (7,1,1,0.74,'accepted','2025-08-27 11:43:29','2025-08-27 11:43:38','2025-08-27 11:43:29','2025-08-27 11:43:38'),(8,2,1,0.71,'accepted','2025-08-27 11:51:25','2025-08-27 11:51:31','2025-08-27 11:51:25','2025-08-27 11:51:31');
 /*!40000 ALTER TABLE `delivery_candidates` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -301,7 +303,7 @@ CREATE TABLE `delivery_partners` (
 
 LOCK TABLES `delivery_partners` WRITE;
 /*!40000 ALTER TABLE `delivery_partners` DISABLE KEYS */;
-INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'occupied',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-08-23 13:30:16');
+INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'available',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-08-27 12:22:58');
 /*!40000 ALTER TABLE `delivery_partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -335,7 +337,7 @@ CREATE TABLE `messages` (
   CONSTRAINT `fk_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_messages_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -344,6 +346,7 @@ CREATE TABLE `messages` (
 
 LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
+INSERT INTO `messages` VALUES (1,1,3,'user','Hello','text',NULL,NULL,1,'2025-08-24 13:20:10','2025-08-24 15:37:06'),(2,1,3,'user','Gg','text',NULL,NULL,1,'2025-08-24 13:20:14','2025-08-24 15:37:06'),(3,1,3,'user','Uh','text',NULL,NULL,1,'2025-08-24 13:20:18','2025-08-24 15:37:06'),(4,1,3,'user','Hhhhh','text',NULL,NULL,1,'2025-08-24 13:20:21','2025-08-24 15:37:06'),(5,1,3,'user','Yygg','text',NULL,NULL,1,'2025-08-24 13:20:40','2025-08-24 15:37:06'),(6,2,4,'user','Available?','text',NULL,NULL,1,'2025-08-25 09:27:17','2025-08-26 04:25:38'),(7,2,4,'user','Uuhj','text',NULL,NULL,1,'2025-08-25 09:30:01','2025-08-26 04:25:38'),(8,2,4,'user','Hdhdhd','text',NULL,NULL,1,'2025-08-25 09:30:04','2025-08-26 04:25:38'),(9,2,4,'user','Hdhshd','text',NULL,NULL,1,'2025-08-25 09:30:11','2025-08-26 04:25:38'),(10,2,4,'user','Hshshd','text',NULL,NULL,1,'2025-08-25 09:30:13','2025-08-26 04:25:38'),(11,2,4,'user','Hshdd','text',NULL,NULL,1,'2025-08-25 09:30:15','2025-08-26 04:25:38'),(12,2,4,'user','Hshshd','text',NULL,NULL,1,'2025-08-25 09:31:16','2025-08-26 04:25:38'),(13,2,4,'user','Dhhdhd','text',NULL,NULL,1,'2025-08-25 09:31:18','2025-08-26 04:25:38'),(14,2,4,'user','Hdhehd','text',NULL,NULL,1,'2025-08-25 09:31:20','2025-08-26 04:25:38'),(15,2,4,'user','Hdhshd','text',NULL,NULL,1,'2025-08-25 09:31:22','2025-08-26 04:25:38'),(16,2,4,'user','Hehshd','text',NULL,NULL,1,'2025-08-25 09:31:24','2025-08-26 04:25:38'),(17,2,4,'user','That\'s dirty work','text',NULL,NULL,1,'2025-08-25 09:32:48','2025-08-26 04:25:38'),(18,1,2,'seller','Wok','text',NULL,NULL,1,'2025-08-26 04:25:47','2025-08-26 05:42:46'),(19,1,2,'seller','A','text',NULL,NULL,1,'2025-08-26 04:29:44','2025-08-26 05:42:46'),(20,1,2,'seller','Hghgg','text',NULL,NULL,1,'2025-08-26 04:29:47','2025-08-26 05:42:46');
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -412,7 +415,7 @@ CREATE TABLE `order_items` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_item_status` (`item_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -421,7 +424,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-22 13:57:33','2025-08-22 15:18:43'),(2,2,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-22 14:13:51','2025-08-22 15:04:17'),(3,3,1,1,1,120.00,120.00,'{}','rider_assigned',NULL,'2025-08-23 04:11:27','2025-08-23 04:20:13'),(4,4,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 04:11:44','2025-08-23 08:44:14'),(5,5,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 04:28:55','2025-08-23 08:42:08'),(6,6,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 04:32:44','2025-08-23 08:39:47'),(7,7,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 08:45:31','2025-08-23 08:46:01'),(8,8,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 08:47:19','2025-08-23 08:49:32'),(9,9,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 08:50:34','2025-08-23 08:50:55'),(10,10,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 08:51:13','2025-08-23 08:51:27'),(11,11,1,1,1,120.00,120.00,'{}','ready_for_pickup',NULL,'2025-08-23 08:51:37','2025-08-23 15:14:48'),(12,12,1,1,1,120.00,120.00,'{}','cancelled',NULL,'2025-08-23 08:51:57','2025-08-23 08:52:01'),(13,13,1,1,1,120.00,120.00,'{}','cancelled',NULL,'2025-08-23 08:52:14','2025-08-23 08:52:21');
+INSERT INTO `order_items` VALUES (1,1,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,2,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -442,7 +445,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -451,7 +454,7 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-22 13:57:33'),(2,2,'pending','Order placed successfully',NULL,'2025-08-22 14:13:51'),(3,2,'confirmed','Accept and confirm this order',2,'2025-08-22 14:25:02'),(4,2,'preparing','Begin preparing the order items',2,'2025-08-22 14:27:07'),(5,2,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-22 14:50:14'),(6,1,'confirmed','Accept and confirm this order',2,'2025-08-22 15:05:29'),(7,1,'preparing','Begin preparing the order items',2,'2025-08-22 15:08:07'),(8,1,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-22 15:08:20'),(9,3,'pending','Order placed successfully',NULL,'2025-08-23 04:11:27'),(10,4,'pending','Order placed successfully',NULL,'2025-08-23 04:11:44'),(11,3,'confirmed','Accept and confirm this order',2,'2025-08-23 04:16:34'),(12,4,'confirmed','Accept and confirm this order',2,'2025-08-23 04:17:40'),(13,3,'preparing','Begin preparing the order items',2,'2025-08-23 04:17:57'),(14,3,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 04:18:14'),(15,5,'pending','Order placed successfully',NULL,'2025-08-23 04:28:55'),(16,5,'confirmed','Accept and confirm this order',2,'2025-08-23 04:29:07'),(17,5,'preparing','Begin preparing the order items',2,'2025-08-23 04:29:13'),(18,6,'pending','Order placed successfully',NULL,'2025-08-23 04:32:44'),(19,6,'confirmed','Accept and confirm this order',2,'2025-08-23 08:30:45'),(20,6,'preparing','Begin preparing the order items',2,'2025-08-23 08:37:38'),(21,6,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 08:39:47'),(22,5,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 08:42:08'),(23,4,'preparing','Begin preparing the order items',2,'2025-08-23 08:43:45'),(24,4,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 08:44:14'),(25,7,'pending','Order placed successfully',NULL,'2025-08-23 08:45:31'),(26,7,'confirmed','Accept and confirm this order',2,'2025-08-23 08:45:44'),(27,7,'preparing','Begin preparing the order items',2,'2025-08-23 08:45:56'),(28,7,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 08:46:01'),(29,8,'pending','Order placed successfully',NULL,'2025-08-23 08:47:19'),(30,8,'confirmed','Accept and confirm this order',2,'2025-08-23 08:47:25'),(31,8,'confirmed','Accept and confirm this order',2,'2025-08-23 08:49:13'),(32,8,'preparing','Begin preparing the order items',2,'2025-08-23 08:49:19'),(33,8,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 08:49:32'),(34,9,'pending','Order placed successfully',NULL,'2025-08-23 08:50:34'),(35,9,'confirmed','Accept and confirm this order',2,'2025-08-23 08:50:42'),(36,9,'preparing','Begin preparing the order items',2,'2025-08-23 08:50:49'),(37,9,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 08:50:55'),(38,10,'pending','Order placed successfully',NULL,'2025-08-23 08:51:13'),(39,10,'confirmed','Accept and confirm this order',2,'2025-08-23 08:51:21'),(40,10,'preparing','Begin preparing the order items',2,'2025-08-23 08:51:24'),(41,10,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 08:51:27'),(42,11,'pending','Order placed successfully',NULL,'2025-08-23 08:51:37'),(43,11,'confirmed','Accept and confirm this order',2,'2025-08-23 08:51:44'),(44,12,'pending','Order placed successfully',NULL,'2025-08-23 08:51:57'),(45,12,'cancelled','Decline this order',2,'2025-08-23 08:52:01'),(46,13,'pending','Order placed successfully',NULL,'2025-08-23 08:52:14'),(47,13,'cancelled','Decline this order',2,'2025-08-23 08:52:21'),(48,11,'preparing','Begin preparing the order items',2,'2025-08-23 15:12:19'),(49,11,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-23 15:14:48');
+INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-27 11:43:02'),(2,1,'confirmed','Accept and confirm this order',2,'2025-08-27 11:43:13'),(3,1,'preparing','Begin preparing the order items',2,'2025-08-27 11:43:20'),(4,1,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:43:29'),(5,2,'pending','Order placed successfully',NULL,'2025-08-27 11:51:04'),(6,2,'confirmed','Accept and confirm this order',2,'2025-08-27 11:51:13'),(7,2,'preparing','Begin preparing the order items',2,'2025-08-27 11:51:18'),(8,2,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:51:24');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -501,7 +504,7 @@ CREATE TABLE `orders` (
   KEY `idx_payment_status` (`payment_status`),
   KEY `idx_voucher_id` (`voucher_id`),
   KEY `idx_delivery_address_id` (`delivery_address_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -510,8 +513,50 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,4,1,'ORD1755871053311823','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-22 13:57:33','2025-08-22 15:18:43'),(2,4,1,'ORD1755872031190054','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-22 14:13:51','2025-08-22 14:56:17'),(3,4,1,'ORD1755922287682401','rider_assigned','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 04:11:27','2025-08-23 04:20:13'),(4,4,1,'ORD1755922304284566','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 04:11:44','2025-08-23 08:44:14'),(5,4,1,'ORD1755923335605595','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 04:28:55','2025-08-23 08:42:08'),(6,4,1,'ORD1755923564637617','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 04:32:44','2025-08-23 08:39:47'),(7,4,1,'ORD1755938731900193','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 08:45:31','2025-08-23 08:46:01'),(8,4,1,'ORD1755938839975747','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 08:47:19','2025-08-23 08:49:32'),(9,4,1,'ORD1755939034201755','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 08:50:34','2025-08-23 08:50:55'),(10,4,1,'ORD1755939073903281','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 08:51:13','2025-08-23 08:51:27'),(11,4,1,'ORD1755939097234009','ready_for_pickup','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-08-23 08:51:37','2025-08-23 15:14:48'),(12,4,1,'ORD1755939117267187','cancelled','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,'2025-08-23 08:52:01','Decline this order','2025-08-23 08:51:57','2025-08-23 08:52:01'),(13,4,1,'ORD1755939134472551','cancelled','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,'2025-08-23 08:52:21','Decline this order','2025-08-23 08:52:14','2025-08-23 08:52:21');
+INSERT INTO `orders` VALUES (1,4,1,'ORD1756294982824982','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:44:06',NULL,NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,4,1,'ORD1756295464359777','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:51:47',NULL,NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `product_reviews`
+--
+
+DROP TABLE IF EXISTS `product_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_reviews` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `rating` tinyint NOT NULL,
+  `review_text` text,
+  `is_verified_purchase` tinyint(1) DEFAULT '1',
+  `helpful_count` int DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_user_product_order` (`user_id`,`product_id`,`order_id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_rating` (`rating`),
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `fk_product_reviews_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_product_reviews_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_product_reviews_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `product_reviews_chk_1` CHECK (((`rating` >= 1) and (`rating` <= 5)))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_reviews`
+--
+
+LOCK TABLES `product_reviews` WRITE;
+/*!40000 ALTER TABLE `product_reviews` DISABLE KEYS */;
+INSERT INTO `product_reviews` VALUES (1,1,4,1,5,'The product is great!',1,0,'2025-08-27 14:13:11','2025-08-27 14:13:11'),(2,1,4,2,5,'The product is great again!',1,2,'2025-08-27 14:28:10','2025-08-27 14:29:47');
+/*!40000 ALTER TABLE `product_reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -539,10 +584,13 @@ CREATE TABLE `products` (
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `average_rating` decimal(3,2) DEFAULT '0.00',
+  `review_count` int DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_is_active` (`is_active`),
-  KEY `idx_category` (`category`)
+  KEY `idx_category` (`category`),
+  KEY `idx_average_rating` (`average_rating`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -552,8 +600,75 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,37,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-08-23 08:52:14');
+INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,28,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-08-27 14:15:04',5.00,2);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `review_helpfulness`
+--
+
+DROP TABLE IF EXISTS `review_helpfulness`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `review_helpfulness` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `review_id` int NOT NULL,
+  `review_type` enum('product','seller') NOT NULL,
+  `user_id` int NOT NULL,
+  `is_helpful` tinyint(1) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_user_review` (`user_id`,`review_id`,`review_type`),
+  KEY `idx_review_id_type` (`review_id`,`review_type`),
+  KEY `idx_user_id` (`user_id`),
+  CONSTRAINT `fk_review_helpfulness_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `review_helpfulness`
+--
+
+LOCK TABLES `review_helpfulness` WRITE;
+/*!40000 ALTER TABLE `review_helpfulness` DISABLE KEYS */;
+INSERT INTO `review_helpfulness` VALUES (1,2,'product',4,1,'2025-08-27 14:29:10'),(2,2,'product',3,1,'2025-08-27 14:29:47');
+/*!40000 ALTER TABLE `review_helpfulness` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `review_media`
+--
+
+DROP TABLE IF EXISTS `review_media`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `review_media` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `review_id` int NOT NULL,
+  `review_type` enum('product','seller') NOT NULL,
+  `media_type` enum('image','video') NOT NULL,
+  `storage_key` varchar(500) NOT NULL,
+  `file_name` varchar(255) NOT NULL,
+  `file_size` int NOT NULL,
+  `mime_type` varchar(100) NOT NULL,
+  `thumbnail_key` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_review_id_type` (`review_id`,`review_type`),
+  KEY `idx_media_type` (`media_type`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `review_media`
+--
+
+LOCK TABLES `review_media` WRITE;
+/*!40000 ALTER TABLE `review_media` DISABLE KEYS */;
+INSERT INTO `review_media` VALUES (1,1,'product','image','user_4/order_1/c956aedc-6e97-4315-96b7-1e8e8841d304-538ecddb-4438-47ee-8c6b-47d93273dc82.jpeg','538ecddb-4438-47ee-8c6b-47d93273dc82.jpeg',88887,'image/jpeg',NULL,'2025-08-27 14:13:12'),(2,2,'product','image','user_4/order_2/ed541414-3c16-4361-9722-846883d72e24-bcf01fc5-8dac-4221-ac3b-7a0336e688e0.jpeg','bcf01fc5-8dac-4221-ac3b-7a0336e688e0.jpeg',667938,'image/jpeg',NULL,'2025-08-27 14:28:11'),(3,2,'product','image','user_4/order_2/66a8a32e-7314-434f-9b2b-35dd3daa1a11-50ca4218-35df-44ea-af5e-3fd99de34b52.jpeg','50ca4218-35df-44ea-af5e-3fd99de34b52.jpeg',1412543,'image/jpeg',NULL,'2025-08-27 14:28:12');
+/*!40000 ALTER TABLE `review_media` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -699,6 +814,47 @@ INSERT INTO `seller_documents` VALUES (1,1,'government_id','user_2/APP70155528/g
 UNLOCK TABLES;
 
 --
+-- Table structure for table `seller_reviews`
+--
+
+DROP TABLE IF EXISTS `seller_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `seller_reviews` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `seller_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `rating` tinyint NOT NULL,
+  `review_text` text,
+  `service_aspects` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_user_seller_order` (`user_id`,`seller_id`,`order_id`),
+  KEY `idx_seller_id` (`seller_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_rating` (`rating`),
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `fk_seller_reviews_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_seller_reviews_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_seller_reviews_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `seller_reviews_chk_1` CHECK (((`rating` >= 1) and (`rating` <= 5)))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `seller_reviews`
+--
+
+LOCK TABLES `seller_reviews` WRITE;
+/*!40000 ALTER TABLE `seller_reviews` DISABLE KEYS */;
+INSERT INTO `seller_reviews` VALUES (1,1,4,1,5,'The seller is great!','{\"packaging\": 5, \"communication\": 5, \"delivery_speed\": 5}','2025-08-27 14:12:24','2025-08-27 14:12:24'),(2,1,4,2,5,'The seller is great again!','{\"packaging\": 5, \"communication\": 5, \"delivery_speed\": 5}','2025-08-27 14:26:10','2025-08-27 14:26:10');
+/*!40000 ALTER TABLE `seller_reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `seller_store_profiles`
 --
 
@@ -747,12 +903,15 @@ CREATE TABLE `sellers` (
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `average_rating` decimal(3,2) DEFAULT '0.00',
+  `review_count` int DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `seller_id` (`seller_id`),
   KEY `application_id` (`application_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_seller_id` (`seller_id`),
-  KEY `idx_is_active` (`is_active`)
+  KEY `idx_is_active` (`is_active`),
+  KEY `idx_average_rating` (`average_rating`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -762,7 +921,7 @@ CREATE TABLE `sellers` (
 
 LOCK TABLES `sellers` WRITE;
 /*!40000 ALTER TABLE `sellers` DISABLE KEYS */;
-INSERT INTO `sellers` VALUES (1,2,1,'SELL70204724','individual','Boy Banat Store','Fresh seller','sellers/SELL70204724/store_logos/store_logo_1755770205878.jpeg',1,'2025-08-21 09:56:44','2025-08-21 09:56:46');
+INSERT INTO `sellers` VALUES (1,2,1,'SELL70204724','individual','Boy Banat Store','Fresh seller','sellers/SELL70204724/store_logos/store_logo_1755770205878.jpeg',1,'2025-08-21 09:56:44','2025-08-27 14:26:10',5.00,2);
 /*!40000 ALTER TABLE `sellers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -832,7 +991,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email_UNIQUE` (`email`),
   KEY `idx_role` (`role`),
   KEY `idx_is_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -841,7 +1000,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2b$10$.XCLqvtKmsvLjYlwJtFydesWreC1nDMsBZ06ScWr6DmQyA/9aOJLy',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 06:43:52','2025-07-17 07:01:30'),(2,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$Yef/Ilvzh7I7cPCEXKnkEejwmNYoup7mujWOsJsil0MUVSuwdWc9K','+639771495823',NULL,'2003-01-03','male','user',1,'2025-08-21 07:03:31','2025-08-21 07:06:15'),(3,'James Mickel','Ricarte','jamesmickelricarte@gmail.com','$2b$10$3Z.5toj.ap4oFlg1TxUBtet6/PLdqGpn5QmMRdWzFDGMaNyGv0S/e','+639771495822',NULL,'2003-01-03','male','user',1,'2025-08-21 10:00:16','2025-08-21 10:01:58'),(4,'James','Ricarte','uhenyou@gmail.com','$2b$10$LkH7AwAazGYdJDgq3ErQAuc1dH0xx41krItqxn7go9BViFWVYG11W','+639771495824',NULL,NULL,NULL,'user',1,'2025-08-21 10:49:44','2025-08-23 02:28:10');
+INSERT INTO `users` VALUES (1,'Admin','User','admin@pm.com','$2b$10$.XCLqvtKmsvLjYlwJtFydesWreC1nDMsBZ06ScWr6DmQyA/9aOJLy',NULL,NULL,NULL,NULL,'admin',1,'2025-07-17 06:43:52','2025-07-17 07:01:30'),(2,'Boy','Banat','gdashrobtob@gmail.com','$2b$10$Yef/Ilvzh7I7cPCEXKnkEejwmNYoup7mujWOsJsil0MUVSuwdWc9K','+639771495823',NULL,'2003-01-03','male','user',1,'2025-08-21 07:03:31','2025-08-21 07:06:15'),(3,'James Mickel','Ricarte','jamesmickelricarte@gmail.com','$2b$10$3Z.5toj.ap4oFlg1TxUBtet6/PLdqGpn5QmMRdWzFDGMaNyGv0S/e','+639771495822',NULL,'2003-01-03','male','user',1,'2025-08-21 10:00:16','2025-08-21 10:01:58'),(4,'James','Ricarte','uhenyou@gmail.com','$2b$10$LkH7AwAazGYdJDgq3ErQAuc1dH0xx41krItqxn7go9BViFWVYG11W','+639771495824',NULL,NULL,NULL,'user',1,'2025-08-21 10:49:44','2025-08-23 02:28:10'),(5,'Marita','Ricarte','maritaricarte@gmail.com','$2b$10$XltCDtGt192L0M2rWDIZD.vSgXm8ocULFcK9hHdmpdkA7zCiZZhuq','+639771495821',NULL,NULL,NULL,'user',1,'2025-08-25 12:37:40','2025-08-25 12:38:30');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -895,4 +1054,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-23 23:59:24
+-- Dump completed on 2025-08-27 22:31:03

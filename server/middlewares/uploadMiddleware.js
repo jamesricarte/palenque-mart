@@ -43,6 +43,7 @@ const upload = multer({
   { name: "insurance", maxCount: 1 },
   { name: "background_check", maxCount: 1 },
   { name: "profile_photo", maxCount: 1 },
+  { name: "reviewMedia", maxCount: 10 },
 ]);
 
 // Error handling middleware
@@ -71,6 +72,8 @@ const handleUploadError = (error, req, res, next) => {
       error: { code: "INVALID_FILE_TYPE" },
     });
   }
+
+  console.log(error);
 
   return res.status(500).json({
     message: "File upload error occurred.",

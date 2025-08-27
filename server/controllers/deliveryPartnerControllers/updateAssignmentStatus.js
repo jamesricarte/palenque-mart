@@ -90,10 +90,14 @@ const updateAssignmentStatus = async (req, res) => {
       orderStatus = "cancelled";
     }
 
-    await db.execute("UPDATE orders SET status = ? WHERE id = ?", [
-      orderStatus,
-      assignment.order_id,
-    ]);
+    // If order status is delivered, update the delivered_at timestamp
+    const ordersDeliveredAtUpdate =
+      orderStatus === "delivered" ? ", delivered_at = CURRENT_TIMESTAMP" : "";
+
+    await db.execute(
+      `UPDATE orders SET status = ?${ordersDeliveredAtUpdate} WHERE id = ?`,
+      [orderStatus, assignment.order_id]
+    );
 
     // Update order items statuses to status update
     await db.execute(
@@ -108,6 +112,8 @@ const updateAssignmentStatus = async (req, res) => {
         [partnerId]
       );
     }
+
+    // If delivered, upd
 
     // Get the seller id of the assignment to send to websocket
     const [sellerIdRows] = await db.execute(

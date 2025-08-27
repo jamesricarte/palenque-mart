@@ -8,42 +8,215 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  FlatList,
 } from "react-native";
 import { useState, useEffect } from "react";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
-
-import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
 
-const OrderDetailsScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { user } = useAuth();
-  const { orderId } = route.params;
-
+const OrderDetailsScreen = ({ route, navigation }) => {
+  const { orderId, showReviewForm } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [cancelling, setCancelling] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [productRating, setProductRating] = useState(0);
+  const [productReviewText, setProductReviewText] = useState("");
+  const [sellerRating, setSellerRating] = useState(0);
+  const [sellerReviewText, setSellerReviewText] = useState("");
+  const [sellerServiceAspects, setSellerServiceAspects] = useState({
+    delivery_speed: 0,
+    communication: 0,
+    packaging: 0,
+  });
+  const [selectedMedia, setSelectedMedia] = useState([]);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [orderProductReview, setOrderProductReview] = useState(null);
+  const [orderSellerReview, setOrderSellerReview] = useState(null);
+  const [initialShowReviewForm, setInitialShowReviewForm] = useState(true);
 
   useEffect(() => {
     fetchOrderDetails();
   }, []);
+
+  useEffect(() => {
+    if (showReviewForm && initialShowReviewForm && order && canReview()) {
+      openReviewModal();
+    }
+  }, [initialShowReviewForm, order]);
 
   const fetchOrderDetails = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/orders/${orderId}`);
       if (response.data.success) {
         setOrder(response.data.data.order);
+        setOrderProductReview(response.data.data.order.orderProductReview);
+        setOrderSellerReview(response.data.data.order.orderSellerReview);
       }
     } catch (error) {
       console.error("Error fetching order details:", error);
       Alert.alert("Error", "Failed to load order details");
-      navigation.goBack();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const canReview = () => {
+    if (!order) return false;
+    if (order.status !== "delivered") return false;
+
+    const deliveryDate = new Date(order.delivered_at);
+    const now = new Date();
+    const diffInDays = (now - deliveryDate) / (1000 * 60 * 60 * 24);
+
+    return diffInDays <= 2 && (!orderProductReview || !orderSellerReview);
+  };
+
+  const renderStarRating = (rating, onPress, size = 24) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <TouchableOpacity key={i} onPress={() => onPress && onPress(i)}>
+          <Feather
+            name="star"
+            size={size}
+            color={i <= rating ? "#F59E0B" : "#E5E7EB"}
+            style={{ marginRight: 4 }}
+          />
+        </TouchableOpacity>
+      );
+    }
+    return <View className="flex-row">{stars}</View>;
+  };
+
+  const pickMedia = async () => {
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission needed",
+          "Please grant camera roll permissions to upload media"
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        const fileSizeInMB = asset.fileSize / (1024 * 1024);
+        if (fileSizeInMB > 10) {
+          Alert.alert(
+            "File Too Large",
+            "Please select a file smaller than 10MB"
+          );
+          return;
+        }
+
+        setSelectedMedia((prev) => [
+          ...prev,
+          {
+            uri: asset.uri,
+            type: asset.type,
+            fileName:
+              asset.fileName ||
+              `media_${Date.now()}.${asset.type === "video" ? "mp4" : "jpg"}`,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error picking media:", error);
+      Alert.alert("Error", "Failed to pick media");
+    }
+  };
+
+  const removeMedia = (index) => {
+    setSelectedMedia((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const submitReview = async () => {
+    if (productRating === 0 && sellerRating === 0) {
+      Alert.alert(
+        "Rating Required",
+        "Please rate at least the product or seller"
+      );
+      return;
+    }
+
+    setSubmittingReview(true);
+
+    try {
+      const formData = new FormData();
+
+      if (productRating > 0) {
+        formData.append("productRating", productRating.toString());
+        formData.append("productReviewText", productReviewText);
+      }
+
+      if (sellerRating > 0) {
+        formData.append("sellerRating", sellerRating.toString());
+        formData.append("sellerReviewText", sellerReviewText);
+        formData.append(
+          "sellerServiceAspects",
+          JSON.stringify(sellerServiceAspects)
+        );
+      }
+
+      formData.append("orderId", orderId.toString());
+
+      selectedMedia.forEach((media, index) => {
+        formData.append("reviewMedia", {
+          uri: media.uri,
+          type: media.type === "video" ? "video/mp4" : "image/jpeg",
+          name: media.fileName,
+        });
+      });
+
+      prettyLog(formData);
+
+      const response = await axios.post(
+        `${API_URL}/api/reviews/submit`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        Alert.alert("Success", "Review submitted successfully!");
+        setShowReviewModal(false);
+        setInitialShowReviewForm(false);
+        setProductRating(0);
+        setProductReviewText("");
+        setSellerRating(0);
+        setSellerReviewText("");
+        setSellerServiceAspects({
+          delivery_speed: 0,
+          communication: 0,
+          packaging: 0,
+        });
+        setSelectedMedia([]);
+        fetchOrderDetails();
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to submit review"
+      );
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -114,21 +287,46 @@ const OrderDetailsScreen = () => {
   };
 
   const cancelOrder = async () => {
-    setCancelling(true);
     try {
       const response = await axios.put(
         `${API_URL}/api/orders/${orderId}/cancel`
       );
       if (response.data.success) {
         Alert.alert("Success", "Order cancelled successfully");
-        fetchOrderDetails(); // Refresh order details
+        fetchOrderDetails();
       }
     } catch (error) {
       console.error("Error cancelling order:", error);
       Alert.alert("Error", "Failed to cancel order");
-    } finally {
-      setCancelling(false);
     }
+  };
+
+  const openReviewModal = () => {
+    setProductRating(0);
+    setProductReviewText("");
+    setSellerRating(0);
+    setSellerReviewText("");
+    setSellerServiceAspects({
+      delivery_speed: 0,
+      communication: 0,
+      packaging: 0,
+    });
+    setSelectedMedia([]);
+    setShowReviewModal(true);
+  };
+
+  const areReviewsComplete = () => {
+    return orderProductReview && orderSellerReview;
+  };
+
+  const getReviewButtonText = () => {
+    if (orderProductReview && !orderSellerReview) {
+      return "Rate Seller";
+    }
+    if (!orderProductReview && orderSellerReview) {
+      return "Rate Order";
+    }
+    return "Write Review";
   };
 
   if (loading) {
@@ -448,21 +646,256 @@ const OrderDetailsScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      {canCancelOrder() && (
-        <View className="p-4 bg-white border-t border-gray-200">
+      <View className="p-4 bg-white border-t border-gray-200">
+        {canCancelOrder() && (
           <TouchableOpacity
-            className="items-center p-4 border border-red-600 rounded-lg"
+            className="items-center p-4 mb-3 border border-red-600 rounded-lg"
             onPress={handleCancelOrder}
-            disabled={cancelling}
           >
-            {cancelling ? (
-              <ActivityIndicator color="#DC2626" />
-            ) : (
-              <Text className="font-semibold text-red-600">Cancel Order</Text>
-            )}
+            <Text className="font-semibold text-red-600">Cancel Order</Text>
           </TouchableOpacity>
+        )}
+
+        {(orderProductReview || orderSellerReview) &&
+          order &&
+          order.status === "delivered" && (
+            <View className="p-4 mt-4 rounded-lg bg-gray-50">
+              <Text className="mb-3 text-lg font-semibold">Your Reviews</Text>
+
+              {orderProductReview && (
+                <View className="p-3 mb-3 bg-white rounded-lg">
+                  <Text className="mb-2 font-medium">Product Review</Text>
+                  <View className="flex-row items-center mb-2">
+                    {renderStarRating(orderProductReview.rating, null, 16)}
+                    <Text className="ml-2 text-sm text-gray-600">
+                      {orderProductReview.rating}/5
+                    </Text>
+                  </View>
+                  {orderProductReview.review_text && (
+                    <Text className="text-sm text-gray-700">
+                      {orderProductReview.review_text}
+                    </Text>
+                  )}
+                </View>
+              )}
+
+              {orderSellerReview && (
+                <View className="p-3 bg-white rounded-lg">
+                  <Text className="mb-2 font-medium">Seller Review</Text>
+                  <View className="flex-row items-center mb-2">
+                    {renderStarRating(orderSellerReview.rating, null, 16)}
+                    <Text className="ml-2 text-sm text-gray-600">
+                      {orderSellerReview.rating}/5
+                    </Text>
+                  </View>
+                  {orderSellerReview.review_text && (
+                    <Text className="text-sm text-gray-700">
+                      {orderSellerReview.review_text}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+
+        {canReview() && !areReviewsComplete() && (
+          <TouchableOpacity
+            className="flex-row items-center justify-center p-4 bg-orange-600 rounded-lg"
+            onPress={openReviewModal}
+          >
+            <Feather name="star" size={20} color="white" />
+            <Text className="ml-2 font-semibold text-white">
+              {getReviewButtonText()}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <Modal
+        transparent
+        visible={showReviewModal}
+        animationType="slide"
+        onRequestClose={() => setShowReviewModal(false)}
+      >
+        <View
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="justify-end flex-1">
+            <View className="bg-white rounded-t-3xl min-h-[90%]">
+              <View className="flex-row items-center justify-between p-6 border-b border-gray-200">
+                <Text className="text-xl font-semibold">Write Review</Text>
+                <TouchableOpacity onPress={() => setShowReviewModal(false)}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                className="flex-1 p-6"
+                showsVerticalScrollIndicator={false}
+              >
+                {!orderProductReview && (
+                  <View className="mb-6">
+                    <Text className="mb-3 text-lg font-semibold">
+                      Rate the Product
+                    </Text>
+                    <View className="flex-row items-center mb-3">
+                      {renderStarRating(productRating, setProductRating)}
+                      <Text className="ml-3 text-gray-600">
+                        {productRating > 0
+                          ? `${productRating}/5`
+                          : "Tap to rate"}
+                      </Text>
+                    </View>
+                    <TextInput
+                      className="p-3 border border-gray-300 rounded-lg"
+                      placeholder="Share your experience with this product..."
+                      multiline
+                      numberOfLines={4}
+                      value={productReviewText}
+                      onChangeText={setProductReviewText}
+                      textAlignVertical="top"
+                    />
+                  </View>
+                )}
+
+                {!orderProductReview && (
+                  <View className="mb-6">
+                    <Text className="mb-3 text-lg font-semibold">
+                      Add Photos/Videos (Optional)
+                    </Text>
+
+                    <TouchableOpacity
+                      className="flex-row items-center justify-center p-4 mb-3 border-2 border-gray-300 border-dashed rounded-lg"
+                      onPress={pickMedia}
+                    >
+                      <Feather name="camera" size={24} color="#6B7280" />
+                      <Text className="ml-2 text-gray-600">Add Media</Text>
+                    </TouchableOpacity>
+
+                    {selectedMedia.length > 0 && (
+                      <FlatList
+                        data={selectedMedia}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        renderItem={({ item, index }) => (
+                          <View className="relative my-2 mr-3">
+                            <Image
+                              source={{ uri: item.uri }}
+                              className="w-20 h-20 rounded-lg"
+                            />
+                            <TouchableOpacity
+                              className="absolute p-1 bg-red-500 rounded-full -top-2 -right-2"
+                              onPress={() => removeMedia(index)}
+                            >
+                              <Feather name="x" size={12} color="white" />
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                        keyExtractor={(item, index) => index.toString()}
+                      />
+                    )}
+                  </View>
+                )}
+
+                {!orderSellerReview && (
+                  <View className="mb-12">
+                    <Text className="mb-3 text-lg font-semibold">
+                      Rate the Seller
+                    </Text>
+                    <View className="flex-row items-center mb-3">
+                      {renderStarRating(sellerRating, setSellerRating)}
+                      <Text className="ml-3 text-gray-600">
+                        {sellerRating > 0 ? `${sellerRating}/5` : "Tap to rate"}
+                      </Text>
+                    </View>
+
+                    <View className="mb-4">
+                      <Text className="mb-1 text-sm text-gray-600">
+                        Service Aspects
+                      </Text>
+
+                      <View className="mb-3">
+                        <Text className="mb-1 text-sm text-gray-600">
+                          Delivery Speed
+                        </Text>
+                        <View className="flex-row items-center">
+                          {renderStarRating(
+                            sellerServiceAspects.delivery_speed,
+                            (rating) =>
+                              setSellerServiceAspects((prev) => ({
+                                ...prev,
+                                delivery_speed: rating,
+                              }))
+                          )}
+                        </View>
+                      </View>
+
+                      <View className="mb-3">
+                        <Text className="mb-1 text-sm text-gray-600">
+                          Communication
+                        </Text>
+                        <View className="flex-row items-center">
+                          {renderStarRating(
+                            sellerServiceAspects.communication,
+                            (rating) =>
+                              setSellerServiceAspects((prev) => ({
+                                ...prev,
+                                communication: rating,
+                              }))
+                          )}
+                        </View>
+                      </View>
+
+                      <View className="mb-3">
+                        <Text className="mb-1 text-sm text-gray-600">
+                          Packaging Quality
+                        </Text>
+                        <View className="flex-row items-center">
+                          {renderStarRating(
+                            sellerServiceAspects.packaging,
+                            (rating) =>
+                              setSellerServiceAspects((prev) => ({
+                                ...prev,
+                                packaging: rating,
+                              }))
+                          )}
+                        </View>
+                      </View>
+                    </View>
+
+                    <TextInput
+                      className="p-3 border border-gray-300 rounded-lg"
+                      placeholder="Share your experience with this seller..."
+                      multiline
+                      numberOfLines={4}
+                      value={sellerReviewText}
+                      onChangeText={setSellerReviewText}
+                      textAlignVertical="top"
+                    />
+                  </View>
+                )}
+              </ScrollView>
+
+              <View className="p-6 border-t border-gray-200">
+                <TouchableOpacity
+                  className="items-center p-4 bg-orange-600 rounded-lg"
+                  onPress={submitReview}
+                  disabled={submittingReview}
+                >
+                  {submittingReview ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-lg font-semibold text-white">
+                      Submit Review
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 };
