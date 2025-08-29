@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+"use client";
+
+import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { API_URL, WEBSOCKET_URL } from "../config/apiConfig";
 import { useAuth } from "./AuthContext";
@@ -24,6 +26,9 @@ export const SellerProvider = ({ children }) => {
   const [trackDeliveryPartner, setTrackDeliveryPartner] = useState(false);
   const [deliveryPartnerLocation, setDeliveryPartnerLocation] = useState(null);
   const [socketMessage, setSocketMessage] = useState(null);
+
+  const [refreshTransactionData, setRefreshTransactionData] = useState(false);
+  const [refreshAnalyticsData, setRefreshAnalyticsData] = useState(false);
 
   const { socket, isConnected } = useWebSocket(
     token && isInSellerDashboard && triggerWebsocket ? WEBSOCKET_URL : null
@@ -56,6 +61,21 @@ export const SellerProvider = ({ children }) => {
 
           if (data.type === "REFRESH_SELLER_CONVERSATIONS") {
             setSocketMessage(data);
+          }
+
+          if (data.type === "SELLER_TRANSACTION_UPDATE") {
+            setRefreshTransactionData(true);
+            setRefreshAnalyticsData(true);
+          }
+
+          if (data.type === "SELLER_ORDER_PAID") {
+            setRefreshTransactionData(true);
+            setRefreshAnalyticsData(true);
+          }
+
+          if (data.type === "SELLER_PAYMENT_STATUS_CHANGED") {
+            setRefreshTransactionData(true);
+            setRefreshAnalyticsData(true);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -117,6 +137,28 @@ export const SellerProvider = ({ children }) => {
     return () => clearTimeout(timer);
   }, [refreshOrdersData]);
 
+  useEffect(() => {
+    let timer;
+    if (refreshTransactionData) {
+      timer = setTimeout(() => {
+        setRefreshTransactionData(false);
+      }, 2000);
+    }
+
+    return () => clearTimeout(timer);
+  }, [refreshTransactionData]);
+
+  useEffect(() => {
+    let timer;
+    if (refreshAnalyticsData) {
+      timer = setTimeout(() => {
+        setRefreshAnalyticsData(false);
+      }, 2000);
+    }
+
+    return () => clearTimeout(timer);
+  }, [refreshAnalyticsData]);
+
   const createDeliveryAssignment = async (orderId) => {
     if (!token) return null;
 
@@ -177,6 +219,10 @@ export const SellerProvider = ({ children }) => {
     stopTrackingDeliveryPartner,
     deliveryPartnerLocation,
     socketMessage,
+    refreshTransactionData,
+    setRefreshTransactionData,
+    refreshAnalyticsData,
+    setRefreshAnalyticsData,
   };
 
   return (

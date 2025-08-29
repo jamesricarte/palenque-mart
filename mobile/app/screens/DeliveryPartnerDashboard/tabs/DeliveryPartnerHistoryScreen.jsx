@@ -25,7 +25,6 @@ const DeliveryPartnerHistoryScreen = () => {
   const statusOptions = [
     { value: "all", label: "All" },
     { value: "delivered", label: "Delivered" },
-    { value: "cancelled", label: "Cancelled" },
     { value: "declined", label: "Declined" },
     { value: "expired", label: "Expired" },
   ];

@@ -59,14 +59,6 @@ const AccountScreen = () => {
 
   const accountOptions = [
     {
-      id: "notifications",
-      title: "Notifications",
-      subtitle: "Manage notification preferences",
-      icon: "notifications-outline",
-      iconType: "ionicon",
-      onPress: () => navigation.navigate("Notifications"),
-    },
-    {
       id: "help",
       title: "Help & Support",
       subtitle: "Get help and contact support",
@@ -396,28 +388,6 @@ const AccountScreen = () => {
               <Feather name="chevron-right" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           ))}
-        </View>
-
-        {/* App Info */}
-        <View className="mx-4 mt-6 mb-8 bg-white border border-gray-200 shadow-sm rounded-xl">
-          <View className="p-4">
-            <View className="flex-row items-center justify-center">
-              <MaterialCommunityIcons
-                name="storefront"
-                size={24}
-                color="#EA580C"
-              />
-              <Text className="ml-2 text-lg font-semibold text-gray-900">
-                PalenqueMart
-              </Text>
-            </View>
-            <Text className="mt-2 text-sm text-center text-gray-500">
-              Version 1.0.0
-            </Text>
-            <Text className="mt-1 text-xs text-center text-gray-400">
-              Your trusted local marketplace
-            </Text>
-          </View>
         </View>
       </ScrollView>
 

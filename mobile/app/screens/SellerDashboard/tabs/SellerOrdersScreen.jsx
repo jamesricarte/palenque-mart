@@ -145,17 +145,9 @@ const SellerOrdersScreen = ({ navigation }) => {
           }
         });
 
-        const triggerWebSocket = allOrders.some((order) => {
-          return [
-            "ready_for_pickup",
-            "rider_assigned",
-            "out_for_delivery",
-          ].includes(order.status);
-        });
-
         // triggerWebSocket &&
         //   console.log("triggered WebSocket from Seller Orders Screen");
-        setTriggerWebSocket(triggerWebSocket);
+        setTriggerWebSocket(true);
       }
     } catch (error) {
       console.error(
@@ -506,9 +498,7 @@ const SellerOrdersScreen = ({ navigation }) => {
                 setSelectedStatus(status.value);
               }}
               className={`mr-3 px-4 py-2 rounded-full flex-row items-center ${
-                selectedStatus === status.value
-                  ? "bg-orange-500"
-                  : "bg-gray-200"
+                selectedStatus === status.value ? "bg-blue-600" : "bg-gray-200"
               }`}
             >
               <Text
@@ -544,7 +534,7 @@ const SellerOrdersScreen = ({ navigation }) => {
       >
         {filterLoading ? (
           <View className="h-[80vh] justify-center items-center">
-            <ActivityIndicator size="large" color="#F16B44" />
+            <ActivityIndicator size="large" color="#2563eb" />
           </View>
         ) : orders?.length > 0 ? (
           orders?.map(renderOrderCard)

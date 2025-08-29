@@ -46,14 +46,11 @@ const AddProductScreen = () => {
   const categories = [
     "Fish",
     "Meat",
+    "Poultry",
     "Vegetables",
     "Fruits",
     "Spices",
     "Grains",
-    "Eggs",
-    "Cooked Items",
-    "Dairy",
-    "Beverages",
   ];
 
   const subcategoriesByCategory = {

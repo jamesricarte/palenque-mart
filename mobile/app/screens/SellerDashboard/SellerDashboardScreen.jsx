@@ -15,6 +15,7 @@ import SellerProductsScreen from "./tabs/SellerProductsScreen";
 import SellerOrdersScreen from "./tabs/SellerOrdersScreen";
 import SellerStoreAccountScreen from "./tabs/SellerStoreAccountScreen";
 import SellerChatScreen from "./tabs/SellerChatScreen";
+import SellerAnalyticsScreen from "./tabs/SellerAnalyticsScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -60,19 +61,9 @@ const SellerDashboard = () => {
       });
 
       if (response.data.success) {
-        const allOrders = response.data.data.orders;
-
-        const triggerWebSocket = allOrders.some((order) => {
-          return [
-            "ready_for_pickup",
-            "rider_assigned",
-            "out_for_delivery",
-          ].includes(order.status);
-        });
-
         // triggerWebSocket &&
         //   console.log("triggered WebSocket from Seller Dashboard Screen");
-        setTriggerWebSocket(triggerWebSocket);
+        setTriggerWebSocket(true);
       }
     } catch (error) {
       console.error(
@@ -121,6 +112,16 @@ const SellerDashboard = () => {
           title: "Orders",
           tabBarIcon: ({ color, size }) => (
             <Feather name="shopping-bag" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="SellerAnalytics"
+        component={SellerAnalyticsScreen}
+        options={{
+          title: "Analytics",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="bar-chart" size={size} color={color} />
           ),
         }}
       />

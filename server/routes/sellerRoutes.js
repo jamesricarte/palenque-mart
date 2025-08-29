@@ -22,6 +22,10 @@ const getSellerOrderDetails = require("../controllers/sellerControllers/getSelle
 
 const createDeliveryAssignment = require("../controllers/sellerControllers/createDeliveryAssignment");
 
+const getSellerStats = require("../controllers/sellerControllers/getSellerStats");
+const getSellerTransactions = require("../controllers/sellerControllers/getSellerTransactions");
+const getSellerAnalytics = require("../controllers/sellerControllers/getSellerAnalytics");
+
 // Routes
 router.post(
   "/submit-application",
@@ -68,5 +72,14 @@ router.post(
   authenticateToken,
   createDeliveryAssignment
 );
+
+// Route to get seller statistics
+router.get("/stats", authenticateToken, getSellerStats);
+
+// Route to get seller transaction history
+router.get("/transactions", authenticateToken, getSellerTransactions);
+
+// Route to get seller analytics
+router.get("/analytics", authenticateToken, getSellerAnalytics);
 
 module.exports = router;

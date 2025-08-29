@@ -18,13 +18,6 @@ const SettingsScreen = ({ navigation }) => {
       onPress: () => navigation.navigate("AddressManagement"),
     },
     {
-      id: "notifications",
-      title: "Notifications",
-      subtitle: "Manage notification preferences",
-      icon: "notifications",
-      onPress: () => console.log("Notifications pressed"),
-    },
-    {
       id: "privacy",
       title: "Privacy & Security",
       subtitle: "Manage your privacy settings",
