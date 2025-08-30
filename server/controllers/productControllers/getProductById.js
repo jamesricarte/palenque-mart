@@ -31,6 +31,8 @@ const getProductById = async (req, res) => {
         p.is_active,
         p.created_at,
         p.updated_at,
+        p.bargaining_enabled,
+        p.minimum_offer_price,
         s.store_name,
         s.store_description,
         s.account_type,

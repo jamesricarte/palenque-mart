@@ -18,6 +18,55 @@ USE `palenque_mart_db`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `bargain_offers`
+--
+
+DROP TABLE IF EXISTS `bargain_offers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `bargain_offers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `message_id` int NOT NULL,
+  `conversation_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `original_price` decimal(10,2) NOT NULL,
+  `offered_price` decimal(10,2) NOT NULL,
+  `current_price` decimal(10,2) NOT NULL,
+  `offer_type` enum('initial_offer','counteroffer') NOT NULL,
+  `status` enum('pending','accepted','rejected','expired','withdrawn') DEFAULT 'pending',
+  `is_final_offer` tinyint(1) DEFAULT '0',
+  `offered_by_type` enum('user','seller') NOT NULL,
+  `offered_by_id` int NOT NULL,
+  `parent_offer_id` int DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `responded_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_message_id` (`message_id`),
+  KEY `idx_conversation_id` (`conversation_id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_offered_by` (`offered_by_type`,`offered_by_id`),
+  KEY `idx_parent_offer_id` (`parent_offer_id`),
+  CONSTRAINT `fk_bargain_offers_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bargain_offers_message` FOREIGN KEY (`message_id`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bargain_offers_parent` FOREIGN KEY (`parent_offer_id`) REFERENCES `bargain_offers` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_bargain_offers_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bargain_offers`
+--
+
+LOCK TABLES `bargain_offers` WRITE;
+/*!40000 ALTER TABLE `bargain_offers` DISABLE KEYS */;
+INSERT INTO `bargain_offers` VALUES (5,9,1,5,140.00,120.00,120.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 00:32:24',NULL,'2025-08-30 08:32:24','2025-08-30 08:32:24'),(6,11,1,4,60.00,50.00,50.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 02:15:37',NULL,'2025-08-30 10:15:36','2025-08-30 10:15:36'),(7,13,1,3,220.00,210.00,210.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 02:38:11',NULL,'2025-08-30 10:38:11','2025-08-30 10:38:11'),(8,15,1,2,120.00,110.00,110.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 02:40:00',NULL,'2025-08-30 10:40:00','2025-08-30 10:40:00');
+/*!40000 ALTER TABLE `bargain_offers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `cart`
 --
 
@@ -35,7 +84,7 @@ CREATE TABLE `cart` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,7 +93,7 @@ CREATE TABLE `cart` (
 
 LOCK TABLES `cart` WRITE;
 /*!40000 ALTER TABLE `cart` DISABLE KEYS */;
-INSERT INTO `cart` VALUES (2,4,1,1,'2025-08-24 07:19:18','2025-08-24 07:19:18');
+INSERT INTO `cart` VALUES (3,4,1,1,'2025-08-28 14:10:13','2025-08-28 14:10:13');
 /*!40000 ALTER TABLE `cart` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -78,7 +127,7 @@ CREATE TABLE `conversations` (
   CONSTRAINT `fk_conversations_last_message` FOREIGN KEY (`last_message_id`) REFERENCES `messages` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_conversations_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_conversations_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -87,7 +136,7 @@ CREATE TABLE `conversations` (
 
 LOCK TABLES `conversations` WRITE;
 /*!40000 ALTER TABLE `conversations` DISABLE KEYS */;
-INSERT INTO `conversations` VALUES (1,3,1,20,'2025-08-26 04:29:47',0,0,1,'2025-08-24 13:20:10','2025-08-26 05:42:46'),(2,4,1,17,'2025-08-25 09:32:48',0,0,1,'2025-08-25 09:27:17','2025-08-26 04:25:38');
+INSERT INTO `conversations` VALUES (1,4,1,15,'2025-08-30 10:40:00',0,0,1,'2025-08-30 08:31:58','2025-08-30 10:40:09');
 /*!40000 ALTER TABLE `conversations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -117,7 +166,7 @@ CREATE TABLE `delivery_assignments` (
   KEY `idx_order_id` (`order_id`),
   KEY `idx_delivery_partner_id` (`delivery_partner_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -126,7 +175,7 @@ CREATE TABLE `delivery_assignments` (
 
 LOCK TABLES `delivery_assignments` WRITE;
 /*!40000 ALTER TABLE `delivery_assignments` DISABLE KEYS */;
-INSERT INTO `delivery_assignments` VALUES (1,1,1,'delivered','2025-08-27 11:43:38','2025-08-27 11:43:55','2025-08-27 11:44:06',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-27 11:43:29','2025-08-27 11:44:06'),(2,2,1,'delivered','2025-08-27 11:51:31','2025-08-27 11:51:37','2025-08-27 11:51:47',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-27 11:51:24','2025-08-27 11:51:47');
+INSERT INTO `delivery_assignments` VALUES (1,1,1,'delivered','2025-08-27 11:43:38','2025-08-27 11:43:55','2025-08-27 11:44:06',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-27 11:43:29','2025-08-27 11:44:06'),(2,2,1,'delivered','2025-08-27 11:51:31','2025-08-27 11:51:37','2025-08-27 11:51:47',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-27 11:51:24','2025-08-27 11:51:47'),(3,3,1,'delivered','2025-08-28 14:47:47','2025-08-28 14:48:27','2025-08-28 14:54:19',NULL,50.00,'Karangahan Boulevard, Bangkilingan, Tabaco, Albay 4511, Near Melgar Bakery','5 Tomas Cabiles Street, San Juan, Tabaco, Albay 4511',NULL,'2025-08-28 14:46:59','2025-08-28 14:54:19');
 /*!40000 ALTER TABLE `delivery_assignments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -154,7 +203,7 @@ CREATE TABLE `delivery_candidates` (
   KEY `idx_status` (`status`),
   CONSTRAINT `fk_delivery_candidates_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `delivery_assignments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_delivery_candidates_partner` FOREIGN KEY (`delivery_partner_id`) REFERENCES `delivery_partners` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -163,7 +212,7 @@ CREATE TABLE `delivery_candidates` (
 
 LOCK TABLES `delivery_candidates` WRITE;
 /*!40000 ALTER TABLE `delivery_candidates` DISABLE KEYS */;
-INSERT INTO `delivery_candidates` VALUES (7,1,1,0.74,'accepted','2025-08-27 11:43:29','2025-08-27 11:43:38','2025-08-27 11:43:29','2025-08-27 11:43:38'),(8,2,1,0.71,'accepted','2025-08-27 11:51:25','2025-08-27 11:51:31','2025-08-27 11:51:25','2025-08-27 11:51:31');
+INSERT INTO `delivery_candidates` VALUES (7,1,1,0.74,'accepted','2025-08-27 11:43:29','2025-08-27 11:43:38','2025-08-27 11:43:29','2025-08-27 11:43:38'),(8,2,1,0.71,'accepted','2025-08-27 11:51:25','2025-08-27 11:51:31','2025-08-27 11:51:25','2025-08-27 11:51:31'),(9,3,1,0.70,'accepted','2025-08-28 14:46:59','2025-08-28 14:47:47','2025-08-28 14:46:59','2025-08-28 14:47:47');
 /*!40000 ALTER TABLE `delivery_candidates` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -303,7 +352,7 @@ CREATE TABLE `delivery_partners` (
 
 LOCK TABLES `delivery_partners` WRITE;
 /*!40000 ALTER TABLE `delivery_partners` DISABLE KEYS */;
-INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'available',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-08-27 12:22:58');
+INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'available',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-08-29 00:41:49');
 /*!40000 ALTER TABLE `delivery_partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -320,12 +369,13 @@ CREATE TABLE `messages` (
   `sender_id` int NOT NULL,
   `sender_type` enum('user','seller') NOT NULL,
   `message_text` text NOT NULL,
-  `message_type` enum('text','image','order_reference') DEFAULT 'text',
+  `message_type` enum('text','image','order_reference','bargain_offer') DEFAULT 'text',
   `order_id` int DEFAULT NULL,
   `image_url` varchar(500) DEFAULT NULL,
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `bargain_offer_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_conversation_id` (`conversation_id`),
   KEY `idx_sender_id` (`sender_id`),
@@ -334,10 +384,12 @@ CREATE TABLE `messages` (
   KEY `idx_is_read` (`is_read`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_messages_conversation_created` (`conversation_id`,`created_at`),
+  KEY `idx_bargain_offer_id` (`bargain_offer_id`),
+  CONSTRAINT `fk_messages_bargain_offer` FOREIGN KEY (`bargain_offer_id`) REFERENCES `bargain_offers` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_messages_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -346,7 +398,7 @@ CREATE TABLE `messages` (
 
 LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
-INSERT INTO `messages` VALUES (1,1,3,'user','Hello','text',NULL,NULL,1,'2025-08-24 13:20:10','2025-08-24 15:37:06'),(2,1,3,'user','Gg','text',NULL,NULL,1,'2025-08-24 13:20:14','2025-08-24 15:37:06'),(3,1,3,'user','Uh','text',NULL,NULL,1,'2025-08-24 13:20:18','2025-08-24 15:37:06'),(4,1,3,'user','Hhhhh','text',NULL,NULL,1,'2025-08-24 13:20:21','2025-08-24 15:37:06'),(5,1,3,'user','Yygg','text',NULL,NULL,1,'2025-08-24 13:20:40','2025-08-24 15:37:06'),(6,2,4,'user','Available?','text',NULL,NULL,1,'2025-08-25 09:27:17','2025-08-26 04:25:38'),(7,2,4,'user','Uuhj','text',NULL,NULL,1,'2025-08-25 09:30:01','2025-08-26 04:25:38'),(8,2,4,'user','Hdhdhd','text',NULL,NULL,1,'2025-08-25 09:30:04','2025-08-26 04:25:38'),(9,2,4,'user','Hdhshd','text',NULL,NULL,1,'2025-08-25 09:30:11','2025-08-26 04:25:38'),(10,2,4,'user','Hshshd','text',NULL,NULL,1,'2025-08-25 09:30:13','2025-08-26 04:25:38'),(11,2,4,'user','Hshdd','text',NULL,NULL,1,'2025-08-25 09:30:15','2025-08-26 04:25:38'),(12,2,4,'user','Hshshd','text',NULL,NULL,1,'2025-08-25 09:31:16','2025-08-26 04:25:38'),(13,2,4,'user','Dhhdhd','text',NULL,NULL,1,'2025-08-25 09:31:18','2025-08-26 04:25:38'),(14,2,4,'user','Hdhehd','text',NULL,NULL,1,'2025-08-25 09:31:20','2025-08-26 04:25:38'),(15,2,4,'user','Hdhshd','text',NULL,NULL,1,'2025-08-25 09:31:22','2025-08-26 04:25:38'),(16,2,4,'user','Hehshd','text',NULL,NULL,1,'2025-08-25 09:31:24','2025-08-26 04:25:38'),(17,2,4,'user','That\'s dirty work','text',NULL,NULL,1,'2025-08-25 09:32:48','2025-08-26 04:25:38'),(18,1,2,'seller','Wok','text',NULL,NULL,1,'2025-08-26 04:25:47','2025-08-26 05:42:46'),(19,1,2,'seller','A','text',NULL,NULL,1,'2025-08-26 04:29:44','2025-08-26 05:42:46'),(20,1,2,'seller','Hghgg','text',NULL,NULL,1,'2025-08-26 04:29:47','2025-08-26 05:42:46');
+INSERT INTO `messages` VALUES (8,1,4,'user','Hello','text',NULL,NULL,1,'2025-08-30 08:31:58','2025-08-30 10:07:25',NULL),(9,1,4,'user','Made an offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-08-30 08:32:24','2025-08-30 10:07:25',5),(10,1,2,'seller','Waiteu','text',NULL,NULL,1,'2025-08-30 10:07:38','2025-08-30 10:09:25',NULL),(11,1,4,'user','Made an offer for Sibuyas','bargain_offer',NULL,NULL,1,'2025-08-30 10:15:36','2025-08-30 10:15:45',6),(12,1,2,'seller','Oke','text',NULL,NULL,1,'2025-08-30 10:16:03','2025-08-30 10:27:16',NULL),(13,1,4,'user','Made an offer for Whole chicken','bargain_offer',NULL,NULL,1,'2025-08-30 10:38:11','2025-08-30 10:38:19',7),(14,1,2,'seller','Oki wait nga','text',NULL,NULL,1,'2025-08-30 10:39:09','2025-08-30 10:39:10',NULL),(15,1,4,'user','Made an offer for Bulinaw','bargain_offer',NULL,NULL,1,'2025-08-30 10:40:00','2025-08-30 10:40:09',8);
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -415,7 +467,7 @@ CREATE TABLE `order_items` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_item_status` (`item_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -424,7 +476,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,2,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47');
+INSERT INTO `order_items` VALUES (1,1,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,2,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47'),(3,3,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-28 14:12:14','2025-08-28 14:54:19');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -445,7 +497,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -454,7 +506,7 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-27 11:43:02'),(2,1,'confirmed','Accept and confirm this order',2,'2025-08-27 11:43:13'),(3,1,'preparing','Begin preparing the order items',2,'2025-08-27 11:43:20'),(4,1,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:43:29'),(5,2,'pending','Order placed successfully',NULL,'2025-08-27 11:51:04'),(6,2,'confirmed','Accept and confirm this order',2,'2025-08-27 11:51:13'),(7,2,'preparing','Begin preparing the order items',2,'2025-08-27 11:51:18'),(8,2,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:51:24');
+INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-27 11:43:02'),(2,1,'confirmed','Accept and confirm this order',2,'2025-08-27 11:43:13'),(3,1,'preparing','Begin preparing the order items',2,'2025-08-27 11:43:20'),(4,1,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:43:29'),(5,2,'pending','Order placed successfully',NULL,'2025-08-27 11:51:04'),(6,2,'confirmed','Accept and confirm this order',2,'2025-08-27 11:51:13'),(7,2,'preparing','Begin preparing the order items',2,'2025-08-27 11:51:18'),(8,2,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:51:24'),(9,3,'pending','Order placed successfully',NULL,'2025-08-28 14:12:14'),(10,3,'confirmed','Accept and confirm this order',2,'2025-08-28 14:38:19'),(11,3,'preparing','Begin preparing the order items',2,'2025-08-28 14:38:55'),(12,3,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-28 14:46:59');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -504,7 +556,7 @@ CREATE TABLE `orders` (
   KEY `idx_payment_status` (`payment_status`),
   KEY `idx_voucher_id` (`voucher_id`),
   KEY `idx_delivery_address_id` (`delivery_address_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -513,7 +565,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,4,1,'ORD1756294982824982','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:44:06',NULL,NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,4,1,'ORD1756295464359777','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:51:47',NULL,NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47');
+INSERT INTO `orders` VALUES (1,4,1,'ORD1756294982824982','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:44:06',NULL,NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,4,1,'ORD1756295464359777','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:51:47',NULL,NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47'),(3,4,1,'ORD1756390334390541','delivered','cash_on_delivery','pending',120.00,50.00,12.00,158.00,1,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-28 14:54:19',NULL,NULL,'2025-08-28 14:12:14','2025-08-28 14:54:19');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -586,12 +638,15 @@ CREATE TABLE `products` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `average_rating` decimal(3,2) DEFAULT '0.00',
   `review_count` int DEFAULT '0',
+  `bargaining_enabled` tinyint(1) DEFAULT '1' COMMENT 'Whether bargaining is enabled for this product',
+  `minimum_offer_price` decimal(10,2) DEFAULT NULL COMMENT 'Minimum acceptable offer price set by seller',
   PRIMARY KEY (`id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_is_active` (`is_active`),
   KEY `idx_category` (`category`),
-  KEY `idx_average_rating` (`average_rating`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_average_rating` (`average_rating`),
+  KEY `idx_bargaining_enabled` (`bargaining_enabled`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -600,7 +655,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,28,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-08-27 14:15:04',5.00,2);
+INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,27,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-08-28 14:12:14',5.00,2,1,NULL),(2,1,'Bulinaw','Really fresh | labas',120.00,5,'Fish','Other','per_500g','Slaughtered this morning','2025-08-30','From Daraga morning','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/bef4f1a5-5691-4f11-9de6-b0a2beeb5be2-photo.jpeg',1,'2025-08-30 04:20:01','2025-08-30 04:20:01',0.00,0,1,NULL),(3,1,'Whole chicken','Fresh whole chicken',220.00,6,'Poultry',NULL,'per_piece',NULL,'2025-08-27','From westwood poultries','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1c813ab9-f8b4-4a7d-923c-d7f8bbd18849-photo.jpeg',1,'2025-08-30 04:42:03','2025-08-30 07:46:10',0.00,0,1,NULL),(4,1,'Sibuyas','',60.00,12,'Vegetables','Root Vegetables','per_500g','Harvested around this summer season','2025-08-21','From vegetables supplier corp','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/fd74459f-73d3-43a2-89f2-80d7c78ae184-photo.jpeg',1,'2025-08-30 04:43:21','2025-08-30 04:43:21',0.00,0,1,NULL),(5,1,'Fresh meat','',140.00,12,'Meat','Pork Chop','per_500g','Slaughtered yesterday','2025-08-29','Source from ate nenang pigery business ','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1dce5705-ad08-4bd4-a5da-f8cb3b743680-photo.jpeg',1,'2025-08-30 04:45:00','2025-08-30 04:45:00',0.00,0,1,NULL);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1041,7 +1096,7 @@ CREATE TABLE `vouchers` (
 
 LOCK TABLES `vouchers` WRITE;
 /*!40000 ALTER TABLE `vouchers` DISABLE KEYS */;
-INSERT INTO `vouchers` VALUES (1,'WELCOME10','Welcome Discount','Get 10% off on your first order','percentage',10.00,100.00,50.00,NULL,0,'2025-01-01 00:00:00','2025-12-31 23:59:59',1,'2025-07-22 08:00:00','2025-07-22 08:00:00'),(2,'SAVE20','Save ₱20','Get ₱20 off on orders above ₱200','fixed_amount',20.00,200.00,NULL,NULL,0,'2025-01-01 00:00:00','2025-12-31 23:59:59',1,'2025-07-22 08:00:00','2025-07-22 08:00:00'),(3,'FREESHIP','Free Shipping','Free delivery on orders above ₱500','fixed_amount',50.00,500.00,NULL,100,0,'2025-01-01 00:00:00','2025-12-31 23:59:59',1,'2025-07-22 08:00:00','2025-07-22 08:00:00');
+INSERT INTO `vouchers` VALUES (1,'WELCOME10','Welcome Discount','Get 10% off on your first order','percentage',10.00,100.00,50.00,NULL,1,'2025-01-01 00:00:00','2025-12-31 23:59:59',1,'2025-07-22 08:00:00','2025-08-28 14:12:14'),(2,'SAVE20','Save ₱20','Get ₱20 off on orders above ₱200','fixed_amount',20.00,200.00,NULL,NULL,0,'2025-01-01 00:00:00','2025-12-31 23:59:59',1,'2025-07-22 08:00:00','2025-07-22 08:00:00'),(3,'FREESHIP','Free Shipping','Free delivery on orders above ₱500','fixed_amount',50.00,500.00,NULL,100,0,'2025-01-01 00:00:00','2025-12-31 23:59:59',1,'2025-07-22 08:00:00','2025-07-22 08:00:00');
 /*!40000 ALTER TABLE `vouchers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -1054,4 +1109,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-27 22:31:03
+-- Dump completed on 2025-08-30 19:58:01

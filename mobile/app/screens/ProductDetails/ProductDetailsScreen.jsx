@@ -10,6 +10,10 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  TextInput,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -41,6 +45,13 @@ const ProductDetailsScreen = () => {
   const [cartCount, setCartCount] = useState(0);
   const [actionType, setActionType] = useState(""); // 'cart' or 'buy'
   const [conversationId, setConversationId] = useState(null);
+  const [fetchedConversationId, setFetchedConversationId] = useState(false);
+
+  const [showBargainModal, setShowBargainModal] = useState(false);
+  const [bargainPrice, setBargainPrice] = useState("");
+  const [submittingBargain, setSubmittingBargain] = useState(false);
+  const [ongoingBargain, setOngoingBargain] = useState(null);
+  const [checkingBargain, setCheckingBargain] = useState(true);
 
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -55,6 +66,8 @@ const ProductDetailsScreen = () => {
     hasPrevPage: false,
   });
   const [loadingMoreReviews, setLoadingMoreReviews] = useState(false);
+
+  const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
   const fetchProduct = async () => {
     try {
@@ -134,6 +147,29 @@ const ProductDetailsScreen = () => {
       }
     } catch (error) {
       console.log("Error fetching conversation id:", error.response.data);
+    } finally {
+      setFetchedConversationId(true);
+    }
+  };
+
+  const checkOngoingBargain = async () => {
+    if (!user?.id || !productId || !conversationId) {
+      return;
+    }
+
+    setCheckingBargain(true);
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/bargain/check/${conversationId}/${productId}`
+      );
+
+      if (response.data.success && response.data.data.hasOngoingBargain) {
+        setOngoingBargain(response.data.data.bargain);
+      }
+    } catch (error) {
+      console.log("Error checking ongoing bargain:", error.response.data);
+    } finally {
+      setCheckingBargain(false);
     }
   };
 
@@ -141,7 +177,16 @@ const ProductDetailsScreen = () => {
     useCallback(() => {
       fetchProduct();
       fetchCartCount();
-    }, [productId])
+      fetchReviews();
+
+      if (fetchedConversationId) {
+        if (user?.id && conversationId) {
+          checkOngoingBargain();
+        } else {
+          setCheckingBargain(false);
+        }
+      }
+    }, [productId, fetchedConversationId, reviewFilter, reviewSort])
   );
 
   useEffect(() => {
@@ -253,6 +298,87 @@ const ProductDetailsScreen = () => {
 
     setActionType("buy");
     setShowPreferenceModal(true);
+  };
+
+  const handleBargainOffer = async () => {
+    if (!user) {
+      Alert.alert("Login Required", "Please login to make an offer", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () => navigation.navigate("Login") },
+      ]);
+      return;
+    }
+
+    if (!bargainPrice.trim()) {
+      Alert.alert("Error", "Please enter your offer price");
+      return;
+    }
+
+    const offerPrice = Number.parseFloat(bargainPrice);
+    const originalPrice = Number.parseFloat(product.price);
+
+    if (isNaN(offerPrice) || offerPrice <= 0) {
+      Alert.alert("Error", "Please enter a valid price");
+      return;
+    }
+
+    if (offerPrice >= originalPrice) {
+      Alert.alert(
+        "Error",
+        "Offer price should be less than the original price"
+      );
+      return;
+    }
+
+    setSubmittingBargain(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/bargain/create-offer`, {
+        productId: productId,
+        sellerId: product.seller_id,
+        offeredPrice: offerPrice,
+        originalPrice: originalPrice,
+        conversationId: conversationId,
+      });
+
+      if (response.data.success) {
+        Alert.alert(
+          "Offer Sent!",
+          "Your bargain offer has been sent to the seller. You can check the conversation for updates.",
+          [
+            {
+              text: "View Conversation",
+              onPress: () => {
+                setShowBargainModal(false);
+                setBargainPrice("");
+                navigation.navigate("ChatConversation", {
+                  conversationId: conversationId,
+                  sellerId: product.seller_id,
+                  storeName: product.store_name,
+                  storeLogo: product.store_logo_key,
+                });
+              },
+            },
+            {
+              text: "OK",
+              onPress: () => {
+                setShowBargainModal(false);
+                setBargainPrice("");
+                checkOngoingBargain(); // Refresh ongoing bargain status
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error("Error creating bargain offer:", error.response.data);
+      Alert.alert(
+        "Error",
+        error.response.data.message ||
+          "Failed to send bargain offer. Please try again."
+      );
+    } finally {
+      setSubmittingBargain(false);
+    }
   };
 
   const handleConfirmAction = async () => {
@@ -375,6 +501,21 @@ const ProductDetailsScreen = () => {
       };
     }
   };
+
+  useEffect(() => {
+    const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardVisibility(false);
+    });
+
+    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
+      setKeyboardVisibility(true);
+    });
+
+    return () => {
+      keyboardDidHide.remove();
+      keyboardDidShow.remove();
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -798,6 +939,68 @@ const ProductDetailsScreen = () => {
       {!isOwnProduct() && (
         <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
           <View className="flex-row gap-3">
+            {product.bargaining_enabled === 1 && (
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center p-4 border-2 border-blue-600 rounded-lg ${
+                  product.stock_quantity === 0 || checkingBargain
+                    ? "opacity-50"
+                    : ""
+                }`}
+                onPress={() => {
+                  if (!user) {
+                    Alert.alert(
+                      "Login Required",
+                      "Please login to make an offer",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Login",
+                          onPress: () => navigation.navigate("Login"),
+                        },
+                      ]
+                    );
+                    return;
+                  }
+
+                  if (ongoingBargain) {
+                    Alert.alert(
+                      "Ongoing Bargain",
+                      "You have an ongoing bargain offer for this product. Please wait for the seller's response or check your conversation.",
+                      [
+                        {
+                          text: "View Conversation",
+                          onPress: () =>
+                            navigation.navigate("ChatConversation", {
+                              conversationId: conversationId,
+                              sellerId: product.seller_id,
+                              storeName: product.store_name,
+                              storeLogo: product.store_logo_key,
+                            }),
+                        },
+                        { text: "OK" },
+                      ]
+                    );
+                  } else {
+                    setShowBargainModal(true);
+                  }
+                }}
+                disabled={product.stock_quantity === 0 || checkingBargain}
+              >
+                {checkingBargain ? (
+                  <ActivityIndicator color="#2563EB" />
+                ) : (
+                  <>
+                    <Feather name="tag" size={20} color="#2563EB" />
+                    <Text
+                      className={`mt-1 font-semibold text-blue-600 ${ongoingBargain ? "text-xs" : ""}`}
+                    >
+                      {ongoingBargain ? "Pending Offer" : "Make Offer"}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               className={`flex-1 items-center justify-center p-4 border-2 border-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
               onPress={handleAddToCart}
@@ -826,6 +1029,107 @@ const ProductDetailsScreen = () => {
           </View>
         </View>
       )}
+
+      <Modal
+        visible={showBargainModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowBargainModal(false)}
+      >
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={
+            Platform.OS === "android" && !keyBoardVisibility ? null : "padding"
+          }
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="justify-end flex-1">
+            <View className="p-6 bg-white rounded-t-3xl">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-semibold">Make an Offer</Text>
+                <TouchableOpacity onPress={() => setShowBargainModal(false)}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Product Info */}
+              <View className="flex-row p-4 mb-4 rounded-lg bg-gray-50">
+                <Image
+                  source={{ uri: product?.image_keys }}
+                  className="w-16 h-16 rounded-lg"
+                  resizeMode="cover"
+                />
+                <View className="flex-1 ml-3">
+                  <Text className="text-lg font-semibold" numberOfLines={2}>
+                    {product?.name}
+                  </Text>
+                  <Text className="text-sm text-gray-600">
+                    Original Price: ₱
+                    {Number.parseFloat(product?.price || 0).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Offer Input */}
+              <View className="mb-4">
+                <Text className="mb-2 text-lg font-medium">
+                  Your Offer Price
+                </Text>
+                <View className="flex-row items-center p-3 border border-gray-300 rounded-lg">
+                  <Text className="mr-2 text-lg font-semibold">₱</Text>
+                  <TextInput
+                    className="flex-1 text-lg"
+                    placeholder="0.00"
+                    value={bargainPrice}
+                    onChangeText={setBargainPrice}
+                    keyboardType="numeric"
+                    maxLength={10}
+                  />
+                </View>
+                <Text className="mt-1 text-sm text-gray-500">
+                  Enter an amount less than ₱
+                  {Number.parseFloat(product?.price || 0).toFixed(2)}
+                </Text>
+              </View>
+
+              {/* Savings Display */}
+              {bargainPrice &&
+                bargainPrice <= Number.parseFloat(product.price) &&
+                !isNaN(Number.parseFloat(bargainPrice)) &&
+                Number.parseFloat(bargainPrice) > 0 && (
+                  <View className="p-3 mb-4 rounded-lg bg-green-50">
+                    <Text className="text-sm text-green-700">
+                      You'll save: ₱
+                      {(
+                        Number.parseFloat(product?.price || 0) -
+                        Number.parseFloat(bargainPrice)
+                      ).toFixed(2)}
+                    </Text>
+                  </View>
+                )}
+
+              {/* Submit Button */}
+              <TouchableOpacity
+                className={`items-center p-4 rounded-lg ${
+                  bargainPrice.trim() && !submittingBargain
+                    ? "bg-blue-600"
+                    : "bg-gray-300"
+                }`}
+                onPress={handleBargainOffer}
+                disabled={!bargainPrice.trim() || submittingBargain}
+              >
+                {submittingBargain ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text className="text-lg font-semibold text-white">
+                    Send Offer
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       <Modal
         transparent
@@ -882,11 +1186,26 @@ const ProductDetailsScreen = () => {
                 <View className="mb-4">
                   <Text className="mb-3 text-lg font-medium">Sort by</Text>
                   {[
-                    { key: "newest", label: "Newest First" },
-                    { key: "oldest", label: "Oldest First" },
-                    { key: "highest", label: "Highest Rating" },
-                    { key: "lowest", label: "Lowest Rating" },
-                    { key: "helpful", label: "Most Helpful" },
+                    {
+                      key: "newest",
+                      label: "Newest First",
+                    },
+                    {
+                      key: "oldest",
+                      label: "Oldest First",
+                    },
+                    {
+                      key: "highest",
+                      label: "Highest Rating",
+                    },
+                    {
+                      key: "lowest",
+                      label: "Lowest Rating",
+                    },
+                    {
+                      key: "helpful",
+                      label: "Most Helpful",
+                    },
                   ].map((sort) => (
                     <TouchableOpacity
                       key={sort.key}

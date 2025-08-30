@@ -18,6 +18,7 @@ const deliveryPartnerRoutes = require("./routes/deliveryPartnerRoutes"); // Adde
 const chatRoutes = require("./routes/chatRoutes"); // Added chat routes import
 const notificationRoutes = require("./routes/notificationRoutes"); // Added notification routes import
 const reviewRoutes = require("./routes/reviewRoutes"); // Added review routes import
+const bargainRoutes = require("./routes/bargainRoutes"); // Added bargain routes import
 
 const app = express();
 const server = http.createServer(app);
@@ -37,6 +38,7 @@ app.use("/api/delivery-partner", deliveryPartnerRoutes); // Added route registra
 app.use("/api/chat", chatRoutes); // Added chat routes registration
 app.use("/api/notifications", notificationRoutes); // Added notification routes registration
 app.use("/api/reviews", reviewRoutes); // Added review routes registration
+app.use("/api/bargain", bargainRoutes); // Added review routes registration
 
 const socketStore = require("./utils/socketStore");
 const {

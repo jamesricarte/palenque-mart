@@ -33,6 +33,8 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
 
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
+  let markReadInProgress = false;
+
   const fetchMessages = async () => {
     try {
       const response = await axios.get(
@@ -41,14 +43,26 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
       if (response.data.success) {
         setMessages(response.data.data.messages);
         // Mark messages as read
-        await axios.put(
-          `${API_URL}/api/chat/seller/conversations/${conversationId}/mark-read`
-        );
+        markMessagesAsRead();
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const markMessagesAsRead = async () => {
+    if (markReadInProgress) return; // prevent overlap
+    markReadInProgress = true;
+    try {
+      await axios.put(
+        `${API_URL}/api/chat/seller/conversations/${conversationId}/mark-read`
+      );
+    } catch (err) {
+      console.error("Error marking messages as read:", err);
+    } finally {
+      markReadInProgress = false;
     }
   };
 

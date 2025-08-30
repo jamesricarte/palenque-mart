@@ -12,6 +12,8 @@ import {
   Alert,
   Keyboard,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -33,6 +35,15 @@ const ChatConversationScreen = ({ route, navigation }) => {
 
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [sellerProducts, setSellerProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [offerPrice, setOfferPrice] = useState("");
+  const [submittingOffer, setSubmittingOffer] = useState(false);
+
+  let markReadInProgress = false;
+
   const fetchMessages = async () => {
     try {
       const response = await axios.get(
@@ -41,14 +52,136 @@ const ChatConversationScreen = ({ route, navigation }) => {
       if (response.data.success) {
         setMessages(response.data.data.messages);
         // Mark messages as read
-        await axios.put(
-          `${API_URL}/api/chat/conversations/${conversationId}/mark-read`
-        );
+        markMessagesAsRead();
       }
     } catch (error) {
       console.log("Error fetching messages:", error.response.data);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const markMessagesAsRead = async () => {
+    if (markReadInProgress) return; // prevent overlap
+    markReadInProgress = true;
+    try {
+      await axios.put(
+        `${API_URL}/api/chat/conversations/${conversationId}/mark-read`
+      );
+    } catch (err) {
+      console.error("Error marking messages as read:", err);
+    } finally {
+      markReadInProgress = false;
+    }
+  };
+
+  const fetchSellerProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/bargain/seller/${sellerId}/products/${conversationId}`
+      );
+
+      if (response.data.success) {
+        setSellerProducts(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching seller products:", error.response.data);
+      Alert.alert("Error", "Failed to load products");
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const handleChatBargainOffer = async () => {
+    if (!selectedProduct || !offerPrice.trim()) {
+      Alert.alert(
+        "Error",
+        "Please select a product and enter your offer price"
+      );
+      return;
+    }
+
+    const offerPriceNum = Number.parseFloat(offerPrice);
+    const originalPrice = Number.parseFloat(selectedProduct.price);
+
+    if (isNaN(offerPriceNum) || offerPriceNum <= 0) {
+      Alert.alert("Error", "Please enter a valid price");
+      return;
+    }
+
+    if (offerPriceNum >= originalPrice) {
+      Alert.alert(
+        "Error",
+        "Offer price should be less than the original price"
+      );
+      return;
+    }
+
+    setSubmittingOffer(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/bargain/create-offer`, {
+        productId: selectedProduct.id,
+        sellerId: sellerId,
+        offeredPrice: offerPriceNum,
+        originalPrice: originalPrice,
+        conversationId: conversationId,
+      });
+
+      if (response.data.success) {
+        setShowOfferModal(false);
+        setSelectedProduct(null);
+        setOfferPrice("");
+        fetchMessages(); // Refresh messages to show the new bargain card
+        Alert.alert("Success", "Your bargain offer has been sent!");
+      }
+    } catch (error) {
+      console.error("Error creating bargain offer:", error);
+      Alert.alert(
+        "Error",
+        error.response.data.message ||
+          "Failed to send bargain offer. Please try again."
+      );
+    } finally {
+      setSubmittingOffer(false);
+    }
+  };
+
+  const handleBargainResponse = async (
+    bargainOfferId,
+    action,
+    counterPrice = null
+  ) => {
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/bargain/respond/${bargainOfferId}`,
+        {
+          action: action, // 'accept', 'reject', 'counter'
+          counterPrice: counterPrice,
+        }
+      );
+
+      if (response.data.success) {
+        fetchMessages(); // Refresh messages to show updated bargain card
+
+        if (action === "accept") {
+          Alert.alert(
+            "Offer Accepted",
+            "Great! You can now proceed to checkout with the agreed price."
+          );
+        } else if (action === "reject") {
+          Alert.alert(
+            "Offer Rejected",
+            "You have rejected this bargain offer."
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error responding to bargain:", error);
+      Alert.alert(
+        "Error",
+        "Failed to respond to bargain offer. Please try again."
+      );
     }
   };
 
@@ -132,8 +265,299 @@ const ChatConversationScreen = ({ route, navigation }) => {
     };
   }, []);
 
+  const BargainCard = ({ message }) => {
+    const bargainData = message.bargain_data;
+    const isFromUser = message.sender_type === "user";
+
+    if (!bargainData) return null;
+
+    const canRespond = !isFromUser && bargainData.status === "pending";
+
+    return (
+      <View
+        className={`flex-row mb-3 ${isFromUser ? "justify-end" : "justify-start"}`}
+      >
+        {!isFromUser && (
+          <View className="mr-2">
+            {storeLogo ? (
+              <Image
+                source={{ uri: storeLogo }}
+                className="w-8 h-8 rounded-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full">
+                <MaterialCommunityIcons
+                  name="storefront-outline"
+                  size={16}
+                  color="#6B7280"
+                />
+              </View>
+            )}
+          </View>
+        )}
+
+        <View
+          className={`max-w-xs rounded-lg border ${
+            isFromUser
+              ? "border-orange-200 rounded-br-md"
+              : "border-gray-200 rounded-bl-md"
+          }`}
+        >
+          <View
+            className={`rounded-lg bg-white p-2 ${
+              isFromUser ? "rounded-br-md" : "rounded-bl-md"
+            }`}
+          >
+            {/* Header with offer type and final badge */}
+            <View
+              className={`px-4 py-3 border-b border-gray-100 ${isFromUser ? "bg-orange-50" : "bg-gray-50"}`}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                  <View
+                    className={`w-2 h-2 rounded-full mr-2 ${
+                      bargainData.status === "pending"
+                        ? "bg-orange-500"
+                        : bargainData.status === "accepted"
+                          ? "bg-green-500"
+                          : bargainData.status === "rejected"
+                            ? "bg-red-500"
+                            : "bg-gray-400"
+                    }`}
+                  />
+                  <Text className="text-sm font-semibold text-gray-900">
+                    {bargainData.offer_type === "initial_offer"
+                      ? "Bargain Offer"
+                      : "Counter Offer"}
+                  </Text>
+                </View>
+                {bargainData.is_final_offer === true && (
+                  <View className="px-2 py-1 bg-red-100 rounded-full">
+                    <Text className="text-xs font-bold text-red-600">
+                      FINAL
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Product Info Section */}
+            <View className="p-4">
+              <View className="flex-row mb-4">
+                <View className="mr-3">
+                  {bargainData.product_image ? (
+                    <Image
+                      source={{ uri: bargainData.product_image }}
+                      className="w-16 h-16 rounded-lg"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="flex items-center justify-center w-16 h-16 bg-gray-200 rounded-lg">
+                      <Feather name="package" size={24} color="#6B7280" />
+                    </View>
+                  )}
+                </View>
+                <View className="flex-1">
+                  <Text
+                    className="mb-1 text-base font-semibold text-gray-900"
+                    numberOfLines={2}
+                  >
+                    {bargainData.product_name}
+                  </Text>
+                  <View className="flex-row items-center">
+                    <Text className="text-sm text-gray-500 line-through">
+                      ₱
+                      {Number.parseFloat(bargainData.original_price).toFixed(2)}
+                    </Text>
+                    <View className="px-2 py-1 ml-2 bg-green-100 rounded-full">
+                      <Text className="text-xs font-medium text-green-700">
+                        -
+                        {Math.round(
+                          ((Number.parseFloat(bargainData.original_price) -
+                            Number.parseFloat(bargainData.current_price)) /
+                            Number.parseFloat(bargainData.original_price)) *
+                            100
+                        )}
+                        %
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Price Section */}
+              <View className="p-3 mb-4 border border-orange-200 rounded-lg bg-gradient-to-r from-orange-50 to-orange-100">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="mr-1 text-sm font-medium text-gray-700">
+                    Offered Price:
+                  </Text>
+                  <Text className="text-2xl font-bold text-orange-600">
+                    ₱{Number.parseFloat(bargainData.current_price).toFixed(2)}
+                  </Text>
+                </View>
+                <Text className="text-sm font-medium text-green-600">
+                  You save ₱
+                  {(
+                    Number.parseFloat(bargainData.original_price) -
+                    Number.parseFloat(bargainData.current_price)
+                  ).toFixed(2)}
+                </Text>
+              </View>
+
+              {/* Status Badge */}
+              <View className="mb-4">
+                <View
+                  className={`inline-flex px-3 py-1 rounded-full ${
+                    bargainData.status === "pending"
+                      ? "bg-orange-100"
+                      : bargainData.status === "accepted"
+                        ? "bg-green-100"
+                        : bargainData.status === "rejected"
+                          ? "bg-red-100"
+                          : "bg-gray-100"
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-semibold ${
+                      bargainData.status === "pending"
+                        ? "text-orange-700"
+                        : bargainData.status === "accepted"
+                          ? "text-green-700"
+                          : bargainData.status === "rejected"
+                            ? "text-red-700"
+                            : "text-gray-700"
+                    }`}
+                  >
+                    {bargainData.status === "pending"
+                      ? "⏳ Awaiting Response"
+                      : bargainData.status === "accepted"
+                        ? "✅ Accepted"
+                        : bargainData.status === "rejected"
+                          ? "❌ Rejected"
+                          : bargainData.status?.toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Response Buttons for Buyer */}
+              {canRespond && (
+                <View className="space-y-2">
+                  <View className="flex-row space-x-2">
+                    <TouchableOpacity
+                      className="flex-1 p-3 bg-green-600 rounded-lg shadow-sm"
+                      onPress={() =>
+                        handleBargainResponse(bargainData.id, "accept")
+                      }
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Feather name="check" size={16} color="white" />
+                        <Text className="ml-1 text-sm font-semibold text-white">
+                          Accept
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="flex-1 p-3 bg-red-600 rounded-lg shadow-sm"
+                      onPress={() =>
+                        handleBargainResponse(bargainData.id, "reject")
+                      }
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Feather name="x" size={16} color="white" />
+                        <Text className="ml-1 text-sm font-semibold text-white">
+                          Reject
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  {!bargainData.is_final_offer && (
+                    <TouchableOpacity
+                      className="w-full p-3 bg-blue-600 rounded-lg shadow-sm"
+                      onPress={() => {
+                        Alert.prompt(
+                          "Counter Offer",
+                          "Enter your counter offer price:",
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            {
+                              text: "Send",
+                              onPress: (counterPrice) => {
+                                const price = Number.parseFloat(counterPrice);
+                                if (isNaN(price) || price <= 0) {
+                                  Alert.alert(
+                                    "Error",
+                                    "Please enter a valid price"
+                                  );
+                                  return;
+                                }
+                                if (
+                                  price >=
+                                  Number.parseFloat(bargainData.original_price)
+                                ) {
+                                  Alert.alert(
+                                    "Error",
+                                    "Counter offer should be less than original price"
+                                  );
+                                  return;
+                                }
+                                handleBargainResponse(
+                                  bargainData.id,
+                                  "counter",
+                                  price
+                                );
+                              },
+                            },
+                          ],
+                          "plain-text",
+                          "",
+                          "numeric"
+                        );
+                      }}
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Feather name="repeat" size={16} color="white" />
+                        <Text className="ml-1 text-sm font-semibold text-white">
+                          Make Counter Offer
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </View>
+
+            {/* Footer with timestamp */}
+            <View className="px-4 py-2 border-t border-gray-100 bg-gray-50">
+              <Text className="text-xs text-right text-gray-500">
+                {formatMessageTime(message.created_at)}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   const MessageItem = ({ message, isLast, showDate }) => {
     const isFromUser = message.sender_type === "user";
+
+    if (message.message_type === "bargain_offer") {
+      return (
+        <View>
+          {showDate && (
+            <View className="items-center my-4">
+              <View className="px-3 py-1 bg-gray-200 rounded-full">
+                <Text className="text-xs text-gray-600">
+                  {formatMessageDate(message.created_at)}
+                </Text>
+              </View>
+            </View>
+          )}
+          <BargainCard message={message} />
+        </View>
+      );
+    }
 
     return (
       <View>
@@ -305,6 +729,16 @@ const ChatConversationScreen = ({ route, navigation }) => {
 
       {/* Message Input */}
       <View className="flex-row items-center px-4 py-3 bg-white border-t border-gray-200">
+        <TouchableOpacity
+          className="p-2 mr-2 bg-blue-100 rounded-full"
+          onPress={() => {
+            setShowOfferModal(true);
+            fetchSellerProducts();
+          }}
+        >
+          <Feather name="tag" size={20} color="#2563EB" />
+        </TouchableOpacity>
+
         <View className="flex-1 mr-3">
           <TextInput
             className="px-4 py-3 border border-gray-300 rounded-full"
@@ -331,6 +765,161 @@ const ChatConversationScreen = ({ route, navigation }) => {
           )}
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showOfferModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowOfferModal(false)}
+      >
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={
+            Platform.OS === "android" && !keyBoardVisibility ? null : "padding"
+          }
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View
+            className="flex-1"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          >
+            <View className="justify-end flex-1">
+              <View className="p-6 bg-white rounded-t-3xl">
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text className="text-xl font-semibold">Make an Offer</Text>
+                  <TouchableOpacity onPress={() => setShowOfferModal(false)}>
+                    <Feather name="x" size={24} color="black" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Product Selection */}
+                <View className="mb-4">
+                  <Text className="mb-2 text-lg font-medium">
+                    Select Product
+                  </Text>
+                  {loadingProducts ? (
+                    <View className="items-center py-8">
+                      <ActivityIndicator size="large" color="#2563EB" />
+                      <Text className="mt-2 text-gray-600">
+                        Loading products...
+                      </Text>
+                    </View>
+                  ) : (
+                    <FlatList
+                      data={sellerProducts}
+                      keyExtractor={(item) => item.id.toString()}
+                      showsVerticalScrollIndicator={false}
+                      style={{ maxHeight: 200 }}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          className={`flex-row p-3 mb-2 rounded-lg border ${
+                            selectedProduct?.id === item.id
+                              ? "bg-blue-50 border-blue-600"
+                              : "bg-gray-50 border-gray-200"
+                          }`}
+                          onPress={() => setSelectedProduct(item)}
+                        >
+                          <Image
+                            source={{ uri: item.imageUrl }}
+                            className="w-12 h-12 rounded-lg"
+                            resizeMode="cover"
+                          />
+                          <View className="flex-1 ml-3">
+                            <Text className="font-semibold" numberOfLines={1}>
+                              {item.name}
+                            </Text>
+                            <Text className="text-sm text-gray-600">
+                              ₱{Number.parseFloat(item.price).toFixed(2)}
+                            </Text>
+                            <Text className="text-xs text-gray-500">
+                              Stock: {item.stock_quantity}
+                            </Text>
+                          </View>
+                          {selectedProduct?.id === item.id && (
+                            <Feather
+                              name="check-circle"
+                              size={20}
+                              color="#2563EB"
+                            />
+                          )}
+                        </TouchableOpacity>
+                      )}
+                      ListEmptyComponent={
+                        <View className="items-center py-8">
+                          <Feather name="package" size={48} color="#9CA3AF" />
+                          <Text className="mt-2 text-gray-600">
+                            No products available
+                          </Text>
+                        </View>
+                      }
+                    />
+                  )}
+                </View>
+
+                {/* Offer Price Input */}
+                {selectedProduct && (
+                  <View className="mb-4">
+                    <Text className="mb-2 text-lg font-medium">
+                      Your Offer Price
+                    </Text>
+                    <View className="flex-row items-center p-3 border border-gray-300 rounded-lg">
+                      <Text className="mr-2 text-lg font-semibold">₱</Text>
+                      <TextInput
+                        className="flex-1 text-lg"
+                        placeholder="0.00"
+                        value={offerPrice}
+                        onChangeText={setOfferPrice}
+                        keyboardType="numeric"
+                        maxLength={10}
+                      />
+                    </View>
+                    <Text className="mt-1 text-sm text-gray-500">
+                      Original price: ₱
+                      {Number.parseFloat(selectedProduct.price).toFixed(2)}
+                    </Text>
+
+                    {offerPrice &&
+                      offerPrice <= Number.parseFloat(selectedProduct.price) &&
+                      !isNaN(Number.parseFloat(offerPrice)) &&
+                      Number.parseFloat(offerPrice) > 0 && (
+                        <View className="p-2 mt-2 rounded-lg bg-green-50">
+                          <Text className="text-sm text-green-700">
+                            You'll save: ₱
+                            {(
+                              Number.parseFloat(selectedProduct.price) -
+                              Number.parseFloat(offerPrice)
+                            ).toFixed(2)}
+                          </Text>
+                        </View>
+                      )}
+                  </View>
+                )}
+
+                {/* Submit Button */}
+                <TouchableOpacity
+                  className={`items-center p-4 rounded-lg ${
+                    selectedProduct && offerPrice.trim() && !submittingOffer
+                      ? "bg-blue-600"
+                      : "bg-gray-300"
+                  }`}
+                  onPress={handleChatBargainOffer}
+                  disabled={
+                    !selectedProduct || !offerPrice.trim() || submittingOffer
+                  }
+                >
+                  {submittingOffer ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-lg font-semibold text-white">
+                      Send Offer
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
