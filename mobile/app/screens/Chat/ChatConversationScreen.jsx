@@ -42,6 +42,12 @@ const ChatConversationScreen = ({ route, navigation }) => {
   const [offerPrice, setOfferPrice] = useState("");
   const [submittingOffer, setSubmittingOffer] = useState(false);
 
+  const [showCounterModal, setShowCounterModal] = useState(false);
+  const [selectedBargainForCounter, setSelectedBargainForCounter] =
+    useState(null);
+  const [counterOfferPrice, setCounterOfferPrice] = useState("");
+  const [submittingCounterOffer, setSubmittingCounterOffer] = useState(false);
+
   let markReadInProgress = false;
 
   const fetchMessages = async () => {
@@ -147,17 +153,57 @@ const ChatConversationScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleCounterOffer = async () => {
+    if (!counterOfferPrice.trim()) {
+      Alert.alert("Error", "Please enter your counter offer price");
+      return;
+    }
+
+    const counterPriceNum = Number.parseFloat(counterOfferPrice);
+    const originalPrice = Number.parseFloat(
+      selectedBargainForCounter?.original_price
+    );
+
+    if (isNaN(counterPriceNum) || counterPriceNum <= 0) {
+      Alert.alert("Error", "Please enter a valid price");
+      return;
+    }
+
+    if (counterPriceNum >= originalPrice) {
+      Alert.alert(
+        "Error",
+        "Counter offer should be less than the original price"
+      );
+      return;
+    }
+
+    setSubmittingCounterOffer(true);
+    try {
+      await handleBargainResponse(
+        selectedBargainForCounter.id,
+        "counter",
+        counterPriceNum
+      );
+      setShowCounterModal(false);
+      setSelectedBargainForCounter(null);
+      setCounterOfferPrice("");
+    } finally {
+      setSubmittingCounterOffer(false);
+    }
+  };
+
   const handleBargainResponse = async (
     bargainOfferId,
     action,
-    counterPrice = null
+    counterOfferPrice = null
   ) => {
+    console.log("function counterOfferPrice:", counterOfferPrice);
     try {
       const response = await axios.put(
         `${API_URL}/api/bargain/respond/${bargainOfferId}`,
         {
           action: action, // 'accept', 'reject', 'counter'
-          counterPrice: counterPrice,
+          counterOfferPrice: counterOfferPrice,
         }
       );
 
@@ -177,10 +223,11 @@ const ChatConversationScreen = ({ route, navigation }) => {
         }
       }
     } catch (error) {
-      console.error("Error responding to bargain:", error);
+      console.error("Error responding to bargain:", error.response.data);
       Alert.alert(
         "Error",
-        "Failed to respond to bargain offer. Please try again."
+        error.response?.data?.message ||
+          "Failed to respond to bargain offer. Please try again."
       );
     }
   };
@@ -300,18 +347,16 @@ const ChatConversationScreen = ({ route, navigation }) => {
         <View
           className={`max-w-xs rounded-lg border ${
             isFromUser
-              ? "border-orange-200 rounded-br-md"
+              ? "border-gray-200 rounded-br-md"
               : "border-gray-200 rounded-bl-md"
           }`}
         >
           <View
-            className={`rounded-lg bg-white p-2 ${
-              isFromUser ? "rounded-br-md" : "rounded-bl-md"
-            }`}
+            className={`rounded-lg bg-white p-2 ${isFromUser ? "rounded-br-md" : "rounded-bl-md"}`}
           >
             {/* Header with offer type and final badge */}
             <View
-              className={`px-4 py-3 border-b border-gray-100 ${isFromUser ? "bg-orange-50" : "bg-gray-50"}`}
+              className={`px-4 py-3 border-b border-gray-100 ${isFromUser ? "bg-gray-50" : "bg-gray-50"}`}
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
@@ -332,7 +377,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
                       : "Counter Offer"}
                   </Text>
                 </View>
-                {bargainData.is_final_offer === true && (
+                {bargainData.is_final_offer === 1 && (
                   <View className="px-2 py-1 bg-red-100 rounded-full">
                     <Text className="text-xs font-bold text-red-600">
                       FINAL
@@ -442,85 +487,43 @@ const ChatConversationScreen = ({ route, navigation }) => {
 
               {/* Response Buttons for Buyer */}
               {canRespond && (
-                <View className="space-y-2">
-                  <View className="flex-row space-x-2">
+                <View className="gap-2">
+                  <View className="flex-row gap-2">
                     <TouchableOpacity
-                      className="flex-1 p-3 bg-green-600 rounded-lg shadow-sm"
+                      className="flex-row items-center flex-1 p-3 bg-white border border-gray-300 rounded-lg"
                       onPress={() =>
-                        handleBargainResponse(bargainData.id, "accept")
+                        Alert.alert(
+                          "Accept Offer",
+                          "Are you sure you want to accept this bargain offer?",
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            {
+                              text: "Accept",
+                              onPress: () =>
+                                handleBargainResponse(bargainData.id, "accept"),
+                            },
+                          ]
+                        )
                       }
                     >
-                      <View className="flex-row items-center justify-center">
-                        <Feather name="check" size={16} color="white" />
-                        <Text className="ml-1 text-sm font-semibold text-white">
-                          Accept
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="flex-1 p-3 bg-red-600 rounded-lg shadow-sm"
-                      onPress={() =>
-                        handleBargainResponse(bargainData.id, "reject")
-                      }
-                    >
-                      <View className="flex-row items-center justify-center">
-                        <Feather name="x" size={16} color="white" />
-                        <Text className="ml-1 text-sm font-semibold text-white">
-                          Reject
-                        </Text>
-                      </View>
+                      <Feather name="check" size={16} color="#16A34A" />
+                      <Text className="ml-1 text-sm font-medium text-green-600">
+                        Accept
+                      </Text>
                     </TouchableOpacity>
                   </View>
                   {!bargainData.is_final_offer && (
                     <TouchableOpacity
-                      className="w-full p-3 bg-blue-600 rounded-lg shadow-sm"
+                      className="flex-row items-center justify-center w-full p-3 bg-white border border-gray-300 rounded-lg"
                       onPress={() => {
-                        Alert.prompt(
-                          "Counter Offer",
-                          "Enter your counter offer price:",
-                          [
-                            { text: "Cancel", style: "cancel" },
-                            {
-                              text: "Send",
-                              onPress: (counterPrice) => {
-                                const price = Number.parseFloat(counterPrice);
-                                if (isNaN(price) || price <= 0) {
-                                  Alert.alert(
-                                    "Error",
-                                    "Please enter a valid price"
-                                  );
-                                  return;
-                                }
-                                if (
-                                  price >=
-                                  Number.parseFloat(bargainData.original_price)
-                                ) {
-                                  Alert.alert(
-                                    "Error",
-                                    "Counter offer should be less than original price"
-                                  );
-                                  return;
-                                }
-                                handleBargainResponse(
-                                  bargainData.id,
-                                  "counter",
-                                  price
-                                );
-                              },
-                            },
-                          ],
-                          "plain-text",
-                          "",
-                          "numeric"
-                        );
+                        setSelectedBargainForCounter(bargainData);
+                        setShowCounterModal(true);
                       }}
                     >
-                      <View className="flex-row items-center justify-center">
-                        <Feather name="repeat" size={16} color="white" />
-                        <Text className="ml-1 text-sm font-semibold text-white">
-                          Make Counter Offer
-                        </Text>
-                      </View>
+                      <Feather name="repeat" size={16} color="#2563EB" />
+                      <Text className="ml-1 text-sm font-medium text-blue-600">
+                        Make Counter Offer
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -766,6 +769,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
+      {/* Offer Modal */}
       <Modal
         visible={showOfferModal}
         transparent={true}
@@ -916,6 +920,111 @@ const ChatConversationScreen = ({ route, navigation }) => {
                   )}
                 </TouchableOpacity>
               </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Counter Offer Modal */}
+      <Modal
+        visible={showCounterModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowCounterModal(false)}
+      >
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={
+            Platform.OS === "android" && !keyBoardVisibility ? null : "padding"
+          }
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="justify-end flex-1">
+            <View className="p-6 bg-white rounded-t-3xl">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-semibold">Counter Offer</Text>
+                <TouchableOpacity onPress={() => setShowCounterModal(false)}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              {selectedBargainForCounter && (
+                <View>
+                  <View className="p-4 mb-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <View className="flex-row mb-3">
+                      <View className="mr-3">
+                        {selectedBargainForCounter.product_image ? (
+                          <Image
+                            source={{
+                              uri: selectedBargainForCounter.product_image,
+                            }}
+                            className="w-16 h-16 rounded-lg"
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View className="flex items-center justify-center w-16 h-16 bg-gray-200 rounded-lg">
+                            <Feather name="package" size={24} color="#6B7280" />
+                          </View>
+                        )}
+                      </View>
+                      <View className="flex-1">
+                        <Text className="mb-2 text-base font-semibold">
+                          {selectedBargainForCounter.product_name}
+                        </Text>
+                        <Text className="text-sm text-gray-600">
+                          Original Price: ₱
+                          {Number.parseFloat(
+                            selectedBargainForCounter.original_price
+                          ).toFixed(2)}
+                        </Text>
+                        <Text className="text-sm text-gray-600">
+                          Seller Offer: ₱
+                          {Number.parseFloat(
+                            selectedBargainForCounter.current_price
+                          ).toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View className="mb-4">
+                    <Text className="mb-2 text-lg font-medium">
+                      Your Counter Offer
+                    </Text>
+                    <View className="flex-row items-center p-3 border border-gray-300 rounded-lg">
+                      <Text className="mr-2 text-lg font-semibold">₱</Text>
+                      <TextInput
+                        className="flex-1 text-lg"
+                        placeholder="0.00"
+                        value={counterOfferPrice}
+                        onChangeText={setCounterOfferPrice}
+                        keyboardType="numeric"
+                        maxLength={10}
+                      />
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    className={`items-center p-4 rounded-lg ${
+                      counterOfferPrice.trim() && !submittingCounterOffer
+                        ? "bg-blue-600"
+                        : "bg-gray-300"
+                    }`}
+                    onPress={handleCounterOffer}
+                    disabled={
+                      !counterOfferPrice.trim() || submittingCounterOffer
+                    }
+                  >
+                    {submittingCounterOffer ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text className="text-lg font-semibold text-white">
+                        Send Counter Offer
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
         </KeyboardAvoidingView>
