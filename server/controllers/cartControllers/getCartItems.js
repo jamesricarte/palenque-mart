@@ -19,6 +19,7 @@ const getCartItems = async (req, res) => {
         c.id as cart_id,
         c.quantity,
         c.created_at as added_at,
+        c.bargain_offer_id,
         p.id as product_id,
         p.name,
         p.description,
@@ -31,10 +32,13 @@ const getCartItems = async (req, res) => {
         s.id as seller_id,
         s.store_name,
         s.store_logo_key,
-        s.user_id as seller_user_id
+        s.user_id as seller_user_id,
+        bo.offered_price as bargain_offer_price,
+        bo.status as bargain_status
       FROM cart c
       JOIN products p ON c.product_id = p.id
       JOIN sellers s ON p.seller_id = s.id
+      LEFT JOIN bargain_offers bo ON c.bargain_offer_id = bo.id AND bo.status = 'accepted'
       WHERE c.user_id = ? AND p.is_active = 1 AND s.is_active = 1
       ORDER BY c.created_at DESC
     `;
@@ -66,7 +70,18 @@ const getCartItems = async (req, res) => {
         ...item,
         image_keys: productImageUrl,
         store_logo_key: storeLogoUrl,
-        total_price: (Number.parseFloat(item.price) * item.quantity).toFixed(2),
+        total_price: item.bargain_offer_price
+          ? (
+              Number.parseFloat(item.bargain_offer_price) * item.quantity
+            ).toFixed(2)
+          : (Number.parseFloat(item.price) * item.quantity).toFixed(2),
+        bargain_data: item.bargain_offer_id
+          ? {
+              id: item.bargain_offer_id,
+              offer_price: item.bargain_offer_price,
+              status: item.bargain_status,
+            }
+          : null,
       };
     });
 

@@ -54,6 +54,8 @@ const respondToBargainOffer = async (req, res) => {
 
     const responderType = isUserResponding ? "user" : "seller";
     let messageText = "";
+    let counterOfferInsertId;
+    let messageId;
 
     if (action === "accept") {
       if (isUserResponding) {
@@ -78,7 +80,7 @@ const respondToBargainOffer = async (req, res) => {
           [offerData.conversation_id, userId, responderType, messageText]
         );
 
-        const messageId = messageResult.insertId;
+        messageId = messageResult.insertId;
 
         // Create new bargain offer with accepted status
         const [newBargainResult] = await connection.execute(
@@ -131,7 +133,7 @@ const respondToBargainOffer = async (req, res) => {
         [offerData.conversation_id, userId, responderType, messageText]
       );
 
-      const messageId = messageResult.insertId;
+      messageId = messageResult.insertId;
 
       // Create new bargain offer with rejected status
       const [newBargainResult] = await connection.execute(
@@ -208,7 +210,7 @@ const respondToBargainOffer = async (req, res) => {
         [offerData.conversation_id, userId, responderType, messageText]
       );
 
-      const messageId = messageResult.insertId;
+      messageId = messageResult.insertId;
 
       // Create counter offer
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
@@ -246,24 +248,65 @@ const respondToBargainOffer = async (req, res) => {
         [messageId, offerData.conversation_id]
       );
 
-      await connection.commit();
-
-      return res.json({
-        success: true,
-        message: "Counter offer created successfully",
-        data: {
-          offerId: counterOfferResult.insertId,
-          messageId: messageId,
-        },
-      });
+      counterOfferInsertId = counterOfferResult.insertId;
     }
 
     await connection.commit();
 
-    res.json({
+    //Send a websocker message to specific receiver
+    const sellers = req.app.get("sellers");
+    const users = req.app.get("users");
+
+    const receiverType = isUserResponding ? "seller" : "user";
+
+    const refreshChat = {
+      type: `${
+        isUserResponding
+          ? "REFRESH_SELLER_CONVERSATIONS"
+          : "REFRESH_USER_CONVERSATIONS"
+      }`,
+      message: `Sent message to ${receiverType}`,
+      conversationId: offerData.conversation_id,
+    };
+
+    let receiverSocket = null;
+    let receiverId = null;
+
+    if (isUserResponding) {
+      receiverId = offerData.conversation_seller_id;
+      receiverSocket = sellers.get(receiverId);
+    } else {
+      receiverId = offerData.user_id;
+      receiverSocket = users.get(receiverId);
+    }
+
+    if (
+      receiverSocket &&
+      receiverSocket.socket &&
+      receiverSocket.socket.readyState === 1
+    ) {
+      receiverSocket.socket.send(JSON.stringify(refreshChat));
+      console.log(`Sent refresh chat to ${receiverType} id: ${receiverId}`);
+    }
+
+    const responseData = {
       success: true,
-      message: `Offer ${action}ed successfully`,
-    });
+      message: `${
+        action === "counter"
+          ? "Counter offer created successfully"
+          : `Offer ${action}ed successfully`
+      }`,
+    };
+
+    if (action === "counter")
+      responseData.data = {
+        data: {
+          offerId: counterOfferInsertId,
+          messageId: messageId,
+        },
+      };
+
+    res.json(responseData);
   } catch (error) {
     await connection.rollback();
     console.error("Error responding to bargain offer:", error);

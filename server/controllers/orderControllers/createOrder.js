@@ -93,8 +93,9 @@ const createOrder = async (req, res) => {
       itemsBySeller[sellerId].items.push({
         ...item,
         product: product,
-        unit_price: product.price,
-        total_price: product.price * item.quantity,
+        unit_price: item.bargain_data?.offer_price || product.price,
+        total_price:
+          (item.bargain_data?.offer_price || product.price) * item.quantity,
       });
     }
 
@@ -206,8 +207,8 @@ const createOrder = async (req, res) => {
       for (const item of sellerData.items) {
         await connection.execute(
           `INSERT INTO order_items (
-            order_id, product_id, seller_id, quantity, unit_price, total_price, preparation_options
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            order_id, product_id, seller_id, quantity, unit_price, total_price, preparation_options, bargain_offer_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             orderId,
             item.productId,
@@ -216,6 +217,7 @@ const createOrder = async (req, res) => {
             item.unit_price,
             item.total_price,
             JSON.stringify(item.preparationOptions || {}),
+            item.bargain_data?.id || null,
           ]
         );
 

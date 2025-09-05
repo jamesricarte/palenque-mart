@@ -16,8 +16,8 @@ if (__DEV__) {
   } else {
     // Native build environment - use localhost or your local IP
     // You can replace this with your actual local IP address
-    API_URL = `http://192.168.1.4:${port}`;
-    WEBSOCKET_URL = `ws://192.168.1.4:${port}`;
+    API_URL = `http://192.168.1.7:${port}`;
+    WEBSOCKET_URL = `ws://192.168.1.7:${port}`;
   }
 } else {
   API_URL = "http://api.myapp.com";

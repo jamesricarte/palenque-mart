@@ -25,14 +25,27 @@ const getConversationMessages = async (req, res) => {
       `SELECT m.*, 
               bo.id as bargain_id, bo.product_id, bo.original_price, bo.offered_price,
               bo.current_price, bo.offer_type, bo.status, bo.is_final_offer,
-              p.name as product_name, p.image_keys as product_image_keys
+              p.name as product_name, p.stock_quantity, p.image_keys as product_image_keys,
+              EXISTS(
+                SELECT 1 FROM cart c 
+                WHERE c.user_id = ? AND c.product_id = bo.product_id
+              ) AS in_cart,
+              EXISTS(
+                SELECT 1
+                FROM order_items oi
+                JOIN orders o ON oi.order_id = o.id
+                WHERE oi.product_id = bo.product_id
+                  AND o.user_id = ?
+                  AND o.status NOT IN ('cancelled','refunded')
+                  AND oi.bargain_offer_id = bo.id
+              ) AS in_orders
        FROM messages m
        LEFT JOIN bargain_offers bo ON m.bargain_offer_id = bo.id
        LEFT JOIN products p ON bo.product_id = p.id
        WHERE m.conversation_id = ?
        ORDER BY m.created_at ASC
        LIMIT ${Number.parseInt(limit)} OFFSET ${offset}`,
-      [conversationId]
+      [userId, userId, conversationId]
     );
 
     const formattedMessages = messages.map((message) => {
@@ -60,6 +73,7 @@ const getConversationMessages = async (req, res) => {
           id: message.bargain_id,
           product_id: message.product_id,
           product_name: message.product_name,
+          stock_quantity: message.stock_quantity,
           product_image: productImageUrl,
           original_price: message.original_price,
           offered_price: message.offered_price,
@@ -67,6 +81,8 @@ const getConversationMessages = async (req, res) => {
           offer_type: message.offer_type,
           status: message.status,
           is_final_offer: message.is_final_offer,
+          in_cart: !!message.in_cart,
+          in_orders: !!message.in_orders,
         };
       }
 
