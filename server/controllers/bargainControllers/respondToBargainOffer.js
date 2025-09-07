@@ -20,10 +20,11 @@ const respondToBargainOffer = async (req, res) => {
 
     // Get bargain offer details
     const [offer] = await connection.execute(
-      `SELECT bo.*, p.name as product_name, p.seller_id, c.user_id, c.seller_id as conversation_seller_id
+      `SELECT bo.*, p.name as product_name, p.seller_id, p.minimum_offer_price, p.price as product_price, c.user_id as user_id, c.seller_id as conversation_seller_id, s.user_id as seller_user_id
        FROM bargain_offers bo
        JOIN products p ON bo.product_id = p.id
        JOIN conversations c ON bo.conversation_id = c.id
+       JOIN sellers s ON c.seller_id = s.id
        WHERE bo.id = ? AND bo.status = 'pending'`,
       [offerId]
     );
@@ -42,7 +43,7 @@ const respondToBargainOffer = async (req, res) => {
       offerData.offered_by_type === "seller" && userId === offerData.user_id;
     const isSellerResponding =
       offerData.offered_by_type === "user" &&
-      userId === offerData.conversation_seller_id;
+      userId === offerData.seller_user_id;
 
     if (!isUserResponding && !isSellerResponding) {
       return res.status(403).json({
@@ -53,23 +54,119 @@ const respondToBargainOffer = async (req, res) => {
 
     const responderType = isUserResponding ? "user" : "seller";
     let messageText = "";
+    let counterOfferInsertId;
+    let messageId;
 
     if (action === "accept") {
-      // Accept the offer
-      await connection.execute(
-        "UPDATE bargain_offers SET status = ?, responded_at = NOW() WHERE id = ?",
-        ["accepted", offerId]
-      );
+      if (isUserResponding) {
+        // Accept the offer without creating new message
+        await connection.execute(
+          "UPDATE bargain_offers SET status = ?, responded_at = NOW() WHERE id = ?",
+          ["accepted", offerId]
+        );
+      } else {
+        // Mark current bargain as responded
+        await connection.execute(
+          "UPDATE bargain_offers SET status = ?, responded_at = NOW() WHERE id = ?",
+          ["responded", offerId]
+        );
 
-      messageText = `Accepted the offer for ${offerData.product_name} at ₱${offerData.current_price}`;
+        messageText = `Accepted the offer for ${offerData.product_name} at ₱${offerData.current_price}`;
+
+        // Create new message with accepted bargain offer
+        const [messageResult] = await connection.execute(
+          `INSERT INTO messages (conversation_id, sender_id, sender_type, message_text, message_type) 
+           VALUES (?, ?, ?, ?, 'bargain_offer')`,
+          [offerData.conversation_id, userId, responderType, messageText]
+        );
+
+        messageId = messageResult.insertId;
+
+        // Create new bargain offer with accepted status
+        const [newBargainResult] = await connection.execute(
+          `INSERT INTO bargain_offers 
+           (message_id, conversation_id, product_id, original_price, offered_price, current_price, 
+            offer_type, offered_by_type, offered_by_id, parent_offer_id, status, responded_at) 
+           VALUES (?, ?, ?, ?, ?, ?, 'counteroffer', ?, ?, ?, 'accepted', NOW())`,
+          [
+            messageId,
+            offerData.conversation_id,
+            offerData.product_id,
+            offerData.original_price,
+            offerData.current_price,
+            offerData.current_price,
+            responderType,
+            userId,
+            offerId,
+          ]
+        );
+
+        // Update message with bargain_offer_id
+        await connection.execute(
+          "UPDATE messages SET bargain_offer_id = ? WHERE id = ?",
+          [newBargainResult.insertId, messageId]
+        );
+
+        // Update conversation last message
+        const unreadField =
+          responderType === "user"
+            ? "seller_unread_count"
+            : "user_unread_count";
+        await connection.execute(
+          `UPDATE conversations SET last_message_id = ?, last_message_at = NOW(), ${unreadField} = ${unreadField} + 1 WHERE id = ?`,
+          [messageId, offerData.conversation_id]
+        );
+      }
     } else if (action === "reject") {
-      // Reject the offer
+      // Mark current bargain as responded
       await connection.execute(
         "UPDATE bargain_offers SET status = ?, responded_at = NOW() WHERE id = ?",
-        ["rejected", offerId]
+        ["responded", offerId]
       );
 
       messageText = `Rejected the offer for ${offerData.product_name}`;
+
+      // Create new message with rejected bargain offer
+      const [messageResult] = await connection.execute(
+        `INSERT INTO messages (conversation_id, sender_id, sender_type, message_text, message_type) 
+         VALUES (?, ?, ?, ?, 'bargain_offer')`,
+        [offerData.conversation_id, userId, responderType, messageText]
+      );
+
+      messageId = messageResult.insertId;
+
+      // Create new bargain offer with rejected status
+      const [newBargainResult] = await connection.execute(
+        `INSERT INTO bargain_offers 
+         (message_id, conversation_id, product_id, original_price, offered_price, current_price, 
+          offer_type, offered_by_type, offered_by_id, parent_offer_id, status, responded_at) 
+         VALUES (?, ?, ?, ?, ?, ?, 'counteroffer', ?, ?, ?, 'rejected', NOW())`,
+        [
+          messageId,
+          offerData.conversation_id,
+          offerData.product_id,
+          offerData.original_price,
+          offerData.current_price,
+          offerData.current_price,
+          responderType,
+          userId,
+          offerId,
+        ]
+      );
+
+      // Update message with bargain_offer_id
+      await connection.execute(
+        "UPDATE messages SET bargain_offer_id = ? WHERE id = ?",
+        [newBargainResult.insertId, messageId]
+      );
+
+      // Update conversation last message
+      const unreadField =
+        responderType === "user" ? "seller_unread_count" : "user_unread_count";
+      await connection.execute(
+        `UPDATE conversations SET last_message_id = ?, last_message_at = NOW(), ${unreadField} = ${unreadField} + 1 WHERE id = ?`,
+        [messageId, offerData.conversation_id]
+      );
     } else if (action === "counter") {
       // Validate counter offer price
       if (!counterOfferPrice || counterOfferPrice <= 0) {
@@ -79,10 +176,30 @@ const respondToBargainOffer = async (req, res) => {
         });
       }
 
-      // Mark current offer as responded
+      if (counterOfferPrice > offerData.original_price) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Counter offer price must not be greater than original price",
+        });
+      }
+
+      const minimumPrice = offerData.minimum_offer_price
+        ? Number.parseFloat(offerData.minimum_offer_price)
+        : Number.parseFloat(offerData.product_price) * 0.5; // 50% of original price if no minimum set
+
+      if (counterOfferPrice < minimumPrice) {
+        return res.status(400).json({
+          success: false,
+          message: `Counter offer cannot be less than ₱${minimumPrice.toFixed(
+            2
+          )}`,
+        });
+      }
+
       await connection.execute(
-        "UPDATE bargain_offers SET responded_at = NOW() WHERE id = ?",
-        [offerId]
+        "UPDATE bargain_offers SET status = ?, responded_at = NOW() WHERE id = ?",
+        ["responded", offerId]
       );
 
       // Create counter offer message
@@ -93,7 +210,7 @@ const respondToBargainOffer = async (req, res) => {
         [offerData.conversation_id, userId, responderType, messageText]
       );
 
-      const messageId = messageResult.insertId;
+      messageId = messageResult.insertId;
 
       // Create counter offer
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
@@ -131,39 +248,65 @@ const respondToBargainOffer = async (req, res) => {
         [messageId, offerData.conversation_id]
       );
 
-      await connection.commit();
-
-      return res.json({
-        success: true,
-        message: "Counter offer created successfully",
-        data: {
-          offerId: counterOfferResult.insertId,
-          messageId: messageId,
-        },
-      });
+      counterOfferInsertId = counterOfferResult.insertId;
     }
-
-    // For accept/reject, create response message
-    const [messageResult] = await connection.execute(
-      `INSERT INTO messages (conversation_id, sender_id, sender_type, message_text, message_type) 
-       VALUES (?, ?, ?, ?, 'text')`,
-      [offerData.conversation_id, userId, responderType, messageText]
-    );
-
-    // Update conversation last message
-    const unreadField =
-      responderType === "user" ? "seller_unread_count" : "user_unread_count";
-    await connection.execute(
-      `UPDATE conversations SET last_message_id = ?, last_message_at = NOW(), ${unreadField} = ${unreadField} + 1 WHERE id = ?`,
-      [messageResult.insertId, offerData.conversation_id]
-    );
 
     await connection.commit();
 
-    res.json({
+    //Send a websocker message to specific receiver
+    const sellers = req.app.get("sellers");
+    const users = req.app.get("users");
+
+    const receiverType = isUserResponding ? "seller" : "user";
+
+    const refreshChat = {
+      type: `${
+        isUserResponding
+          ? "REFRESH_SELLER_CONVERSATIONS"
+          : "REFRESH_USER_CONVERSATIONS"
+      }`,
+      message: `Sent message to ${receiverType}`,
+      conversationId: offerData.conversation_id,
+    };
+
+    let receiverSocket = null;
+    let receiverId = null;
+
+    if (isUserResponding) {
+      receiverId = offerData.conversation_seller_id;
+      receiverSocket = sellers.get(receiverId);
+    } else {
+      receiverId = offerData.user_id;
+      receiverSocket = users.get(receiverId);
+    }
+
+    if (
+      receiverSocket &&
+      receiverSocket.socket &&
+      receiverSocket.socket.readyState === 1
+    ) {
+      receiverSocket.socket.send(JSON.stringify(refreshChat));
+      console.log(`Sent refresh chat to ${receiverType} id: ${receiverId}`);
+    }
+
+    const responseData = {
       success: true,
-      message: `Offer ${action}ed successfully`,
-    });
+      message: `${
+        action === "counter"
+          ? "Counter offer created successfully"
+          : `Offer ${action}ed successfully`
+      }`,
+    };
+
+    if (action === "counter")
+      responseData.data = {
+        data: {
+          offerId: counterOfferInsertId,
+          messageId: messageId,
+        },
+      };
+
+    res.json(responseData);
   } catch (error) {
     await connection.rollback();
     console.error("Error responding to bargain offer:", error);

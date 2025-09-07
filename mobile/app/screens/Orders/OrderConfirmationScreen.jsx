@@ -180,7 +180,7 @@ const OrderConfirmationScreen = () => {
 
       {/* Action Buttons */}
       <View className="p-4 bg-white border-t border-gray-200">
-        <View className="flex-row space-x-3">
+        <View className="flex-row gap-3">
           <TouchableOpacity
             className="items-center flex-1 p-4 border border-orange-600 rounded-lg"
             onPress={() => navigation.navigate("Orders")}

@@ -10,24 +10,10 @@ const createBargainOffer = async (req, res) => {
     const userId = req.user.id;
 
     // Validate input
-    if (!productId || !offeredPrice || !conversationId) {
+    if (!productId || !offeredPrice) {
       return res.status(400).json({
         success: false,
-        message: "Product ID, offered price, and conversation ID are required",
-      });
-    }
-
-    // Check if there's an ongoing bargain for this product in this conversation
-    const [existingOffer] = await connection.execute(
-      `SELECT id FROM bargain_offers 
-       WHERE conversation_id = ? AND product_id = ? AND status = 'pending'`,
-      [conversationId, productId]
-    );
-
-    if (existingOffer.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "There is already an ongoing bargain for this product",
+        message: "Product ID and offered price are required",
       });
     }
 
@@ -44,11 +30,11 @@ const createBargainOffer = async (req, res) => {
       });
     }
 
-    const originalPrice = parseFloat(product[0].price);
+    const originalPrice = Number.parseFloat(product[0].price);
     const productName = product[0].name;
     const sellerId = product[0].seller_id;
     const bargainingEnabled = product[0].bargaining_enabled;
-    const minimumOfferPrice = parseFloat(product[0].minimum_offer_price);
+    const minimumOfferPrice = Number.parseFloat(product[0].minimum_offer_price);
 
     if (!bargainingEnabled) {
       return res.status(400).json({
@@ -71,12 +57,47 @@ const createBargainOffer = async (req, res) => {
       });
     }
 
+    let finalConversationId = conversationId;
+
+    if (!conversationId) {
+      // Check if conversation already exists between user and seller
+      const [existingConversation] = await connection.execute(
+        "SELECT id FROM conversations WHERE user_id = ? AND seller_id = ?",
+        [userId, sellerId]
+      );
+
+      if (existingConversation.length > 0) {
+        finalConversationId = existingConversation[0].id;
+      } else {
+        // Create new conversation
+        const [conversationResult] = await connection.execute(
+          "INSERT INTO conversations (user_id, seller_id) VALUES (?, ?)",
+          [userId, sellerId]
+        );
+        finalConversationId = conversationResult.insertId;
+      }
+    }
+
+    // Check if there's an ongoing bargain for this product in this conversation
+    const [existingOffer] = await connection.execute(
+      `SELECT id FROM bargain_offers 
+       WHERE conversation_id = ? AND product_id = ? AND status = 'pending'`,
+      [finalConversationId, productId]
+    );
+
+    if (existingOffer.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "There is already an ongoing bargain for this product",
+      });
+    }
+
     // Create message first
     const messageText = `Made an offer for ${productName}`;
     const [messageResult] = await connection.execute(
       `INSERT INTO messages (conversation_id, sender_id, sender_type, message_text, message_type) 
        VALUES (?, ?, 'user', ?, 'bargain_offer')`,
-      [conversationId, userId, messageText]
+      [finalConversationId, userId, messageText]
     );
 
     const messageId = messageResult.insertId;
@@ -90,7 +111,7 @@ const createBargainOffer = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, 'initial_offer', 'user', ?, ?)`,
       [
         messageId,
-        conversationId,
+        finalConversationId,
         productId,
         originalPrice,
         offeredPrice,
@@ -109,10 +130,26 @@ const createBargainOffer = async (req, res) => {
     // Update conversation last message
     await connection.execute(
       "UPDATE conversations SET last_message_id = ?, last_message_at = NOW(), seller_unread_count = seller_unread_count + 1 WHERE id = ?",
-      [messageId, conversationId]
+      [messageId, finalConversationId]
     );
 
     await connection.commit();
+
+    //Send a websocker message to specific seller
+    const sellers = req.app.get("sellers");
+
+    const refreshChat = {
+      type: "REFRESH_SELLER_CONVERSATIONS",
+      message: "Sent message to seller",
+      conversationId: finalConversationId,
+    };
+
+    const seller = sellers.get(sellerId);
+
+    if (seller && seller.socket && seller.socket.readyState === 1) {
+      seller.socket.send(JSON.stringify(refreshChat));
+      console.log(`Sent refresh chat to seller id: ${sellerId}`);
+    }
 
     res.json({
       success: true,
@@ -120,6 +157,7 @@ const createBargainOffer = async (req, res) => {
       data: {
         offerId: offerResult.insertId,
         messageId: messageId,
+        conversationId: finalConversationId,
       },
     });
   } catch (error) {

@@ -93,9 +93,12 @@ const CartScreen = ({ navigation }) => {
               ? {
                   ...item,
                   quantity: newQuantity,
-                  total_price: (
-                    Number.parseFloat(item.price) * newQuantity
-                  ).toFixed(2),
+                  total_price: item.bargain_data
+                    ? (
+                        Number.parseFloat(item.bargain_data.offer_price) *
+                        newQuantity
+                      ).toFixed(2)
+                    : (Number.parseFloat(item.price) * newQuantity).toFixed(2),
                 }
               : item
           )
@@ -199,7 +202,12 @@ const CartScreen = ({ navigation }) => {
   const getSelectedTotal = () => {
     return cartItems
       .filter((item) => selectedItems.has(item.cart_id))
-      .reduce((sum, item) => sum + Number.parseFloat(item.total_price), 0);
+      .reduce((sum, item) => {
+        const itemTotal = item.bargain_data
+          ? Number.parseFloat(item.bargain_data.offer_price) * item.quantity
+          : Number.parseFloat(item.total_price);
+        return sum + itemTotal;
+      }, 0);
   };
 
   const getSelectedItemsCount = () => {
@@ -463,9 +471,30 @@ const CartScreen = ({ navigation }) => {
                           </Text>
 
                           <View className="flex-row items-center justify-between mt-3">
-                            <Text className="text-lg font-bold text-orange-600">
-                              ₱{Number.parseFloat(item.total_price).toFixed(2)}
-                            </Text>
+                            {item.bargain_data ? (
+                              <View className="flex-col">
+                                <Text className="text-lg font-bold text-green-600">
+                                  ₱
+                                  {(
+                                    Number.parseFloat(
+                                      item.bargain_data.offer_price
+                                    ) * item.quantity
+                                  ).toFixed(2)}
+                                </Text>
+                                <Text className="text-sm text-gray-500 line-through">
+                                  ₱
+                                  {(
+                                    Number.parseFloat(item.price) *
+                                    item.quantity
+                                  ).toFixed(2)}
+                                </Text>
+                              </View>
+                            ) : (
+                              <Text className="text-lg font-bold text-orange-600">
+                                ₱
+                                {Number.parseFloat(item.total_price).toFixed(2)}
+                              </Text>
+                            )}
 
                             {/* Quantity Controls */}
                             <View className="flex-row items-center">

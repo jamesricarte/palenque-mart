@@ -396,7 +396,7 @@ const SellerAnalyticsScreen = ({ navigation }) => {
                       </View>
                       <View className="flex-1">
                         <Text className="font-medium text-gray-900 capitalize">
-                          {method.method}
+                          {method.method.replace(/_/g, " ")}
                         </Text>
                         <Text className="text-sm text-gray-600">
                           {method.orderCount} orders

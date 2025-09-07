@@ -33,7 +33,7 @@ CREATE TABLE `bargain_offers` (
   `offered_price` decimal(10,2) NOT NULL,
   `current_price` decimal(10,2) NOT NULL,
   `offer_type` enum('initial_offer','counteroffer') NOT NULL,
-  `status` enum('pending','accepted','rejected','expired','withdrawn') DEFAULT 'pending',
+  `status` enum('pending','accepted','rejected','responded','expired','withdrawn') DEFAULT 'pending',
   `is_final_offer` tinyint(1) DEFAULT '0',
   `offered_by_type` enum('user','seller') NOT NULL,
   `offered_by_id` int NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `bargain_offers` (
   CONSTRAINT `fk_bargain_offers_message` FOREIGN KEY (`message_id`) REFERENCES `messages` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_bargain_offers_parent` FOREIGN KEY (`parent_offer_id`) REFERENCES `bargain_offers` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_bargain_offers_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -62,7 +62,7 @@ CREATE TABLE `bargain_offers` (
 
 LOCK TABLES `bargain_offers` WRITE;
 /*!40000 ALTER TABLE `bargain_offers` DISABLE KEYS */;
-INSERT INTO `bargain_offers` VALUES (5,9,1,5,140.00,120.00,120.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 00:32:24',NULL,'2025-08-30 08:32:24','2025-08-30 08:32:24'),(6,11,1,4,60.00,50.00,50.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 02:15:37',NULL,'2025-08-30 10:15:36','2025-08-30 10:15:36'),(7,13,1,3,220.00,210.00,210.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 02:38:11',NULL,'2025-08-30 10:38:11','2025-08-30 10:38:11'),(8,15,1,2,120.00,110.00,110.00,'initial_offer','pending',0,'user',4,NULL,'2025-08-31 02:40:00',NULL,'2025-08-30 10:40:00','2025-08-30 10:40:00');
+INSERT INTO `bargain_offers` VALUES (1,1,1,5,140.00,120.00,120.00,'initial_offer','responded',0,'user',4,NULL,'2025-09-04 00:17:09','2025-09-03 08:18:27','2025-09-03 08:17:09','2025-09-03 08:18:27'),(2,2,1,5,140.00,115.00,115.00,'counteroffer','responded',0,'seller',2,1,'2025-09-04 00:18:27','2025-09-03 08:18:45','2025-09-03 08:18:27','2025-09-03 08:18:45'),(3,3,1,5,140.00,112.00,112.00,'counteroffer','responded',0,'user',4,2,'2025-09-04 00:18:46','2025-09-03 08:18:59','2025-09-03 08:18:45','2025-09-03 08:18:59'),(4,4,1,5,140.00,112.00,112.00,'counteroffer','accepted',0,'seller',2,3,NULL,'2025-09-03 08:18:59','2025-09-03 08:18:59','2025-09-03 08:18:59'),(5,5,2,5,140.00,115.00,115.00,'initial_offer','pending',0,'user',3,NULL,'2025-09-04 17:57:51',NULL,'2025-09-04 01:57:51','2025-09-04 01:57:51'),(6,6,1,3,220.00,210.00,210.00,'initial_offer','responded',0,'user',4,NULL,'2025-09-04 20:20:18','2025-09-04 04:24:03','2025-09-04 04:20:17','2025-09-04 04:24:03'),(7,8,1,3,220.00,215.00,215.00,'counteroffer','responded',0,'seller',2,6,'2025-09-04 20:24:04','2025-09-04 04:24:36','2025-09-04 04:24:03','2025-09-04 04:24:36'),(8,9,1,3,220.00,110.00,110.00,'counteroffer','responded',0,'user',4,7,'2025-09-04 20:24:37','2025-09-04 04:27:55','2025-09-04 04:24:36','2025-09-04 04:27:55'),(9,10,1,3,220.00,110.00,110.00,'counteroffer','accepted',0,'seller',2,8,NULL,'2025-09-04 04:27:55','2025-09-04 04:27:55','2025-09-04 04:27:55'),(10,11,1,5,140.00,120.00,120.00,'initial_offer','responded',0,'user',4,NULL,'2025-09-04 21:43:54','2025-09-04 05:44:25','2025-09-04 05:43:53','2025-09-04 05:44:25'),(11,12,1,5,140.00,120.00,120.00,'counteroffer','accepted',0,'seller',2,10,NULL,'2025-09-04 05:44:25','2025-09-04 05:44:25','2025-09-04 05:44:25'),(12,13,1,4,60.00,40.00,40.00,'initial_offer','responded',0,'user',4,NULL,'2025-09-04 21:44:54','2025-09-04 05:45:13','2025-09-04 05:44:54','2025-09-04 05:45:13'),(13,14,1,4,60.00,40.00,40.00,'counteroffer','accepted',0,'seller',2,12,NULL,'2025-09-04 05:45:13','2025-09-04 05:45:13','2025-09-04 05:45:13'),(14,15,1,5,140.00,120.00,120.00,'initial_offer','responded',0,'user',4,NULL,'2025-09-05 21:46:05','2025-09-05 05:48:19','2025-09-05 05:46:04','2025-09-05 05:48:19'),(15,16,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,14,'2025-09-05 21:48:19','2025-09-05 06:10:34','2025-09-05 05:48:19','2025-09-05 06:10:34'),(16,17,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,15,'2025-09-05 22:10:34','2025-09-05 06:11:45','2025-09-05 06:10:34','2025-09-05 06:11:45'),(17,18,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,16,'2025-09-05 22:11:45','2025-09-05 06:13:15','2025-09-05 06:11:45','2025-09-05 06:13:15'),(18,19,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,17,'2025-09-05 22:13:16','2025-09-05 06:25:37','2025-09-05 06:13:15','2025-09-05 06:25:37'),(19,20,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,18,'2025-09-05 22:25:37','2025-09-05 06:27:59','2025-09-05 06:25:37','2025-09-05 06:27:59'),(20,21,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,19,'2025-09-05 22:27:59','2025-09-05 06:29:42','2025-09-05 06:27:59','2025-09-05 06:29:42'),(21,22,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,20,'2025-09-05 22:29:43','2025-09-05 06:31:08','2025-09-05 06:29:42','2025-09-05 06:31:08'),(22,23,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,21,'2025-09-05 22:31:09','2025-09-05 06:35:14','2025-09-05 06:31:08','2025-09-05 06:35:14'),(23,24,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,22,'2025-09-05 22:35:14','2025-09-05 06:36:16','2025-09-05 06:35:14','2025-09-05 06:36:16'),(24,25,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,23,'2025-09-05 22:36:17','2025-09-05 06:39:46','2025-09-05 06:36:16','2025-09-05 06:39:46'),(25,26,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,24,'2025-09-05 22:39:46','2025-09-05 06:42:44','2025-09-05 06:39:46','2025-09-05 06:42:44'),(26,27,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,25,'2025-09-05 22:42:45','2025-09-05 06:43:45','2025-09-05 06:42:45','2025-09-05 06:43:45'),(27,28,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,26,'2025-09-05 22:43:46','2025-09-05 06:46:48','2025-09-05 06:43:45','2025-09-05 06:46:48'),(28,29,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,27,'2025-09-05 22:46:48','2025-09-05 06:48:03','2025-09-05 06:46:48','2025-09-05 06:48:03'),(29,30,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,28,'2025-09-05 22:48:03','2025-09-05 06:49:45','2025-09-05 06:48:03','2025-09-05 06:49:45'),(30,31,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,29,'2025-09-05 22:49:46','2025-09-05 06:50:55','2025-09-05 06:49:45','2025-09-05 06:50:55'),(31,32,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,30,'2025-09-05 22:50:56','2025-09-05 06:51:11','2025-09-05 06:50:55','2025-09-05 06:51:11'),(32,33,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,31,'2025-09-05 22:51:11','2025-09-05 06:51:29','2025-09-05 06:51:11','2025-09-05 06:51:29'),(33,34,1,5,140.00,130.00,130.00,'counteroffer','responded',0,'seller',2,32,'2025-09-05 22:51:30','2025-09-05 06:51:44','2025-09-05 06:51:29','2025-09-05 06:51:44'),(34,35,1,5,140.00,125.00,125.00,'counteroffer','responded',0,'user',4,33,'2025-09-05 22:51:45','2025-09-05 06:51:53','2025-09-05 06:51:44','2025-09-05 06:51:53'),(35,36,1,5,140.00,125.00,125.00,'counteroffer','accepted',0,'seller',2,34,NULL,'2025-09-05 06:51:53','2025-09-05 06:51:53','2025-09-05 06:51:53'),(36,37,1,2,120.00,110.00,110.00,'initial_offer','responded',0,'user',4,NULL,'2025-09-05 22:52:59','2025-09-05 06:53:18','2025-09-05 06:52:58','2025-09-05 06:53:18'),(37,38,1,2,120.00,110.00,110.00,'counteroffer','rejected',0,'seller',2,36,NULL,'2025-09-05 06:53:18','2025-09-05 06:53:18','2025-09-05 06:53:18'),(38,39,1,2,120.00,110.00,110.00,'initial_offer','responded',0,'user',4,NULL,'2025-09-05 22:53:38','2025-09-05 06:54:03','2025-09-05 06:53:38','2025-09-05 06:54:03'),(39,40,1,2,120.00,115.00,115.00,'counteroffer','accepted',0,'seller',2,38,'2025-09-05 22:54:04','2025-09-05 06:54:10','2025-09-05 06:54:03','2025-09-05 06:54:10'),(40,41,1,1,120.00,110.00,110.00,'initial_offer','pending',0,'user',4,NULL,'2025-09-05 22:56:38',NULL,'2025-09-05 06:56:38','2025-09-05 06:56:38');
 /*!40000 ALTER TABLE `bargain_offers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -80,11 +80,14 @@ CREATE TABLE `cart` (
   `quantity` int NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `bargain_offer_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `idx_user_id` (`user_id`),
-  KEY `idx_product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_bargain_offer_id` (`bargain_offer_id`),
+  CONSTRAINT `fk_cart_bargain_offer` FOREIGN KEY (`bargain_offer_id`) REFERENCES `bargain_offers` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -93,7 +96,7 @@ CREATE TABLE `cart` (
 
 LOCK TABLES `cart` WRITE;
 /*!40000 ALTER TABLE `cart` DISABLE KEYS */;
-INSERT INTO `cart` VALUES (3,4,1,1,'2025-08-28 14:10:13','2025-08-28 14:10:13');
+INSERT INTO `cart` VALUES (28,3,4,1,'2025-09-04 02:01:07','2025-09-04 02:01:07',NULL),(42,4,5,2,'2025-09-05 14:06:44','2025-09-05 14:07:18',35);
 /*!40000 ALTER TABLE `cart` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -127,7 +130,7 @@ CREATE TABLE `conversations` (
   CONSTRAINT `fk_conversations_last_message` FOREIGN KEY (`last_message_id`) REFERENCES `messages` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_conversations_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_conversations_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -136,7 +139,7 @@ CREATE TABLE `conversations` (
 
 LOCK TABLES `conversations` WRITE;
 /*!40000 ALTER TABLE `conversations` DISABLE KEYS */;
-INSERT INTO `conversations` VALUES (1,4,1,15,'2025-08-30 10:40:00',0,0,1,'2025-08-30 08:31:58','2025-08-30 10:40:09');
+INSERT INTO `conversations` VALUES (1,4,1,41,'2025-09-05 06:56:38',0,0,1,'2025-09-03 08:15:33','2025-09-05 06:56:39'),(2,3,1,5,'2025-09-04 01:57:51',0,0,1,'2025-09-04 01:57:51','2025-09-04 05:46:28');
 /*!40000 ALTER TABLE `conversations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -352,7 +355,7 @@ CREATE TABLE `delivery_partners` (
 
 LOCK TABLES `delivery_partners` WRITE;
 /*!40000 ALTER TABLE `delivery_partners` DISABLE KEYS */;
-INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'available',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-08-29 00:41:49');
+INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'available',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-09-04 01:54:53');
 /*!40000 ALTER TABLE `delivery_partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -389,7 +392,7 @@ CREATE TABLE `messages` (
   CONSTRAINT `fk_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_messages_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -398,7 +401,7 @@ CREATE TABLE `messages` (
 
 LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
-INSERT INTO `messages` VALUES (8,1,4,'user','Hello','text',NULL,NULL,1,'2025-08-30 08:31:58','2025-08-30 10:07:25',NULL),(9,1,4,'user','Made an offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-08-30 08:32:24','2025-08-30 10:07:25',5),(10,1,2,'seller','Waiteu','text',NULL,NULL,1,'2025-08-30 10:07:38','2025-08-30 10:09:25',NULL),(11,1,4,'user','Made an offer for Sibuyas','bargain_offer',NULL,NULL,1,'2025-08-30 10:15:36','2025-08-30 10:15:45',6),(12,1,2,'seller','Oke','text',NULL,NULL,1,'2025-08-30 10:16:03','2025-08-30 10:27:16',NULL),(13,1,4,'user','Made an offer for Whole chicken','bargain_offer',NULL,NULL,1,'2025-08-30 10:38:11','2025-08-30 10:38:19',7),(14,1,2,'seller','Oki wait nga','text',NULL,NULL,1,'2025-08-30 10:39:09','2025-08-30 10:39:10',NULL),(15,1,4,'user','Made an offer for Bulinaw','bargain_offer',NULL,NULL,1,'2025-08-30 10:40:00','2025-08-30 10:40:09',8);
+INSERT INTO `messages` VALUES (1,1,4,'user','Made an offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-03 08:17:09','2025-09-03 08:18:19',1),(2,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-03 08:18:27','2025-09-03 08:18:32',2),(3,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-03 08:18:45','2025-09-03 08:18:52',3),(4,1,2,'seller','Accepted the offer for Fresh meat at ₱112.00','bargain_offer',NULL,NULL,1,'2025-09-03 08:18:59','2025-09-03 08:19:02',4),(5,2,3,'user','Made an offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-04 01:57:51','2025-09-04 05:46:28',5),(6,1,4,'user','Made an offer for Whole chicken','bargain_offer',NULL,NULL,1,'2025-09-04 04:20:17','2025-09-04 04:23:14',6),(7,1,4,'user','Hello','text',NULL,NULL,1,'2025-09-04 04:22:30','2025-09-04 04:23:14',NULL),(8,1,2,'seller','Made a counter offer for Whole chicken','bargain_offer',NULL,NULL,1,'2025-09-04 04:24:03','2025-09-04 04:24:11',7),(9,1,4,'user','Made a counter offer for Whole chicken','bargain_offer',NULL,NULL,1,'2025-09-04 04:24:36','2025-09-04 04:26:44',8),(10,1,2,'seller','Accepted the offer for Whole chicken at ₱110.00','bargain_offer',NULL,NULL,1,'2025-09-04 04:27:55','2025-09-04 04:28:00',9),(11,1,4,'user','Made an offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-04 05:43:53','2025-09-04 05:44:22',10),(12,1,2,'seller','Accepted the offer for Fresh meat at ₱120.00','bargain_offer',NULL,NULL,1,'2025-09-04 05:44:25','2025-09-04 05:44:27',11),(13,1,4,'user','Made an offer for Sibuyas','bargain_offer',NULL,NULL,1,'2025-09-04 05:44:54','2025-09-04 05:45:11',12),(14,1,2,'seller','Accepted the offer for Sibuyas at ₱40.00','bargain_offer',NULL,NULL,1,'2025-09-04 05:45:13','2025-09-04 05:45:16',13),(15,1,4,'user','Made an offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 05:46:04','2025-09-05 05:46:05',14),(16,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 05:48:19','2025-09-05 06:10:19',15),(17,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:10:34','2025-09-05 06:11:18',16),(18,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:11:45','2025-09-05 06:13:08',17),(19,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:13:15','2025-09-05 06:25:07',18),(20,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:25:37','2025-09-05 06:27:50',19),(21,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:27:59','2025-09-05 06:29:28',20),(22,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:29:42','2025-09-05 06:30:46',21),(23,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:31:08','2025-09-05 06:35:00',22),(24,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:35:14','2025-09-05 06:36:07',23),(25,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:36:16','2025-09-05 06:39:34',24),(26,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:39:46','2025-09-05 06:41:51',25),(27,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:42:44','2025-09-05 06:43:25',26),(28,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:43:45','2025-09-05 06:46:28',27),(29,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:46:48','2025-09-05 06:47:50',28),(30,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:48:03','2025-09-05 06:48:23',29),(31,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:49:45','2025-09-05 06:50:45',30),(32,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:50:55','2025-09-05 06:50:57',31),(33,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:51:11','2025-09-05 06:51:12',32),(34,1,2,'seller','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:51:29','2025-09-05 06:51:31',33),(35,1,4,'user','Made a counter offer for Fresh meat','bargain_offer',NULL,NULL,1,'2025-09-05 06:51:44','2025-09-05 06:51:45',34),(36,1,2,'seller','Accepted the offer for Fresh meat at ₱125.00','bargain_offer',NULL,NULL,1,'2025-09-05 06:51:53','2025-09-05 06:51:55',35),(37,1,4,'user','Made an offer for Bulinaw','bargain_offer',NULL,NULL,1,'2025-09-05 06:52:58','2025-09-05 06:52:59',36),(38,1,2,'seller','Rejected the offer for Bulinaw','bargain_offer',NULL,NULL,1,'2025-09-05 06:53:18','2025-09-05 06:53:20',37),(39,1,4,'user','Made an offer for Bulinaw','bargain_offer',NULL,NULL,1,'2025-09-05 06:53:38','2025-09-05 06:53:39',38),(40,1,2,'seller','Made a counter offer for Bulinaw','bargain_offer',NULL,NULL,1,'2025-09-05 06:54:03','2025-09-05 06:54:05',39),(41,1,4,'user','Made an offer for Tilapia','bargain_offer',NULL,NULL,1,'2025-09-05 06:56:38','2025-09-05 06:56:39',40);
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -462,12 +465,15 @@ CREATE TABLE `order_items` (
   `seller_notes` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `bargain_offer_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_seller_id` (`seller_id`),
-  KEY `idx_item_status` (`item_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_item_status` (`item_status`),
+  KEY `idx_bargain_offer_id` (`bargain_offer_id`),
+  CONSTRAINT `fk_order_items_bargain_offer` FOREIGN KEY (`bargain_offer_id`) REFERENCES `bargain_offers` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -476,7 +482,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,2,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47'),(3,3,1,1,1,120.00,120.00,'{}','delivered',NULL,'2025-08-28 14:12:14','2025-08-28 14:54:19');
+INSERT INTO `order_items` VALUES (1,1,3,1,1,220.00,220.00,'{}','pending',NULL,'2025-09-04 05:32:31','2025-09-04 05:32:31',NULL),(2,2,4,1,10,40.00,400.00,'{}','pending',NULL,'2025-09-04 05:46:07','2025-09-04 05:46:07',13),(3,2,5,1,1,120.00,120.00,'{}','pending',NULL,'2025-09-04 05:46:07','2025-09-04 05:46:07',11),(4,3,3,1,1,110.00,110.00,'{}','pending',NULL,'2025-09-04 05:46:23','2025-09-04 05:46:23',9);
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -497,7 +503,7 @@ CREATE TABLE `order_status_history` (
   PRIMARY KEY (`id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -506,7 +512,7 @@ CREATE TABLE `order_status_history` (
 
 LOCK TABLES `order_status_history` WRITE;
 /*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
-INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-27 11:43:02'),(2,1,'confirmed','Accept and confirm this order',2,'2025-08-27 11:43:13'),(3,1,'preparing','Begin preparing the order items',2,'2025-08-27 11:43:20'),(4,1,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:43:29'),(5,2,'pending','Order placed successfully',NULL,'2025-08-27 11:51:04'),(6,2,'confirmed','Accept and confirm this order',2,'2025-08-27 11:51:13'),(7,2,'preparing','Begin preparing the order items',2,'2025-08-27 11:51:18'),(8,2,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:51:24'),(9,3,'pending','Order placed successfully',NULL,'2025-08-28 14:12:14'),(10,3,'confirmed','Accept and confirm this order',2,'2025-08-28 14:38:19'),(11,3,'preparing','Begin preparing the order items',2,'2025-08-28 14:38:55'),(12,3,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-28 14:46:59');
+INSERT INTO `order_status_history` VALUES (1,1,'pending','Order placed successfully',NULL,'2025-08-27 11:43:02'),(2,1,'confirmed','Accept and confirm this order',2,'2025-08-27 11:43:13'),(3,1,'preparing','Begin preparing the order items',2,'2025-08-27 11:43:20'),(4,1,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:43:29'),(5,2,'pending','Order placed successfully',NULL,'2025-08-27 11:51:04'),(6,2,'confirmed','Accept and confirm this order',2,'2025-08-27 11:51:13'),(7,2,'preparing','Begin preparing the order items',2,'2025-08-27 11:51:18'),(8,2,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-27 11:51:24'),(9,3,'pending','Order placed successfully',NULL,'2025-08-28 14:12:14'),(10,3,'confirmed','Accept and confirm this order',2,'2025-08-28 14:38:19'),(11,3,'preparing','Begin preparing the order items',2,'2025-08-28 14:38:55'),(12,3,'ready_for_pickup','Order is ready for pickup by delivery partner',2,'2025-08-28 14:46:59'),(13,4,'pending','Order placed successfully',NULL,'2025-09-01 02:48:07'),(14,5,'pending','Order placed successfully',NULL,'2025-09-01 02:49:45'),(15,6,'pending','Order placed successfully',NULL,'2025-09-03 12:32:36'),(16,6,'pending','Order placed successfully',NULL,'2025-09-03 12:40:16'),(17,6,'pending','Order placed successfully',NULL,'2025-09-03 12:47:18'),(18,7,'pending','Order placed successfully',NULL,'2025-09-03 12:52:41'),(19,8,'pending','Order placed successfully',NULL,'2025-09-03 13:00:29'),(20,9,'pending','Order placed successfully',NULL,'2025-09-03 13:26:37'),(21,10,'pending','Order placed successfully',NULL,'2025-09-03 13:28:12'),(22,11,'pending','Order placed successfully',NULL,'2025-09-04 01:56:46'),(23,12,'pending','Order placed successfully',NULL,'2025-09-04 04:35:50'),(24,13,'pending','Order placed successfully',NULL,'2025-09-04 04:40:39'),(25,14,'pending','Order placed successfully',NULL,'2025-09-04 04:44:56'),(26,15,'pending','Order placed successfully',NULL,'2025-09-04 05:16:56'),(27,1,'pending','Order placed successfully',NULL,'2025-09-04 05:32:31'),(28,2,'pending','Order placed successfully',NULL,'2025-09-04 05:46:07'),(29,3,'pending','Order placed successfully',NULL,'2025-09-04 05:46:23');
 /*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -565,7 +571,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,4,1,'ORD1756294982824982','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:44:06',NULL,NULL,'2025-08-27 11:43:02','2025-08-27 11:44:06'),(2,4,1,'ORD1756295464359777','delivered','cash_on_delivery','pending',120.00,50.00,0.00,170.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-27 11:51:47',NULL,NULL,'2025-08-27 11:51:04','2025-08-27 11:51:47'),(3,4,1,'ORD1756390334390541','delivered','cash_on_delivery','pending',120.00,50.00,12.00,158.00,1,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,'2025-08-28 14:54:19',NULL,NULL,'2025-08-28 14:12:14','2025-08-28 14:54:19');
+INSERT INTO `orders` VALUES (1,4,1,'ORD1756963951034497','pending','cash_on_delivery','paid',220.00,50.00,0.00,270.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:32:31','2025-09-04 05:50:30'),(2,4,1,'ORD1756964767760974','pending','cash_on_delivery','paid',520.00,50.00,0.00,570.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:46:07','2025-09-04 05:50:30'),(3,4,1,'ORD1756964783647963','pending','cash_on_delivery','paid',110.00,50.00,0.00,160.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:46:23','2025-09-04 05:50:30');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -607,7 +613,6 @@ CREATE TABLE `product_reviews` (
 
 LOCK TABLES `product_reviews` WRITE;
 /*!40000 ALTER TABLE `product_reviews` DISABLE KEYS */;
-INSERT INTO `product_reviews` VALUES (1,1,4,1,5,'The product is great!',1,0,'2025-08-27 14:13:11','2025-08-27 14:13:11'),(2,1,4,2,5,'The product is great again!',1,2,'2025-08-27 14:28:10','2025-08-27 14:29:47');
 /*!40000 ALTER TABLE `product_reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -655,7 +660,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,27,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-08-28 14:12:14',5.00,2,1,NULL),(2,1,'Bulinaw','Really fresh | labas',120.00,5,'Fish','Other','per_500g','Slaughtered this morning','2025-08-30','From Daraga morning','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/bef4f1a5-5691-4f11-9de6-b0a2beeb5be2-photo.jpeg',1,'2025-08-30 04:20:01','2025-08-30 04:20:01',0.00,0,1,NULL),(3,1,'Whole chicken','Fresh whole chicken',220.00,6,'Poultry',NULL,'per_piece',NULL,'2025-08-27','From westwood poultries','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1c813ab9-f8b4-4a7d-923c-d7f8bbd18849-photo.jpeg',1,'2025-08-30 04:42:03','2025-08-30 07:46:10',0.00,0,1,NULL),(4,1,'Sibuyas','',60.00,12,'Vegetables','Root Vegetables','per_500g','Harvested around this summer season','2025-08-21','From vegetables supplier corp','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/fd74459f-73d3-43a2-89f2-80d7c78ae184-photo.jpeg',1,'2025-08-30 04:43:21','2025-08-30 04:43:21',0.00,0,1,NULL),(5,1,'Fresh meat','',140.00,12,'Meat','Pork Chop','per_500g','Slaughtered yesterday','2025-08-29','Source from ate nenang pigery business ','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1dce5705-ad08-4bd4-a5da-f8cb3b743680-photo.jpeg',1,'2025-08-30 04:45:00','2025-08-30 04:45:00',0.00,0,1,NULL);
+INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,20,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-09-04 01:56:46',5.00,2,1,NULL),(2,1,'Bulinaw','Really fresh | labas',120.00,3,'Fish','Other','per_500g','Slaughtered this morning','2025-08-30','From Daraga morning','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/bef4f1a5-5691-4f11-9de6-b0a2beeb5be2-photo.jpeg',1,'2025-08-30 04:20:01','2025-09-04 04:44:56',0.00,0,1,NULL),(3,1,'Whole chicken','Fresh whole chicken',220.00,0,'Poultry',NULL,'per_piece',NULL,'2025-08-27','From westwood poultries','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1c813ab9-f8b4-4a7d-923c-d7f8bbd18849-photo.jpeg',1,'2025-08-30 04:42:03','2025-09-04 05:46:23',0.00,0,1,NULL),(4,1,'Sibuyas','',60.00,0,'Vegetables','Root Vegetables','per_500g','Harvested around this summer season','2025-08-21','From vegetables supplier corp','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/fd74459f-73d3-43a2-89f2-80d7c78ae184-photo.jpeg',1,'2025-08-30 04:43:21','2025-09-04 05:46:07',0.00,0,1,NULL),(5,1,'Fresh meat','',140.00,4,'Meat','Pork Chop','per_500g','Slaughtered yesterday','2025-08-29','Source from ate nenang pigery business ','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1dce5705-ad08-4bd4-a5da-f8cb3b743680-photo.jpeg',1,'2025-08-30 04:45:00','2025-09-04 05:46:07',0.00,0,1,NULL);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -905,7 +910,6 @@ CREATE TABLE `seller_reviews` (
 
 LOCK TABLES `seller_reviews` WRITE;
 /*!40000 ALTER TABLE `seller_reviews` DISABLE KEYS */;
-INSERT INTO `seller_reviews` VALUES (1,1,4,1,5,'The seller is great!','{\"packaging\": 5, \"communication\": 5, \"delivery_speed\": 5}','2025-08-27 14:12:24','2025-08-27 14:12:24'),(2,1,4,2,5,'The seller is great again!','{\"packaging\": 5, \"communication\": 5, \"delivery_speed\": 5}','2025-08-27 14:26:10','2025-08-27 14:26:10');
 /*!40000 ALTER TABLE `seller_reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1008,7 +1012,7 @@ CREATE TABLE `user_addresses` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_is_default` (`is_default`),
   KEY `idx_coordinates` (`latitude`,`longitude`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1017,7 +1021,7 @@ CREATE TABLE `user_addresses` (
 
 LOCK TABLES `user_addresses` WRITE;
 /*!40000 ALTER TABLE `user_addresses` DISABLE KEYS */;
-INSERT INTO `user_addresses` VALUES (1,4,'home','James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',13.35647071,123.72625172,0,'2025-08-22 13:57:20','2025-08-22 13:57:20');
+INSERT INTO `user_addresses` VALUES (1,4,'home','James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',13.35647071,123.72625172,0,'2025-08-22 13:57:20','2025-08-22 13:57:20'),(2,3,'home','James Mickel Ricarte','+639771495822','Rizal Avenue','Ilawod','Legazpi','Albay','4500','',13.13798790,123.73566220,1,'2025-09-04 01:56:40','2025-09-04 01:56:40');
 /*!40000 ALTER TABLE `user_addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1109,4 +1113,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-30 19:58:01
+-- Dump completed on 2025-09-05 22:10:22

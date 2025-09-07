@@ -153,7 +153,7 @@ const ProductDetailsScreen = () => {
   };
 
   const checkOngoingBargain = async () => {
-    if (!user?.id || !productId || !conversationId) {
+    if (!user?.id || !productId) {
       return;
     }
 

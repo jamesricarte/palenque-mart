@@ -179,6 +179,7 @@ const CheckoutScreen = () => {
         productId: item.product_id || item.id,
         quantity: item.quantity,
         preparationOptions: item.preparation_options || null,
+        bargain_data: item.bargain_data ? item.bargain_data : null,
       }));
 
       const response = await axios.post(`${API_URL}/api/orders/create`, {
@@ -370,12 +371,26 @@ const CheckoutScreen = () => {
                       <Text className="text-sm text-gray-600">
                         Qty: {item.quantity}
                       </Text>
-                      <Text className="font-medium text-orange-600">
-                        ₱
-                        {Number.parseFloat(
-                          item.total_price || item.price * item.quantity
-                        ).toFixed(2)}
-                      </Text>
+                      {item.bargain_data ? (
+                        <View className="flex-col items-end">
+                          <Text className="font-medium text-green-600">
+                            ₱{Number.parseFloat(item.total_price).toFixed(2)}
+                          </Text>
+                          <Text className="text-xs text-gray-500 line-through">
+                            ₱
+                            {(
+                              Number.parseFloat(item.price) * item.quantity
+                            ).toFixed(2)}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text className="font-medium text-orange-600">
+                          ₱
+                          {Number.parseFloat(
+                            item.total_price || item.price * item.quantity
+                          ).toFixed(2)}
+                        </Text>
+                      )}
                     </View>
                   </View>
                 </View>
