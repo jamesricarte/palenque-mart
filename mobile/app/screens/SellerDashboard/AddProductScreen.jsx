@@ -1,73 +1,54 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import Feather from "@expo/vector-icons/Feather";
-import * as ImagePicker from "expo-image-picker";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import axios from "axios";
-import { API_URL } from "../../config/apiConfig";
-import { useAuth } from "../../context/AuthContext";
+import { useState } from "react"
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator } from "react-native"
+import { useNavigation } from "@react-navigation/native"
+import Feather from "@expo/vector-icons/Feather"
+import * as ImagePicker from "expo-image-picker"
+import { Picker } from "@react-native-picker/picker"
+import DateTimePicker from "@react-native-community/datetimepicker"
+import axios from "axios"
+import { API_URL } from "../../config/apiConfig"
+import { useAuth } from "../../context/AuthContext"
 
 const AddProductScreen = () => {
-  const navigation = useNavigation();
-  const { token, user } = useAuth();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
-  const [unitType, setUnitType] = useState("per_piece");
-  const [freshnessIndicator, setFreshnessIndicator] = useState("");
-  const [harvestDate, setHarvestDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [sourceOrigin, setSourceOrigin] = useState("");
+  const navigation = useNavigation()
+  const { token, user } = useAuth()
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [price, setPrice] = useState("")
+  const [stock, setStock] = useState("")
+  const [category, setCategory] = useState("")
+  const [subcategory, setSubcategory] = useState("")
+  const [unitType, setUnitType] = useState("per_piece")
+  const [freshnessIndicator, setFreshnessIndicator] = useState("")
+  const [harvestDate, setHarvestDate] = useState(new Date())
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [sourceOrigin, setSourceOrigin] = useState("")
   const [preparationOptions, setPreparationOptions] = useState({
     cut: false,
     sliced: false,
     whole: false,
     cleaned: false,
-  });
-  const [image, setImage] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  })
+  const [preOrderEnabled, setPreOrderEnabled] = useState(false)
+  const [preOrderLeadTime, setPreOrderLeadTime] = useState("")
+  const [maxPreOrderQuantity, setMaxPreOrderQuantity] = useState("")
+  const [depositRequired, setDepositRequired] = useState(false)
+  const [depositPercentage, setDepositPercentage] = useState("")
+  const [image, setImage] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const categories = [
-    "Fish",
-    "Meat",
-    "Poultry",
-    "Vegetables",
-    "Fruits",
-    "Spices",
-    "Grains",
-  ];
+  const categories = ["Fish", "Meat", "Poultry", "Vegetables", "Fruits", "Spices", "Grains"]
 
   const subcategoriesByCategory = {
-    Meat: [
-      "Pork Belly",
-      "Pork Chop",
-      "Ground Pork",
-      "Beef",
-      "Chicken",
-      "Other",
-    ],
+    Meat: ["Pork Belly", "Pork Chop", "Ground Pork", "Beef", "Chicken", "Other"],
     Fish: ["Tilapia", "Bangus", "Tuna", "Salmon", "Other"],
     Vegetables: ["Leafy Greens", "Root Vegetables", "Herbs", "Other"],
     Fruits: ["Citrus", "Tropical", "Berries", "Other"],
     Spices: ["Local Spices", "Imported Spices", "Herbs", "Other"],
     Grains: ["Rice", "Corn", "Wheat", "Other"],
-  };
+  }
 
   const unitTypes = [
     { label: "Per Kilo", value: "per_kilo" },
@@ -78,7 +59,7 @@ const AddProductScreen = () => {
     { label: "Per Pack", value: "per_pack" },
     { label: "Per Liter", value: "per_liter" },
     { label: "Per Dozen", value: "per_dozen" },
-  ];
+  ]
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -86,86 +67,85 @@ const AddProductScreen = () => {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
-    });
+    })
 
     if (!result.canceled) {
-      setImage(result.assets[0]);
+      setImage(result.assets[0])
     }
-  };
+  }
 
   const togglePreparationOption = (option) => {
     setPreparationOptions((prev) => ({
       ...prev,
       [option]: !prev[option],
-    }));
-  };
+    }))
+  }
 
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
+    setShowDatePicker(false)
     if (selectedDate) {
-      setHarvestDate(selectedDate);
+      setHarvestDate(selectedDate)
     }
-  };
+  }
 
   const handleSubmit = async () => {
     if (!name || !price || !stock || !image || !category || !unitType) {
-      Alert.alert(
-        "Missing Information",
-        "Please fill all required fields and select an image."
-      );
-      return;
+      Alert.alert("Missing Information", "Please fill all required fields and select an image.")
+      return
     }
-    setIsLoading(true);
+    setIsLoading(true)
 
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("price", price);
-    formData.append("stock_quantity", stock);
-    formData.append("category", category);
-    formData.append("subcategory", subcategory);
-    formData.append("unit_type", unitType);
-    formData.append("freshness_indicator", freshnessIndicator);
-    formData.append("harvest_date", harvestDate.toISOString().split("T")[0]);
-    formData.append("source_origin", sourceOrigin);
-    formData.append("preparation_options", JSON.stringify(preparationOptions));
-    formData.append("user_id", user.id);
+    const formData = new FormData()
+    formData.append("name", name)
+    formData.append("description", description)
+    formData.append("price", price)
+    formData.append("stock_quantity", stock)
+    formData.append("category", category)
+    formData.append("subcategory", subcategory)
+    formData.append("unit_type", unitType)
+    formData.append("freshness_indicator", freshnessIndicator)
+    formData.append("harvest_date", harvestDate.toISOString().split("T")[0])
+    formData.append("source_origin", sourceOrigin)
+    formData.append("preparation_options", JSON.stringify(preparationOptions))
+    formData.append("pre_order_enabled", preOrderEnabled)
+    if (preOrderEnabled) {
+      formData.append("pre_order_lead_time", preOrderLeadTime)
+      formData.append("max_pre_order_quantity", maxPreOrderQuantity)
+      formData.append("deposit_required", depositRequired)
+      if (depositRequired) {
+        formData.append("deposit_percentage", depositPercentage)
+      }
+    }
+    formData.append("user_id", user.id)
 
     // Append the image file
-    const uriParts = image.uri.split(".");
-    const fileType = uriParts[uriParts.length - 1];
+    const uriParts = image.uri.split(".")
+    const fileType = uriParts[uriParts.length - 1]
     formData.append("productImage", {
       uri: image.uri,
       name: `photo.${fileType}`,
       type: `image/${fileType}`,
-    });
+    })
 
     try {
-      const response = await axios.post(
-        `${API_URL}/api/seller/add-product`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.post(`${API_URL}/api/seller/add-product`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-      Alert.alert("Success", "Product added successfully!");
+      Alert.alert("Success", "Product added successfully!")
       navigation.navigate("SellerDashboard", {
         screen: "SellerProducts",
-      });
+      })
     } catch (error) {
-      console.error(
-        "Error adding product:",
-        error.response?.data || error.message
-      );
-      Alert.alert("Error", "Failed to add product. Please try again.");
+      console.error("Error adding product:", error.response?.data || error.message)
+      Alert.alert("Error", "Failed to add product. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -177,20 +157,14 @@ const AddProductScreen = () => {
         <Text className="ml-4 text-xl font-semibold">Add New Product</Text>
       </View>
 
-      <ScrollView
-        className="flex-1 p-4"
-        contentContainerStyle={{ paddingBottom: 100 }}
-      >
+      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Image Picker */}
         <TouchableOpacity
           className="items-center justify-center w-full h-48 mb-6 bg-gray-200 border-2 border-gray-300 border-dashed rounded-lg"
           onPress={pickImage}
         >
           {image ? (
-            <Image
-              source={{ uri: image.uri }}
-              className="w-full h-full rounded-lg"
-            />
+            <Image source={{ uri: image.uri }} className="w-full h-full rounded-lg" />
           ) : (
             <View className="items-center">
               <Feather name="upload-cloud" size={40} color="#9ca3af" />
@@ -217,8 +191,8 @@ const AddProductScreen = () => {
             <Picker
               selectedValue={category}
               onValueChange={(itemValue) => {
-                setCategory(itemValue);
-                setSubcategory(""); // Reset subcategory when category changes
+                setCategory(itemValue)
+                setSubcategory("") // Reset subcategory when category changes
               }}
             >
               <Picker.Item label="Select Category" value="" />
@@ -234,10 +208,7 @@ const AddProductScreen = () => {
           <View className="mb-4">
             <Text className="mb-1 font-medium text-gray-700">Subcategory</Text>
             <View className="bg-white border border-gray-300 rounded-lg">
-              <Picker
-                selectedValue={subcategory}
-                onValueChange={setSubcategory}
-              >
+              <Picker selectedValue={subcategory} onValueChange={setSubcategory}>
                 <Picker.Item label="Select Subcategory" value="" />
                 {subcategoriesByCategory[category].map((subcat) => (
                   <Picker.Item key={subcat} label={subcat} value={subcat} />
@@ -253,11 +224,7 @@ const AddProductScreen = () => {
           <View className="bg-white border border-gray-300 rounded-lg">
             <Picker selectedValue={unitType} onValueChange={setUnitType}>
               {unitTypes.map((unit) => (
-                <Picker.Item
-                  key={unit.value}
-                  label={unit.label}
-                  value={unit.value}
-                />
+                <Picker.Item key={unit.value} label={unit.label} value={unit.value} />
               ))}
             </Picker>
           </View>
@@ -276,9 +243,7 @@ const AddProductScreen = () => {
             />
           </View>
           <View className="flex-1 ml-2">
-            <Text className="mb-1 font-medium text-gray-700">
-              Stock (per unit type) *
-            </Text>
+            <Text className="mb-1 font-medium text-gray-700">Stock (per unit type) *</Text>
             <TextInput
               className="p-3 bg-white border border-gray-300 rounded-lg"
               placeholder="e.g., 50"
@@ -289,11 +254,80 @@ const AddProductScreen = () => {
           </View>
         </View>
 
+        <View className="p-4 mb-4 bg-white border border-gray-300 rounded-lg">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-lg font-medium text-gray-700">Pre-Order Settings</Text>
+            <TouchableOpacity
+              className={`w-12 h-6 rounded-full ${preOrderEnabled ? "bg-purple-600" : "bg-gray-300"}`}
+              onPress={() => setPreOrderEnabled(!preOrderEnabled)}
+            >
+              <View
+                className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${preOrderEnabled ? "translate-x-6" : "translate-x-0.5"} mt-0.5`}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {preOrderEnabled && (
+            <>
+              <View className="flex-row mb-4">
+                <View className="flex-1 mr-2">
+                  <Text className="mb-1 font-medium text-gray-700">Lead Time (days)</Text>
+                  <TextInput
+                    className="p-3 bg-gray-50 border border-gray-300 rounded-lg"
+                    placeholder="e.g., 3"
+                    keyboardType="number-pad"
+                    value={preOrderLeadTime}
+                    onChangeText={setPreOrderLeadTime}
+                  />
+                </View>
+                <View className="flex-1 ml-2">
+                  <Text className="mb-1 font-medium text-gray-700">Max Pre-Order Qty</Text>
+                  <TextInput
+                    className="p-3 bg-gray-50 border border-gray-300 rounded-lg"
+                    placeholder="e.g., 20"
+                    keyboardType="number-pad"
+                    value={maxPreOrderQuantity}
+                    onChangeText={setMaxPreOrderQuantity}
+                  />
+                </View>
+              </View>
+
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="font-medium text-gray-700">Require Deposit</Text>
+                <TouchableOpacity
+                  className={`w-12 h-6 rounded-full ${depositRequired ? "bg-purple-600" : "bg-gray-300"}`}
+                  onPress={() => setDepositRequired(!depositRequired)}
+                >
+                  <View
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${depositRequired ? "translate-x-6" : "translate-x-0.5"} mt-0.5`}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {depositRequired && (
+                <View className="mb-2">
+                  <Text className="mb-1 font-medium text-gray-700">Deposit Percentage (%)</Text>
+                  <TextInput
+                    className="p-3 bg-gray-50 border border-gray-300 rounded-lg"
+                    placeholder="e.g., 30"
+                    keyboardType="number-pad"
+                    value={depositPercentage}
+                    onChangeText={setDepositPercentage}
+                  />
+                </View>
+              )}
+
+              <Text className="text-xs text-gray-500">
+                Pre-orders allow customers to schedule purchases in advance. Lead time is how many days you need to
+                prepare the order.
+              </Text>
+            </>
+          )}
+        </View>
+
         {/* Freshness Indicator */}
         <View className="mb-4">
-          <Text className="mb-1 font-medium text-gray-700">
-            Freshness Indicator
-          </Text>
+          <Text className="mb-1 font-medium text-gray-700">Freshness Indicator</Text>
           <TextInput
             className="p-3 bg-white border border-gray-300 rounded-lg"
             placeholder="e.g., Harvested this morning, Slaughtered today"
@@ -304,24 +338,15 @@ const AddProductScreen = () => {
 
         {/* Harvest/Slaughter Date */}
         <View className="mb-4">
-          <Text className="mb-1 font-medium text-gray-700">
-            Harvest/Slaughter Date
-          </Text>
+          <Text className="mb-1 font-medium text-gray-700">Harvest/Slaughter Date</Text>
           <TouchableOpacity
             className="p-3 bg-white border border-gray-300 rounded-lg"
             onPress={() => setShowDatePicker(true)}
           >
-            <Text className="text-gray-700">
-              {harvestDate.toLocaleDateString()}
-            </Text>
+            <Text className="text-gray-700">{harvestDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
           {showDatePicker && (
-            <DateTimePicker
-              value={harvestDate}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-            />
+            <DateTimePicker value={harvestDate} mode="date" display="default" onChange={handleDateChange} />
           )}
         </View>
 
@@ -351,9 +376,7 @@ const AddProductScreen = () => {
 
         {/* Preparation Options */}
         <View className="mb-4">
-          <Text className="mb-2 font-medium text-gray-700">
-            Available Preparation Options
-          </Text>
+          <Text className="mb-2 font-medium text-gray-700">Available Preparation Options</Text>
           <View className="p-3 bg-white border border-gray-300 rounded-lg">
             {Object.entries(preparationOptions).map(([option, isSelected]) => (
               <TouchableOpacity
@@ -365,12 +388,7 @@ const AddProductScreen = () => {
                   className={`w-5 h-5 border-2 rounded mr-3 ${isSelected ? "bg-blue-600 border-blue-600" : "border-gray-300"}`}
                 >
                   {isSelected && (
-                    <Feather
-                      name="check"
-                      size={12}
-                      color="white"
-                      style={{ alignSelf: "center", marginTop: 1 }}
-                    />
+                    <Feather name="check" size={12} color="white" style={{ alignSelf: "center", marginTop: 1 }} />
                   )}
                 </View>
                 <Text className="text-gray-700 capitalize">{option}</Text>
@@ -390,14 +408,12 @@ const AddProductScreen = () => {
           {isLoading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-lg font-semibold text-white">
-              Add Product
-            </Text>
+            <Text className="text-lg font-semibold text-white">Add Product</Text>
           )}
         </TouchableOpacity>
       </View>
     </View>
-  );
-};
+  )
+}
 
-export default AddProductScreen;
+export default AddProductScreen

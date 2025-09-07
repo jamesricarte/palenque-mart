@@ -19,6 +19,7 @@ const chatRoutes = require("./routes/chatRoutes"); // Added chat routes import
 const notificationRoutes = require("./routes/notificationRoutes"); // Added notification routes import
 const reviewRoutes = require("./routes/reviewRoutes"); // Added review routes import
 const bargainRoutes = require("./routes/bargainRoutes"); // Added bargain routes import
+const preOrderRoutes = require("./routes/preOrderRoutes"); // Added pre-order routes import
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +40,8 @@ app.use("/api/chat", chatRoutes); // Added chat routes registration
 app.use("/api/notifications", notificationRoutes); // Added notification routes registration
 app.use("/api/reviews", reviewRoutes); // Added review routes registration
 app.use("/api/bargain", bargainRoutes); // Added review routes registration
+app.use("/api/pre-orders", preOrderRoutes); // Added pre-order routes registration
+
 
 const socketStore = require("./utils/socketStore");
 const {

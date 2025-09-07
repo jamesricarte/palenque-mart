@@ -1,43 +1,32 @@
-"use client";
+"use client"
 
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  RefreshControl,
-} from "react-native";
-import { useState, useCallback, useRef, useEffect } from "react";
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
-import Feather from "@expo/vector-icons/Feather";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import axios from "axios";
+import { View, Text, ScrollView, TouchableOpacity, Image, RefreshControl } from "react-native"
+import { useState, useCallback, useRef, useEffect } from "react"
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native"
+import Feather from "@expo/vector-icons/Feather"
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
+import axios from "axios"
 
-import { useAuth } from "../../context/AuthContext";
-import { API_URL } from "../../config/apiConfig";
+import { useAuth } from "../../context/AuthContext"
+import { API_URL } from "../../config/apiConfig"
 
 const OrdersScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { user } = useAuth();
+  const navigation = useNavigation()
+  const route = useRoute()
+  const { user } = useAuth()
 
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState("all")
 
-  const firstLoadRef = useRef(true);
+  const firstLoadRef = useRef(true)
 
   useEffect(() => {
     if (route.params?.initialStatus) {
-      setSelectedStatus(route.params.initialStatus);
+      setSelectedStatus(route.params.initialStatus)
     }
-  }, [route.params?.initialStatus]);
+  }, [route.params?.initialStatus])
 
   const statusOptions = [
     { key: "all", label: "All Orders" },
@@ -47,44 +36,63 @@ const OrdersScreen = () => {
     { key: "delivered", label: "Delivered" },
     { key: "to_review", label: "To Review" },
     { key: "cancelled", label: "Cancelled" },
-  ];
+  ]
 
   const fetchOrders = async (showLoading = true) => {
     if (!user) {
-      setLoading(false);
-      return;
+      setLoading(false)
+      return
     }
 
-    if (showLoading) setLoading(true);
+    if (showLoading) setLoading(true)
 
     try {
-      const response = await axios.get(`${API_URL}/api/orders`, {
-        params: { status: selectedStatus, limit: 20 },
-      });
+      const [ordersResponse, preOrdersResponse] = await Promise.all([
+        axios.get(`${API_URL}/api/orders`, {
+          params: { status: selectedStatus, limit: 20 },
+        }),
+        axios.get(`${API_URL}/api/preorders/user`, {
+          params: { status: selectedStatus === "pending" ? "all" : "none", limit: 20 },
+        }),
+      ])
 
-      if (response.data.success) {
-        setOrders(response.data.data.orders);
+      let allOrders = []
+
+      if (ordersResponse.data.success) {
+        allOrders = [...ordersResponse.data.data.orders]
       }
+
+      if (selectedStatus === "pending" && preOrdersResponse.data.success) {
+        const preOrdersWithFlag = preOrdersResponse.data.data.preOrders.map((preOrder) => ({
+          ...preOrder,
+          isPreOrder: true,
+          order_number: `PRE-${preOrder.id}`,
+          status: "pending",
+        }))
+        allOrders = [...allOrders, ...preOrdersWithFlag]
+      }
+
+      setOrders(allOrders)
     } catch (error) {
-      console.error("Error fetching orders:", error.response.data);
+      console.error("Error fetching orders:", error.response?.data)
     } finally {
-      if (showLoading) setLoading(false);
-      setRefreshing(false);
+      if (showLoading) setLoading(false)
+      setRefreshing(false)
     }
-  };
+  }
 
   useFocusEffect(
     useCallback(() => {
-      const showLoading = firstLoadRef.current; // only first time
-      firstLoadRef.current = false;
-      fetchOrders(showLoading);
-    }, [user, selectedStatus])
-  );
+      const showLoading = firstLoadRef.current // only first time
+      firstLoadRef.current = false
+      fetchOrders(showLoading)
+    }, [user, selectedStatus]),
+  )
 
   const onRefresh = () => {
-    setRefreshing(true);
-    fetchOrders(false);
-  };
+    setRefreshing(true)
+    fetchOrders(false)
+  }
 
   const getStatusColor = (status) => {
     const colors = {
@@ -97,9 +105,12 @@ const OrdersScreen = () => {
       delivered: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800",
       refunded: "bg-gray-100 text-gray-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
+      scheduled: "bg-blue-100 text-blue-800",
+      ready: "bg-green-100 text-green-800",
+      completed: "bg-green-100 text-green-800",
+    }
+    return colors[status] || "bg-gray-100 text-gray-800"
+  }
 
   const getStatusLabel = (status) => {
     const labels = {
@@ -112,9 +123,12 @@ const OrdersScreen = () => {
       delivered: "Delivered",
       cancelled: "Cancelled",
       refunded: "Refunded",
-    };
-    return labels[status] || status;
-  };
+      scheduled: "Scheduled",
+      ready: "Ready",
+      completed: "Completed",
+    }
+    return labels[status] || status
+  }
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -123,100 +137,83 @@ const OrdersScreen = () => {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    });
-  };
+    })
+  }
 
   const isReviewTimeExpired = (deliveredAt) => {
-    if (!deliveredAt) return false;
-    const deliveryDate = new Date(deliveredAt);
-    const now = new Date();
-    const diffInDays = (now - deliveryDate) / (1000 * 60 * 60 * 24);
-    return diffInDays > 2;
-  };
+    if (!deliveredAt) return false
+    const deliveryDate = new Date(deliveredAt)
+    const now = new Date()
+    const diffInDays = (now - deliveryDate) / (1000 * 60 * 60 * 24)
+    return diffInDays > 2
+  }
 
   const renderOrderCard = (order) => (
     <TouchableOpacity
       key={order.id}
-      className="p-4 mb-4 bg-white rounded-lg shadow-sm"
-      onPress={() => navigation.navigate("OrderDetails", { orderId: order.id })}
+      className={`p-4 mb-4 bg-white rounded-lg shadow-sm ${order.isPreOrder ? "border-l-4 border-purple-500" : ""}`}
+      onPress={() => navigation.navigate("OrderDetails", { orderId: order.id, isPreOrder: order.isPreOrder })}
     >
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-lg font-semibold text-gray-900">
-          {order.order_number}
-        </Text>
-        <View
-          className={`px-2 py-1 rounded-full ${getStatusColor(order.status)}`}
-        >
-          <Text className="text-xs font-medium">
-            {getStatusLabel(order.status)}
+        <View className="flex-row items-center">
+          {order.isPreOrder && <MaterialCommunityIcons name="calendar-clock" size={20} color="#7C3AED" />}
+          <Text className={`text-lg font-semibold text-gray-900 ${order.isPreOrder ? "ml-2" : ""}`}>
+            {order.order_number}
           </Text>
+          {order.isPreOrder && (
+            <View className="px-2 py-1 ml-2 bg-purple-100 rounded-full">
+              <Text className="text-xs font-medium text-purple-800">Pre-Order</Text>
+            </View>
+          )}
+        </View>
+        <View className={`px-2 py-1 rounded-full ${getStatusColor(order.status)}`}>
+          <Text className="text-xs font-medium">{getStatusLabel(order.status)}</Text>
         </View>
       </View>
 
       <View className="flex-row items-center mb-2">
         {order.store_logo_url ? (
+          <Image source={{ uri: order.store_logo_url }} className="w-6 h-6 mr-2 rounded-full" resizeMode="cover" />
+        ) : (
+          <View className="flex items-center justify-center w-6 h-6 mr-2 bg-gray-200 rounded-full">
+            <MaterialCommunityIcons name="storefront-outline" size={12} color="#6B7280" />
+          </View>
+        )}
+        <Text className="text-sm text-gray-600">{order.store_names || order.store_name || "Multiple stores"}</Text>
+      </View>
+
+      {/* Product display */}
+      <View className={`flex-row items-center p-2 mb-3 rounded-md ${order.isPreOrder ? "bg-purple-50" : "bg-gray-50"}`}>
+        {order.first_product_image_url || order.product_image_url ? (
           <Image
-            source={{ uri: order.store_logo_url }}
-            className="w-6 h-6 mr-2 rounded-full"
+            source={{ uri: order.first_product_image_url || order.product_image_url }}
+            className="w-12 h-12 mr-3 rounded-md"
             resizeMode="cover"
           />
         ) : (
-          <View className="flex items-center justify-center w-6 h-6 mr-2 bg-gray-200 rounded-full">
-            <MaterialCommunityIcons
-              name="storefront-outline"
-              size={12}
-              color="#6B7280"
-            />
+          <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-200 rounded-md">
+            <MaterialCommunityIcons name="image-off-outline" size={20} color="#6B7280" />
           </View>
         )}
-        <Text className="text-sm text-gray-600">
-          {order.store_names || "Multiple stores"}
-        </Text>
-      </View>
-
-      {/* First product display with image */}
-      {order.first_product_name && (
-        <View className="flex-row items-center p-2 mb-3 rounded-md bg-gray-50">
-          {order.first_product_image_url ? (
-            <Image
-              source={{ uri: order.first_product_image_url }}
-              className="w-12 h-12 mr-3 rounded-md"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-200 rounded-md">
-              <MaterialCommunityIcons
-                name="image-off-outline"
-                size={20}
-                color="#6B7280"
-              />
-            </View>
-          )}
-          <View className="flex-1">
-            <Text
-              className="text-sm font-medium text-gray-800"
-              numberOfLines={1}
-            >
-              {order.first_product_name}
+        <View className="flex-1">
+          <Text className="text-sm font-medium text-gray-800" numberOfLines={1}>
+            {order.first_product_name || order.product_name}
+          </Text>
+          <View className="flex-row items-center justify-between mt-1">
+            <Text className="text-xs text-gray-500">
+              {order.first_product_quantity || order.quantity} x ₱
+              {Number.parseFloat(order.first_product_price || order.unit_price).toFixed(2)}
             </Text>
-            <View className="flex-row items-center justify-between mt-1">
-              <Text className="text-xs text-gray-500">
-                {order.first_product_quantity} x ₱
-                {Number.parseFloat(order.first_product_price).toFixed(2)}
-              </Text>
-              {order.item_count > 1 && (
-                <Text className="text-xs font-medium text-orange-600">
-                  +{order.item_count - 1} more
-                </Text>
-              )}
-            </View>
+            {order.item_count > 1 && (
+              <Text className="text-xs font-medium text-orange-600">+{order.item_count - 1} more</Text>
+            )}
           </View>
         </View>
-      )}
+      </View>
 
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-sm text-gray-600">
-          {order.item_count} item{order.item_count !== 1 ? "s" : ""}
+          {order.item_count || 1} item{(order.item_count || 1) !== 1 ? "s" : ""}
         </Text>
         <Text className="text-lg font-semibold text-orange-600">
           ₱{Number.parseFloat(order.total_amount).toFixed(2)}
@@ -224,53 +221,50 @@ const OrdersScreen = () => {
       </View>
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-xs text-gray-500">
-          {formatDate(order.created_at)}
-        </Text>
+        <Text className="text-xs text-gray-500">{formatDate(order.created_at)}</Text>
         <View className="flex-row items-center">
           <MaterialCommunityIcons name="cash" size={14} color="#059669" />
           <Text className="ml-1 text-xs text-gray-500">Cash on Delivery</Text>
         </View>
       </View>
 
-      {order.status === "delivered" && (
+      {order.isPreOrder && order.scheduled_date && (
         <View className="flex-row items-center pt-2 mt-2 border-t border-gray-200">
-          <Feather name="check-circle" size={14} color="#059669" />
-          <Text className="ml-1 text-xs text-green-600">
-            Delivered on {formatDate(order.delivered_at)}
-          </Text>
+          <MaterialCommunityIcons name="calendar" size={14} color="#7C3AED" />
+          <Text className="ml-1 text-xs text-purple-600">Scheduled: {formatDate(order.scheduled_date)}</Text>
         </View>
       )}
 
-      {order.status === "delivered" &&
-        order.can_review === 1 &&
-        !isReviewTimeExpired(order.delivered_at) && (
-          <TouchableOpacity
-            className="flex-row items-center justify-center p-3 mt-3 bg-orange-600 rounded-lg"
-            onPress={() =>
-              navigation.navigate("OrderDetails", {
-                orderId: order.id,
-                showReviewForm: true,
-              })
-            }
-          >
-            <Feather name="star" size={16} color="white" />
-            <Text className="ml-2 font-medium text-white">Write Review</Text>
-          </TouchableOpacity>
-        )}
+      {order.status === "delivered" && (
+        <View className="flex-row items-center pt-2 mt-2 border-t border-gray-200">
+          <Feather name="check-circle" size={14} color="#059669" />
+          <Text className="ml-1 text-xs text-green-600">Delivered on {formatDate(order.delivered_at)}</Text>
+        </View>
+      )}
 
-      {order.status === "delivered" &&
-        order.can_review === 1 &&
-        isReviewTimeExpired(order.delivered_at) && (
-          <View className="flex-row items-center justify-center p-3 mt-3 bg-gray-100 rounded-lg">
-            <Feather name="clock" size={16} color="#6B7280" />
-            <Text className="ml-2 text-sm text-gray-600">
-              Review time expired (2 days limit)
-            </Text>
-          </View>
-        )}
+      {order.status === "delivered" && order.can_review === 1 && !isReviewTimeExpired(order.delivered_at) && (
+        <TouchableOpacity
+          className="flex-row items-center justify-center p-3 mt-3 bg-orange-600 rounded-lg"
+          onPress={() =>
+            navigation.navigate("OrderDetails", {
+              orderId: order.id,
+              showReviewForm: true,
+            })
+          }
+        >
+          <Feather name="star" size={16} color="white" />
+          <Text className="ml-2 font-medium text-white">Write Review</Text>
+        </TouchableOpacity>
+      )}
+
+      {order.status === "delivered" && order.can_review === 1 && isReviewTimeExpired(order.delivered_at) && (
+        <View className="flex-row items-center justify-center p-3 mt-3 bg-gray-100 rounded-lg">
+          <Feather name="clock" size={16} color="#6B7280" />
+          <Text className="ml-2 text-sm text-gray-600">Review time expired (2 days limit)</Text>
+        </View>
+      )}
     </TouchableOpacity>
-  );
+  )
 
   if (!user) {
     return (
@@ -286,12 +280,8 @@ const OrdersScreen = () => {
 
         <View className="items-center justify-center flex-1 px-6">
           <Feather name="shopping-bag" size={80} color="#9CA3AF" />
-          <Text className="mt-4 text-xl font-semibold text-gray-600">
-            Login Required
-          </Text>
-          <Text className="mt-2 text-center text-gray-500">
-            Please login to view your orders
-          </Text>
+          <Text className="mt-4 text-xl font-semibold text-gray-600">Login Required</Text>
+          <Text className="mt-2 text-center text-gray-500">Please login to view your orders</Text>
           <TouchableOpacity
             className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
             onPress={() => navigation.navigate("Login")}
@@ -300,7 +290,7 @@ const OrdersScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-    );
+    )
   }
 
   if (loading) {
@@ -319,7 +309,7 @@ const OrdersScreen = () => {
           <Text className="mt-4 text-gray-600">Loading orders...</Text>
         </View>
       </View>
-    );
+    )
   }
 
   return (
@@ -333,6 +323,7 @@ const OrdersScreen = () => {
           <Text className="ml-4 text-xl font-semibold">My Orders</Text>
         </View>
       </View>
+
       {/* Status Filter */}
       <View className="p-4 bg-white border-b border-gray-200">
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -356,18 +347,14 @@ const OrdersScreen = () => {
 
       <ScrollView
         className="flex-1 p-4"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {orders.length > 0 ? (
           orders.map(renderOrderCard)
         ) : (
           <View className="items-center justify-center px-6 flex-1 h-[70vh]">
             <Feather name="shopping-bag" size={80} color="#9CA3AF" />
-            <Text className="mt-4 text-xl font-semibold text-gray-600">
-              No orders found
-            </Text>
+            <Text className="mt-4 text-xl font-semibold text-gray-600">No orders found</Text>
             <Text className="mt-2 text-center text-gray-500">
               {selectedStatus === "all"
                 ? "You haven't placed any orders yet"
@@ -385,7 +372,7 @@ const OrdersScreen = () => {
         )}
       </ScrollView>
     </View>
-  );
-};
+  )
+}
 
-export default OrdersScreen;
+export default OrdersScreen

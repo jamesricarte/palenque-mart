@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   View,
@@ -14,192 +14,184 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import { useState, useEffect, useCallback } from "react";
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
-import Feather from "@expo/vector-icons/Feather";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import axios from "axios";
-import ReviewItem from "../../components/ReviewItem"; // Import ReviewItem component
+} from "react-native"
+import { useState, useEffect, useCallback } from "react"
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native"
+import Feather from "@expo/vector-icons/Feather"
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
+import axios from "axios"
+import ReviewItem from "../../components/ReviewItem" // Import ReviewItem component
 
-import { useAuth } from "../../context/AuthContext";
-import { API_URL } from "../../config/apiConfig";
-import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation";
+import { useAuth } from "../../context/AuthContext"
+import { API_URL } from "../../config/apiConfig"
+import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation"
 
 const ProductDetailsScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { user } = useAuth();
-  const { productId } = route.params;
+  const navigation = useNavigation()
+  const route = useRoute()
+  const { user } = useAuth()
+  const { productId } = route.params
 
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [addingToCart, setAddingToCart] = useState(false);
-  const [showPreferenceModal, setShowPreferenceModal] = useState(false);
-  const [selectedQuantity, setSelectedQuantity] = useState(1);
-  const [selectedPreparations, setSelectedPreparations] = useState({});
-  const [cartCount, setCartCount] = useState(0);
-  const [actionType, setActionType] = useState(""); // 'cart' or 'buy'
-  const [conversationId, setConversationId] = useState(null);
-  const [fetchedConversationId, setFetchedConversationId] = useState(false);
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [addingToCart, setAddingToCart] = useState(false)
+  const [showPreferenceModal, setShowPreferenceModal] = useState(false)
+  const [selectedQuantity, setSelectedQuantity] = useState(1)
+  const [selectedPreparations, setSelectedPreparations] = useState({})
+  const [cartCount, setCartCount] = useState(0)
+  const [actionType, setActionType] = useState("") // 'cart' or 'buy'
+  const [conversationId, setConversationId] = useState(null)
+  const [fetchedConversationId, setFetchedConversationId] = useState(false)
 
-  const [showBargainModal, setShowBargainModal] = useState(false);
-  const [bargainPrice, setBargainPrice] = useState("");
-  const [submittingBargain, setSubmittingBargain] = useState(false);
-  const [ongoingBargain, setOngoingBargain] = useState(null);
-  const [checkingBargain, setCheckingBargain] = useState(true);
+  const [showBargainModal, setShowBargainModal] = useState(false)
+  const [bargainPrice, setBargainPrice] = useState("")
+  const [submittingBargain, setSubmittingBargain] = useState(false)
+  const [ongoingBargain, setOngoingBargain] = useState(null)
+  const [checkingBargain, setCheckingBargain] = useState(true)
 
-  const [reviews, setReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
-  const [reviewFilter, setReviewFilter] = useState("all"); // 'all', '5', '4', '3', '2', '1'
-  const [reviewSort, setReviewSort] = useState("newest"); // 'newest', 'oldest', 'highest', 'lowest', 'helpful'
-  const [showReviewFilters, setShowReviewFilters] = useState(false);
-  const [selectedMediaModal, setSelectedMediaModal] = useState(null);
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(false)
+  const [reviewFilter, setReviewFilter] = useState("all") // 'all', '5', '4', '3', '2', '1'
+  const [reviewSort, setReviewSort] = useState("newest") // 'newest', 'oldest', 'highest', 'lowest', 'helpful'
+  const [showReviewFilters, setShowReviewFilters] = useState(false)
+  const [selectedMediaModal, setSelectedMediaModal] = useState(null)
   const [reviewPagination, setReviewPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     hasNextPage: false,
     hasPrevPage: false,
-  });
-  const [loadingMoreReviews, setLoadingMoreReviews] = useState(false);
+  })
+  const [loadingMoreReviews, setLoadingMoreReviews] = useState(false)
 
-  const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
+  const [keyBoardVisibility, setKeyboardVisibility] = useState(false)
+
+  const [showPreOrderModal, setShowPreOrderModal] = useState(false)
+  const [selectedDeliveryDate, setSelectedDeliveryDate] = useState(null)
+  const [preOrderNotes, setPreOrderNotes] = useState("")
 
   const fetchProduct = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/products/${productId}`);
+      const response = await axios.get(`${API_URL}/api/products/${productId}`)
 
       if (response.data.success) {
-        setProduct(response.data.data.product);
+        setProduct(response.data.data.product)
       }
     } catch (error) {
-      console.error("Error fetching product:", error);
-      Alert.alert("Error", "Failed to load product details");
-      navigation.goBack();
+      console.error("Error fetching product:", error)
+      Alert.alert("Error", "Failed to load product details")
+      navigation.goBack()
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const fetchReviews = async (page = 1, resetReviews = true) => {
     if (page === 1) {
-      setReviewsLoading(true);
+      setReviewsLoading(true)
     } else {
-      setLoadingMoreReviews(true);
+      setLoadingMoreReviews(true)
     }
 
     try {
-      const response = await axios.get(
-        `${API_URL}/api/reviews/product/${productId}`,
-        {
-          params: {
-            filter: reviewFilter,
-            sort: reviewSort,
-            page,
-            limit: 4, // Set limit to 4 reviews per page
-          },
-        }
-      );
+      const response = await axios.get(`${API_URL}/api/reviews/product/${productId}`, {
+        params: {
+          filter: reviewFilter,
+          sort: reviewSort,
+          page,
+          limit: 4, // Set limit to 4 reviews per page
+        },
+      })
 
       if (response.data.success) {
-        const newReviews = response.data.data.reviews;
+        const newReviews = response.data.data.reviews
         if (resetReviews || page === 1) {
-          setReviews(newReviews);
+          setReviews(newReviews)
         } else {
-          setReviews((prev) => [...prev, ...newReviews]);
+          setReviews((prev) => [...prev, ...newReviews])
         }
-        setReviewPagination(response.data.data.pagination);
+        setReviewPagination(response.data.data.pagination)
       }
     } catch (error) {
-      console.error("Error fetching reviews:", error.response?.data);
+      console.error("Error fetching reviews:", error.response?.data)
     } finally {
-      setReviewsLoading(false);
-      setLoadingMoreReviews(false);
+      setReviewsLoading(false)
+      setLoadingMoreReviews(false)
     }
-  };
+  }
 
   const fetchCartCount = async () => {
-    if (!user) return;
+    if (!user) return
     try {
-      const response = await axios.get(`${API_URL}/api/cart/count`);
+      const response = await axios.get(`${API_URL}/api/cart/count`)
       if (response.data.success) {
-        setCartCount(response.data.data.totalItems);
+        setCartCount(response.data.data.totalItems)
       }
     } catch (error) {
-      console.error("Error fetching cart count:", error);
+      console.error("Error fetching cart count:", error)
     }
-  };
+  }
 
   const fetchConversationId = async () => {
     try {
-      const response = await axios.get(
-        `${API_URL}/api/chat/${product.seller_id}/conversation-id`,
-        {
-          sellerId: product.seller_id,
-        }
-      );
+      const response = await axios.get(`${API_URL}/api/chat/${product.seller_id}/conversation-id`, {
+        sellerId: product.seller_id,
+      })
       if (response.data.success) {
-        setConversationId(response.data.data.conversationId);
+        setConversationId(response.data.data.conversationId)
       }
     } catch (error) {
-      console.log("Error fetching conversation id:", error.response.data);
+      console.log("Error fetching conversation id:", error.response.data)
     } finally {
-      setFetchedConversationId(true);
+      setFetchedConversationId(true)
     }
-  };
+  }
 
   const checkOngoingBargain = async () => {
     if (!user?.id || !productId || !conversationId) {
-      return;
+      return
     }
 
-    setCheckingBargain(true);
+    setCheckingBargain(true)
     try {
-      const response = await axios.get(
-        `${API_URL}/api/bargain/check/${conversationId}/${productId}`
-      );
+      const response = await axios.get(`${API_URL}/api/bargain/check/${conversationId}/${productId}`)
 
       if (response.data.success && response.data.data.hasOngoingBargain) {
-        setOngoingBargain(response.data.data.bargain);
+        setOngoingBargain(response.data.data.bargain)
       }
     } catch (error) {
-      console.log("Error checking ongoing bargain:", error.response.data);
+      console.log("Error checking ongoing bargain:", error.response.data)
     } finally {
-      setCheckingBargain(false);
+      setCheckingBargain(false)
     }
-  };
+  }
 
   useFocusEffect(
     useCallback(() => {
-      fetchProduct();
-      fetchCartCount();
-      fetchReviews();
+      fetchProduct()
+      fetchCartCount()
+      fetchReviews()
 
       if (fetchedConversationId) {
         if (user?.id && conversationId) {
-          checkOngoingBargain();
+          checkOngoingBargain()
         } else {
-          setCheckingBargain(false);
+          setCheckingBargain(false)
         }
       }
-    }, [productId, fetchedConversationId, reviewFilter, reviewSort])
-  );
+    }, [productId, fetchedConversationId, reviewFilter, reviewSort]),
+  )
 
   useEffect(() => {
     if (product?.seller_id) {
-      fetchConversationId();
+      fetchConversationId()
     }
-  }, [product]);
+  }, [product])
 
   useEffect(() => {
     if (product) {
-      fetchReviews(1, true);
+      fetchReviews(1, true)
     }
-  }, [product, reviewFilter, reviewSort]);
+  }, [product, reviewFilter, reviewSort])
 
   const formatUnitType = (unitType) => {
     const unitMap = {
@@ -211,17 +203,17 @@ const ProductDetailsScreen = () => {
       per_pack: "Per Pack",
       per_liter: "Per Liter",
       per_dozen: "Per Dozen",
-    };
-    return unitMap[unitType] || unitType;
-  };
+    }
+    return unitMap[unitType] || unitType
+  }
 
   const formatDate = (dateString) => {
-    if (!dateString) return null;
-    return new Date(dateString).toLocaleDateString();
-  };
+    if (!dateString) return null
+    return new Date(dateString).toLocaleDateString()
+  }
 
   const renderStarRating = (rating, size = 16) => {
-    const stars = [];
+    const stars = []
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <Feather
@@ -230,16 +222,16 @@ const ProductDetailsScreen = () => {
           size={size}
           color={i <= rating ? "#F59E0B" : "#E5E7EB"}
           style={{ marginRight: 2 }}
-        />
-      );
+        />,
+      )
     }
-    return <View className="flex-row">{stars}</View>;
-  };
+    return <View className="flex-row">{stars}</View>
+  }
 
   const handleReviewHelpful = async (reviewId, isHelpful) => {
     if (!user) {
-      Alert.alert("Login Required", "Please login to rate reviews");
-      return;
+      Alert.alert("Login Required", "Please login to rate reviews")
+      return
     }
 
     try {
@@ -247,90 +239,114 @@ const ProductDetailsScreen = () => {
         reviewId,
         reviewType: "product",
         isHelpful,
-      });
+      })
 
       // Refresh reviews to update helpful count
-      fetchReviews(1, true);
+      fetchReviews(1, true)
     } catch (error) {
-      console.error("Error rating review:", error);
-      Alert.alert("Error", "Failed to rate review");
+      console.error("Error rating review:", error)
+      Alert.alert("Error", "Failed to rate review")
     }
-  };
+  }
 
   const isOwnProduct = () => {
-    return user && product && product.seller_user_id === user.id;
-  };
+    return user && product && product.seller_user_id === user.id
+  }
 
   const handleAddToCart = async () => {
     if (!user) {
       Alert.alert("Login Required", "Please login to add items to cart", [
         { text: "Cancel", style: "cancel" },
         { text: "Login", onPress: () => navigation.navigate("Login") },
-      ]);
-      return;
+      ])
+      return
     }
 
     if (isOwnProduct()) {
-      Alert.alert(
-        "Cannot Add to Cart",
-        "You cannot add your own product to cart"
-      );
-      return;
+      Alert.alert("Cannot Add to Cart", "You cannot add your own product to cart")
+      return
     }
 
-    setActionType("cart");
-    setShowPreferenceModal(true);
-  };
+    setActionType("cart")
+    setShowPreferenceModal(true)
+  }
 
   const handleBuyNow = async () => {
     if (!user) {
       Alert.alert("Login Required", "Please login to purchase items", [
         { text: "Cancel", style: "cancel" },
         { text: "Login", onPress: () => navigation.navigate("Login") },
-      ]);
-      return;
+      ])
+      return
     }
 
     if (isOwnProduct()) {
-      Alert.alert("Cannot Purchase", "You cannot purchase your own product");
-      return;
+      Alert.alert("Cannot Purchase", "You cannot purchase your own product")
+      return
     }
 
-    setActionType("buy");
-    setShowPreferenceModal(true);
-  };
+    setActionType("buy")
+    setShowPreferenceModal(true)
+  }
+
+  const handlePreOrder = async () => {
+    console.log("[v0] handlePreOrder called")
+    console.log("[v0] user:", !!user)
+    console.log("[v0] product.pre_order_enabled:", product?.pre_order_enabled)
+
+    if (!user) {
+      Alert.alert("Login Required", "Please login to place pre-orders", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () => navigation.navigate("Login") },
+      ])
+      return
+    }
+
+    if (isOwnProduct()) {
+      Alert.alert("Cannot Pre-Order", "You cannot pre-order your own product")
+      return
+    }
+
+    if (!product.pre_order_enabled) {
+      console.log("[v0] Pre-order not enabled, showing alert")
+      Alert.alert("Pre-Order Not Available", "This product doesn't support pre-ordering")
+      return
+    }
+
+    console.log("[v0] Setting actionType to pre_order and showing modal")
+    setActionType("pre_order")
+    setShowPreOrderModal(true)
+    console.log("[v0] Modal state should be true now")
+  }
 
   const handleBargainOffer = async () => {
     if (!user) {
       Alert.alert("Login Required", "Please login to make an offer", [
         { text: "Cancel", style: "cancel" },
         { text: "Login", onPress: () => navigation.navigate("Login") },
-      ]);
-      return;
+      ])
+      return
     }
 
     if (!bargainPrice.trim()) {
-      Alert.alert("Error", "Please enter your offer price");
-      return;
+      Alert.alert("Error", "Please enter your offer price")
+      return
     }
 
-    const offerPrice = Number.parseFloat(bargainPrice);
-    const originalPrice = Number.parseFloat(product.price);
+    const offerPrice = Number.parseFloat(bargainPrice)
+    const originalPrice = Number.parseFloat(product.price)
 
     if (isNaN(offerPrice) || offerPrice <= 0) {
-      Alert.alert("Error", "Please enter a valid price");
-      return;
+      Alert.alert("Error", "Please enter a valid price")
+      return
     }
 
     if (offerPrice >= originalPrice) {
-      Alert.alert(
-        "Error",
-        "Offer price should be less than the original price"
-      );
-      return;
+      Alert.alert("Error", "Offer price should be less than the original price")
+      return
     }
 
-    setSubmittingBargain(true);
+    setSubmittingBargain(true)
     try {
       const response = await axios.post(`${API_URL}/api/bargain/create-offer`, {
         productId: productId,
@@ -338,7 +354,7 @@ const ProductDetailsScreen = () => {
         offeredPrice: offerPrice,
         originalPrice: originalPrice,
         conversationId: conversationId,
-      });
+      })
 
       if (response.data.success) {
         Alert.alert(
@@ -348,53 +364,49 @@ const ProductDetailsScreen = () => {
             {
               text: "View Conversation",
               onPress: () => {
-                setShowBargainModal(false);
-                setBargainPrice("");
+                setShowBargainModal(false)
+                setBargainPrice("")
                 navigation.navigate("ChatConversation", {
                   conversationId: conversationId,
                   sellerId: product.seller_id,
                   storeName: product.store_name,
                   storeLogo: product.store_logo_key,
-                });
+                })
               },
             },
             {
               text: "OK",
               onPress: () => {
-                setShowBargainModal(false);
-                setBargainPrice("");
-                checkOngoingBargain(); // Refresh ongoing bargain status
+                setShowBargainModal(false)
+                setBargainPrice("")
+                checkOngoingBargain() // Refresh ongoing bargain status
               },
             },
-          ]
-        );
+          ],
+        )
       }
     } catch (error) {
-      console.error("Error creating bargain offer:", error.response.data);
-      Alert.alert(
-        "Error",
-        error.response.data.message ||
-          "Failed to send bargain offer. Please try again."
-      );
+      console.error("Error creating bargain offer:", error.response.data)
+      Alert.alert("Error", error.response.data.message || "Failed to send bargain offer. Please try again.")
     } finally {
-      setSubmittingBargain(false);
+      setSubmittingBargain(false)
     }
-  };
+  }
 
   const handleConfirmAction = async () => {
-    setAddingToCart(true);
-    setShowPreferenceModal(false);
+    setAddingToCart(true)
+    setShowPreferenceModal(false)
 
     try {
       if (actionType === "cart") {
         const response = await axios.post(`${API_URL}/api/cart/add`, {
           productId: product.id,
           quantity: selectedQuantity,
-        });
+        })
 
         if (response.data.success) {
-          Alert.alert("Success", response.data.message);
-          fetchCartCount(); // Refresh cart count
+          Alert.alert("Success", response.data.message)
+          fetchCartCount() // Refresh cart count
         }
       } else {
         // Buy Now - navigate to checkout
@@ -410,42 +422,75 @@ const ProductDetailsScreen = () => {
           store_name: product.store_name,
           store_logo_key: product.store_logo_key,
           preparation_options: selectedPreparations,
-          total_price: (
-            Number.parseFloat(product.price) * selectedQuantity
-          ).toFixed(2),
-        };
+          total_price: (Number.parseFloat(product.price) * selectedQuantity).toFixed(2),
+        }
 
         navigation.navigate("Checkout", {
           items: [buyNowItem],
           fromCart: false,
-        });
+        })
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error:", error)
       const errorMessage =
-        error.response?.data?.message ||
-        `Failed to ${actionType === "cart" ? "add to cart" : "purchase"}`;
-      Alert.alert("Error", errorMessage);
+        error.response?.data?.message || `Failed to ${actionType === "cart" ? "add to cart" : "purchase"}`
+      Alert.alert("Error", errorMessage)
     } finally {
-      setAddingToCart(false);
+      setAddingToCart(false)
       // Reset preferences
-      setSelectedQuantity(1);
-      setSelectedPreparations({});
+      setSelectedQuantity(1)
+      setSelectedPreparations({})
     }
-  };
+  }
+
+  const handleConfirmPreOrder = async () => {
+    if (!selectedDeliveryDate) {
+      Alert.alert("Error", "Please select a delivery date")
+      return
+    }
+
+    setAddingToCart(true)
+    setShowPreOrderModal(false)
+
+    try {
+      const response = await axios.post(`${API_URL}/api/pre-orders/create`, {
+        productId: product.id,
+        quantity: selectedQuantity,
+        scheduledDate: selectedDeliveryDate,
+        notes: preOrderNotes,
+        preparationOptions: selectedPreparations,
+      })
+
+      if (response.data.success) {
+        Alert.alert("Pre-Order Placed", "Your pre-order has been scheduled successfully!")
+        navigation.navigate("Orders")
+      }
+    } catch (error) {
+      console.error("Error creating pre-order:", error)
+      const errorMessage = error.response?.data?.message || "Failed to place pre-order"
+      Alert.alert("Error", errorMessage)
+    } finally {
+      setAddingToCart(false)
+      // Reset preferences
+      setSelectedQuantity(1)
+      setSelectedPreparations({})
+      setSelectedDeliveryDate(null)
+      setPreOrderNotes("")
+    }
+  }
 
   const handleChatWithSeller = async () => {
     if (!user) {
       Alert.alert("Login Required", "Please login to chat with sellers", [
         { text: "Cancel", style: "cancel" },
         { text: "Login", onPress: () => navigation.navigate("Login") },
-      ]);
-      return;
+      ])
+      return
     }
 
     if (isOwnProduct()) {
-      Alert.alert("Cannot Chat", "You cannot chat with yourself");
-      return;
+      Alert.alert("Cannot Chat", "You cannot chat with yourself")
+      return
     }
 
     try {
@@ -455,12 +500,12 @@ const ProductDetailsScreen = () => {
         sellerId: product.seller_id,
         storeName: product.store_name,
         storeLogo: product.store_logo_key,
-      });
+      })
     } catch (error) {
-      console.error("Error starting chat:", error);
-      Alert.alert("Error", "Failed to start chat");
+      console.error("Error starting chat:", error)
+      Alert.alert("Error", "Failed to start chat")
     }
-  };
+  }
 
   const getAddressTypeFullAddress = (addressType) => {
     const parts = [
@@ -468,54 +513,54 @@ const ProductDetailsScreen = () => {
       addressType?.barangay || null,
       addressType?.city || null,
       addressType?.province || null,
-    ];
+    ]
 
-    return parts.filter((part) => part && part.trim() !== "").join(", ");
-  };
+    return parts.filter((part) => part && part.trim() !== "").join(", ")
+  }
 
   const handleMediaPress = (media) => {
-    setSelectedMediaModal(media);
-  };
+    setSelectedMediaModal(media)
+  }
 
   const loadMoreReviews = () => {
     if (reviewPagination.hasNextPage && !loadingMoreReviews) {
-      fetchReviews(reviewPagination.currentPage + 1, false);
+      fetchReviews(reviewPagination.currentPage + 1, false)
     }
-  };
+  }
 
   const getFilterDisplayText = () => {
-    if (reviewFilter === "all") return "All Ratings";
-    return `${reviewFilter} Stars`;
-  };
+    if (reviewFilter === "all") return "All Ratings"
+    return `${reviewFilter} Stars`
+  }
 
   const getNoReviewsMessage = () => {
     if (reviewFilter === "all") {
       return {
         title: "No reviews yet",
         subtitle: "Be the first to review this product",
-      };
+      }
     } else {
       return {
         title: `No ${reviewFilter} star reviews`,
         subtitle: "Try selecting a different rating filter",
-      };
+      }
     }
-  };
+  }
 
   useEffect(() => {
     const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
-      setKeyboardVisibility(false);
-    });
+      setKeyboardVisibility(false)
+    })
 
     const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
-      setKeyboardVisibility(true);
-    });
+      setKeyboardVisibility(true)
+    })
 
     return () => {
-      keyboardDidHide.remove();
-      keyboardDidShow.remove();
-    };
-  }, []);
+      keyboardDidHide.remove()
+      keyboardDidShow.remove()
+    }
+  }, [])
 
   if (loading) {
     return (
@@ -527,16 +572,11 @@ const ProductDetailsScreen = () => {
             </TouchableOpacity>
             <Text className="ml-4 text-xl font-semibold">Product Details</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Cart")}
-            className="relative"
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("Cart")} className="relative">
             <Feather name="shopping-cart" size={24} color="black" />
             {cartCount > 0 && (
               <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
-                <Text className="text-xs font-bold text-white">
-                  {cartCount}
-                </Text>
+                <Text className="text-xs font-bold text-white">{cartCount}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -547,7 +587,7 @@ const ProductDetailsScreen = () => {
           <Text className="mt-4 text-gray-600">Loading product details...</Text>
         </View>
       </View>
-    );
+    )
   }
 
   if (!product) {
@@ -560,16 +600,11 @@ const ProductDetailsScreen = () => {
             </TouchableOpacity>
             <Text className="ml-4 text-xl font-semibold">Product Details</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Cart")}
-            className="relative"
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("Cart")} className="relative">
             <Feather name="shopping-cart" size={24} color="black" />
             {cartCount > 0 && (
               <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
-                <Text className="text-xs font-bold text-white">
-                  {cartCount}
-                </Text>
+                <Text className="text-xs font-bold text-white">{cartCount}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -577,12 +612,10 @@ const ProductDetailsScreen = () => {
 
         <View className="items-center justify-center flex-1">
           <Feather name="alert-circle" size={64} color="#9CA3AF" />
-          <Text className="mt-4 text-xl font-semibold text-gray-600">
-            Product not found
-          </Text>
+          <Text className="mt-4 text-xl font-semibold text-gray-600">Product not found</Text>
         </View>
       </View>
-    );
+    )
   }
 
   return (
@@ -595,10 +628,7 @@ const ProductDetailsScreen = () => {
           </TouchableOpacity>
           <Text className="ml-4 text-xl font-semibold">Product Details</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Cart")}
-          className="relative"
-        >
+        <TouchableOpacity onPress={() => navigation.navigate("Cart")} className="relative">
           <Feather name="shopping-cart" size={24} color="black" />
           {cartCount > 0 && (
             <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
@@ -608,18 +638,11 @@ const ProductDetailsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Product Image */}
         <View className="bg-white">
           {product.image_keys ? (
-            <Image
-              source={{ uri: product.image_keys }}
-              className="w-full h-80"
-              resizeMode="cover"
-            />
+            <Image source={{ uri: product.image_keys }} className="w-full h-80" resizeMode="cover" />
           ) : (
             <View className="flex items-center justify-center w-full bg-gray-200 h-80">
               <Feather name="image" size={64} color="#9CA3AF" />
@@ -646,17 +669,11 @@ const ProductDetailsScreen = () => {
 
         {/* Product Info */}
         <View className="p-4 bg-white border-b border-gray-200">
-          <Text className="mb-2 text-2xl font-bold text-gray-900">
-            {product.name}
-          </Text>
+          <Text className="mb-2 text-2xl font-bold text-gray-900">{product.name}</Text>
 
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-3xl font-bold text-orange-600">
-              ₱{Number.parseFloat(product.price).toFixed(2)}
-            </Text>
-            <Text className="text-lg text-gray-600">
-              {formatUnitType(product.unit_type)}
-            </Text>
+            <Text className="text-3xl font-bold text-orange-600">₱{Number.parseFloat(product.price).toFixed(2)}</Text>
+            <Text className="text-lg text-gray-600">{formatUnitType(product.unit_type)}</Text>
           </View>
 
           {product.category && (
@@ -672,16 +689,12 @@ const ProductDetailsScreen = () => {
             </View>
           )}
 
-          <Text className="text-lg text-gray-500">
-            Stock: {product.stock_quantity} available
-          </Text>
+          <Text className="text-lg text-gray-500">Stock: {product.stock_quantity} available</Text>
         </View>
 
         {/* Store Info */}
         <View className="p-4 bg-white border-b border-gray-200">
-          <Text className="mb-3 text-lg font-semibold text-gray-900">
-            Store Information
-          </Text>
+          <Text className="mb-3 text-lg font-semibold text-gray-900">Store Information</Text>
 
           <View className="flex-row items-center mb-2">
             {product.store_logo_key ? (
@@ -694,35 +707,20 @@ const ProductDetailsScreen = () => {
               />
             ) : (
               <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-300 rounded-full">
-                <MaterialCommunityIcons
-                  name="storefront-outline"
-                  size={24}
-                  color="#6B7280"
-                />
+                <MaterialCommunityIcons name="storefront-outline" size={24} color="#6B7280" />
               </View>
             )}
             <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-900">
-                {product.store_name}
-              </Text>
-              <Text className="text-sm text-gray-600 capitalize">
-                {product.account_type} seller
-              </Text>
+              <Text className="text-lg font-semibold text-gray-900">{product.store_name}</Text>
+              <Text className="text-sm text-gray-600 capitalize">{product.account_type} seller</Text>
             </View>
           </View>
 
-          {product.store_description && (
-            <Text className="text-gray-700">{product.store_description}</Text>
-          )}
+          {product.store_description && <Text className="text-gray-700">{product.store_description}</Text>}
 
           {product.address.store_location && (
             <View className="flex-row items-start mt-3">
-              <Feather
-                name="map-pin"
-                size={16}
-                color="#6B7280"
-                className="mt-1"
-              />
+              <Feather name="map-pin" size={16} color="#6B7280" className="mt-1" />
               <Text className="flex-1 ml-2 text-gray-600">
                 {getAddressTypeFullAddress(product.address.store_location)}
               </Text>
@@ -735,9 +733,7 @@ const ProductDetailsScreen = () => {
               onPress={handleChatWithSeller}
             >
               <Feather name="message-circle" size={20} color="#EA580C" />
-              <Text className="ml-2 font-medium text-orange-600">
-                Chat with Store
-              </Text>
+              <Text className="ml-2 font-medium text-orange-600">Chat with Store</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -745,116 +741,80 @@ const ProductDetailsScreen = () => {
         {/* Product Details */}
         {product.description && (
           <View className="p-4 bg-white border-b border-gray-200">
-            <Text className="mb-3 text-lg font-semibold text-gray-900">
-              Description
-            </Text>
-            <Text className="leading-6 text-gray-700">
-              {product.description}
-            </Text>
+            <Text className="mb-3 text-lg font-semibold text-gray-900">Description</Text>
+            <Text className="leading-6 text-gray-700">{product.description}</Text>
           </View>
         )}
 
         {/* Freshness & Source Info */}
-        {(product.freshness_indicator ||
-          product.harvest_date ||
-          product.source_origin) && (
+        {(product.freshness_indicator || product.harvest_date || product.source_origin) && (
           <View className="p-4 bg-white border-b border-gray-200">
-            <Text className="mb-3 text-lg font-semibold text-gray-900">
-              Freshness & Source
-            </Text>
+            <Text className="mb-3 text-lg font-semibold text-gray-900">Freshness & Source</Text>
 
             {product.freshness_indicator && (
               <View className="flex-row items-center mb-2">
                 <Feather name="clock" size={16} color="#10B981" />
-                <Text className="ml-2 text-gray-700">
-                  {product.freshness_indicator}
-                </Text>
+                <Text className="ml-2 text-gray-700">{product.freshness_indicator}</Text>
               </View>
             )}
 
             {product.harvest_date && (
               <View className="flex-row items-center mb-2">
                 <Feather name="calendar" size={16} color="#10B981" />
-                <Text className="ml-2 text-gray-700">
-                  Harvested: {formatDate(product.harvest_date)}
-                </Text>
+                <Text className="ml-2 text-gray-700">Harvested: {formatDate(product.harvest_date)}</Text>
               </View>
             )}
 
             {product.source_origin && (
               <View className="flex-row items-center">
                 <Feather name="map-pin" size={16} color="#10B981" />
-                <Text className="ml-2 text-gray-700">
-                  Source: {product.source_origin}
-                </Text>
+                <Text className="ml-2 text-gray-700">Source: {product.source_origin}</Text>
               </View>
             )}
           </View>
         )}
 
         {/* Preparation Options */}
-        {product.preparation_options &&
-          Object.values(product.preparation_options).some(
-            (option) => option
-          ) && (
-            <View className="p-4 bg-white border-b border-gray-200">
-              <Text className="mb-3 text-lg font-semibold text-gray-900">
-                Available Preparation
-              </Text>
-              <View className="flex-row flex-wrap">
-                {Object.entries(product.preparation_options).map(
-                  ([option, available]) =>
-                    available && (
-                      <View
-                        key={option}
-                        className="px-3 py-1 mb-2 mr-2 bg-blue-100 rounded-full"
-                      >
-                        <Text className="text-sm font-medium text-blue-800 capitalize">
-                          {option}
-                        </Text>
-                      </View>
-                    )
-                )}
-              </View>
+        {product.preparation_options && Object.values(product.preparation_options).some((option) => option) && (
+          <View className="p-4 bg-white border-b border-gray-200">
+            <Text className="mb-3 text-lg font-semibold text-gray-900">Available Preparation</Text>
+            <View className="flex-row flex-wrap">
+              {Object.entries(product.preparation_options).map(
+                ([option, available]) =>
+                  available && (
+                    <View key={option} className="px-3 py-1 mb-2 mr-2 bg-blue-100 rounded-full">
+                      <Text className="text-sm font-medium text-blue-800 capitalize">{option}</Text>
+                    </View>
+                  ),
+              )}
             </View>
-          )}
+          </View>
+        )}
 
         {/* Additional Info */}
         <View className="p-4 bg-white">
-          <Text className="mb-3 text-lg font-semibold text-gray-900">
-            Additional Information
-          </Text>
-          <Text className="mb-1 text-gray-600">
-            Listed: {new Date(product.created_at).toLocaleDateString()}
-          </Text>
-          <Text className="text-gray-600">
-            Last updated: {new Date(product.updated_at).toLocaleDateString()}
-          </Text>
+          <Text className="mb-3 text-lg font-semibold text-gray-900">Additional Information</Text>
+          <Text className="mb-1 text-gray-600">Listed: {new Date(product.created_at).toLocaleDateString()}</Text>
+          <Text className="text-gray-600">Last updated: {new Date(product.updated_at).toLocaleDateString()}</Text>
         </View>
 
         <View className="mt-2 bg-white">
           <View className="p-4 border-b border-gray-200">
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-lg font-semibold text-gray-900">
-                Reviews ({reviews.length || 0})
-              </Text>
+              <Text className="text-lg font-semibold text-gray-900">Reviews ({reviews.length || 0})</Text>
               <TouchableOpacity
                 onPress={() => setShowReviewFilters(true)}
                 className="flex-row items-center px-3 py-2 bg-gray-100 rounded-lg"
               >
                 <Feather name="filter" size={16} color="#6B7280" />
-                <Text className="ml-1 text-sm text-gray-600">
-                  Filter & Sort
-                </Text>
+                <Text className="ml-1 text-sm text-gray-600">Filter & Sort</Text>
               </TouchableOpacity>
             </View>
 
             <View className="flex-row items-center mb-3">
               <Text className="mr-2 text-sm text-gray-600">Showing:</Text>
               <View className="px-2 py-1 bg-orange-100 rounded-full">
-                <Text className="text-xs font-medium text-orange-800">
-                  {getFilterDisplayText()}
-                </Text>
+                <Text className="text-xs font-medium text-orange-800">{getFilterDisplayText()}</Text>
               </View>
             </View>
 
@@ -863,13 +823,9 @@ const ProductDetailsScreen = () => {
               <View className="flex-row items-center mb-4">
                 <View className="flex-row items-center mr-4">
                   {renderStarRating(Math.round(product.average_rating), 20)}
-                  <Text className="ml-2 text-xl font-bold text-gray-900">
-                    {product.average_rating.toFixed(1)}
-                  </Text>
+                  <Text className="ml-2 text-xl font-bold text-gray-900">{product.average_rating.toFixed(1)}</Text>
                 </View>
-                <Text className="text-gray-600">
-                  Based on {product.review_count} reviews
-                </Text>
+                <Text className="text-gray-600">Based on {product.review_count} reviews</Text>
               </View>
             )}
           </View>
@@ -884,23 +840,15 @@ const ProductDetailsScreen = () => {
             ) : reviews.length === 0 ? (
               <View className="items-center py-8">
                 <Feather name="message-square" size={48} color="#9CA3AF" />
-                <Text className="mt-2 text-lg font-medium text-gray-600">
-                  {getNoReviewsMessage().title}
-                </Text>
-                <Text className="text-gray-500">
-                  {getNoReviewsMessage().subtitle}
-                </Text>
+                <Text className="mt-2 text-lg font-medium text-gray-600">{getNoReviewsMessage().title}</Text>
+                <Text className="text-gray-500">{getNoReviewsMessage().subtitle}</Text>
               </View>
             ) : (
               <>
                 <FlatList
                   data={reviews}
                   renderItem={({ item }) => (
-                    <ReviewItem
-                      review={item}
-                      onHelpful={handleReviewHelpful}
-                      onMediaPress={handleMediaPress}
-                    />
+                    <ReviewItem review={item} onHelpful={handleReviewHelpful} onMediaPress={handleMediaPress} />
                   )}
                   keyExtractor={(item) => item.id.toString()}
                   scrollEnabled={false}
@@ -916,17 +864,14 @@ const ProductDetailsScreen = () => {
                     {loadingMoreReviews ? (
                       <ActivityIndicator color="#EA580C" />
                     ) : (
-                      <Text className="font-medium text-orange-600">
-                        Load More Reviews
-                      </Text>
+                      <Text className="font-medium text-orange-600">Load More Reviews</Text>
                     )}
                   </TouchableOpacity>
                 )}
 
                 <View className="items-center mt-4">
                   <Text className="text-sm text-gray-500">
-                    Showing {reviews.length} of {reviewPagination.totalItems}{" "}
-                    reviews
+                    Showing {reviews.length} of {reviewPagination.totalItems} reviews
                   </Text>
                 </View>
               </>
@@ -942,24 +887,18 @@ const ProductDetailsScreen = () => {
             {product.bargaining_enabled === 1 && (
               <TouchableOpacity
                 className={`flex-1 items-center justify-center p-4 border-2 border-blue-600 rounded-lg ${
-                  product.stock_quantity === 0 || checkingBargain
-                    ? "opacity-50"
-                    : ""
+                  product.stock_quantity === 0 || checkingBargain ? "opacity-50" : ""
                 }`}
                 onPress={() => {
                   if (!user) {
-                    Alert.alert(
-                      "Login Required",
-                      "Please login to make an offer",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Login",
-                          onPress: () => navigation.navigate("Login"),
-                        },
-                      ]
-                    );
-                    return;
+                    Alert.alert("Login Required", "Please login to make an offer", [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Login",
+                        onPress: () => navigation.navigate("Login"),
+                      },
+                    ])
+                    return
                   }
 
                   if (ongoingBargain) {
@@ -978,10 +917,10 @@ const ProductDetailsScreen = () => {
                             }),
                         },
                         { text: "OK" },
-                      ]
-                    );
+                      ],
+                    )
                   } else {
-                    setShowBargainModal(true);
+                    setShowBargainModal(true)
                   }
                 }}
                 disabled={product.stock_quantity === 0 || checkingBargain}
@@ -991,9 +930,7 @@ const ProductDetailsScreen = () => {
                 ) : (
                   <>
                     <Feather name="tag" size={20} color="#2563EB" />
-                    <Text
-                      className={`mt-1 font-semibold text-blue-600 ${ongoingBargain ? "text-xs" : ""}`}
-                    >
+                    <Text className={`mt-1 font-semibold text-blue-600 ${ongoingBargain ? "text-xs" : ""}`}>
                       {ongoingBargain ? "Pending Offer" : "Make Offer"}
                     </Text>
                   </>
@@ -1011,21 +948,28 @@ const ProductDetailsScreen = () => {
               ) : (
                 <>
                   <Feather name="shopping-cart" size={20} color="#EA580C" />
-                  <Text className="mt-1 font-semibold text-orange-600">
-                    Add to Cart
-                  </Text>
+                  <Text className="mt-1 font-semibold text-orange-600">Add to Cart</Text>
                 </>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity
-              className={`flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
-              onPress={handleBuyNow}
-              disabled={product.stock_quantity === 0}
-            >
-              <Feather name="zap" size={20} color="white" />
-              <Text className="mt-1 font-semibold text-white">Buy Now</Text>
-            </TouchableOpacity>
+            {product.stock_quantity === 0 ? (
+              <TouchableOpacity
+                className="flex-1 items-center justify-center p-4 bg-purple-600 rounded-lg"
+                onPress={handlePreOrder}
+              >
+                <MaterialCommunityIcons name="calendar-clock" size={20} color="white" />
+                <Text className="mt-1 font-semibold text-white">Pre-Order</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                className="flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg"
+                onPress={handleBuyNow}
+              >
+                <Feather name="zap" size={20} color="white" />
+                <Text className="mt-1 font-semibold text-white">Buy Now</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       )}
@@ -1038,9 +982,7 @@ const ProductDetailsScreen = () => {
       >
         <KeyboardAvoidingView
           className="flex-1"
-          behavior={
-            Platform.OS === "android" && !keyBoardVisibility ? null : "padding"
-          }
+          behavior={Platform.OS === "android" && !keyBoardVisibility ? null : "padding"}
           style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         >
           <View className="justify-end flex-1">
@@ -1054,27 +996,20 @@ const ProductDetailsScreen = () => {
 
               {/* Product Info */}
               <View className="flex-row p-4 mb-4 rounded-lg bg-gray-50">
-                <Image
-                  source={{ uri: product?.image_keys }}
-                  className="w-16 h-16 rounded-lg"
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: product?.image_keys }} className="w-16 h-16 rounded-lg" resizeMode="cover" />
                 <View className="flex-1 ml-3">
                   <Text className="text-lg font-semibold" numberOfLines={2}>
                     {product?.name}
                   </Text>
                   <Text className="text-sm text-gray-600">
-                    Original Price: ₱
-                    {Number.parseFloat(product?.price || 0).toFixed(2)}
+                    Original Price: ₱{Number.parseFloat(product?.price || 0).toFixed(2)}
                   </Text>
                 </View>
               </View>
 
               {/* Offer Input */}
               <View className="mb-4">
-                <Text className="mb-2 text-lg font-medium">
-                  Your Offer Price
-                </Text>
+                <Text className="mb-2 text-lg font-medium">Your Offer Price</Text>
                 <View className="flex-row items-center p-3 border border-gray-300 rounded-lg">
                   <Text className="mr-2 text-lg font-semibold">₱</Text>
                   <TextInput
@@ -1087,8 +1022,7 @@ const ProductDetailsScreen = () => {
                   />
                 </View>
                 <Text className="mt-1 text-sm text-gray-500">
-                  Enter an amount less than ₱
-                  {Number.parseFloat(product?.price || 0).toFixed(2)}
+                  Enter an amount less than ₱{Number.parseFloat(product.price || 0).toFixed(2)}
                 </Text>
               </View>
 
@@ -1100,10 +1034,7 @@ const ProductDetailsScreen = () => {
                   <View className="p-3 mb-4 rounded-lg bg-green-50">
                     <Text className="text-sm text-green-700">
                       You'll save: ₱
-                      {(
-                        Number.parseFloat(product?.price || 0) -
-                        Number.parseFloat(bargainPrice)
-                      ).toFixed(2)}
+                      {(Number.parseFloat(product.price || 0) - Number.parseFloat(bargainPrice)).toFixed(2)}
                     </Text>
                   </View>
                 )}
@@ -1111,9 +1042,7 @@ const ProductDetailsScreen = () => {
               {/* Submit Button */}
               <TouchableOpacity
                 className={`items-center p-4 rounded-lg ${
-                  bargainPrice.trim() && !submittingBargain
-                    ? "bg-blue-600"
-                    : "bg-gray-300"
+                  bargainPrice.trim() && !submittingBargain ? "bg-blue-600" : "bg-gray-300"
                 }`}
                 onPress={handleBargainOffer}
                 disabled={!bargainPrice.trim() || submittingBargain}
@@ -1121,9 +1050,7 @@ const ProductDetailsScreen = () => {
                 {submittingBargain ? (
                   <ActivityIndicator color="white" size="small" />
                 ) : (
-                  <Text className="text-lg font-semibold text-white">
-                    Send Offer
-                  </Text>
+                  <Text className="text-lg font-semibold text-white">Send Offer</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1137,16 +1064,11 @@ const ProductDetailsScreen = () => {
         animationType="slide"
         onRequestClose={() => setShowReviewFilters(false)}
       >
-        <View
-          className="flex-1"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-        >
+        <View className="flex-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
           <View className="justify-end flex-1">
             <View className="p-6 bg-white rounded-t-3xl max-h-[70%]">
               <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-xl font-semibold">
-                  Filter & Sort Reviews
-                </Text>
+                <Text className="text-xl font-semibold">Filter & Sort Reviews</Text>
                 <TouchableOpacity onPress={() => setShowReviewFilters(false)}>
                   <Feather name="x" size={24} color="black" />
                 </TouchableOpacity>
@@ -1155,26 +1077,20 @@ const ProductDetailsScreen = () => {
               <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Filter by Rating */}
                 <View className="mb-6">
-                  <Text className="mb-3 text-lg font-medium">
-                    Filter by Rating
-                  </Text>
+                  <Text className="mb-3 text-lg font-medium">Filter by Rating</Text>
                   <View className="flex-row flex-wrap">
                     {["all", "5", "4", "3", "2", "1"].map((filter) => (
                       <TouchableOpacity
                         key={filter}
                         onPress={() => {
-                          setReviewFilter(filter);
-                          setShowReviewFilters(false);
+                          setReviewFilter(filter)
+                          setShowReviewFilters(false)
                         }}
                         className={`px-4 py-2 mr-2 mb-2 rounded-full border ${
-                          reviewFilter === filter
-                            ? "bg-orange-600 border-orange-600"
-                            : "bg-white border-gray-300"
+                          reviewFilter === filter ? "bg-orange-600 border-orange-600" : "bg-white border-gray-300"
                         }`}
                       >
-                        <Text
-                          className={`${reviewFilter === filter ? "text-white" : "text-gray-700"}`}
-                        >
+                        <Text className={`${reviewFilter === filter ? "text-white" : "text-gray-700"}`}>
                           {filter === "all" ? "All Ratings" : `${filter} Stars`}
                         </Text>
                       </TouchableOpacity>
@@ -1210,8 +1126,8 @@ const ProductDetailsScreen = () => {
                     <TouchableOpacity
                       key={sort.key}
                       onPress={() => {
-                        setReviewSort(sort.key);
-                        setShowReviewFilters(false);
+                        setReviewSort(sort.key)
+                        setShowReviewFilters(false)
                       }}
                       className={`flex-row items-center p-3 mb-2 rounded-lg ${
                         reviewSort === sort.key ? "bg-orange-50" : "bg-gray-50"
@@ -1219,14 +1135,10 @@ const ProductDetailsScreen = () => {
                     >
                       <View
                         className={`w-5 h-5 rounded-full border-2 mr-3 items-center justify-center ${
-                          reviewSort === sort.key
-                            ? "bg-orange-600 border-orange-600"
-                            : "border-gray-300"
+                          reviewSort === sort.key ? "bg-orange-600 border-orange-600" : "border-gray-300"
                         }`}
                       >
-                        {reviewSort === sort.key && (
-                          <View className="w-2 h-2 bg-white rounded-full" />
-                        )}
+                        {reviewSort === sort.key && <View className="w-2 h-2 bg-white rounded-full" />}
                       </View>
                       <Text className="flex-1">{sort.label}</Text>
                     </TouchableOpacity>
@@ -1244,32 +1156,20 @@ const ProductDetailsScreen = () => {
         animationType="fade"
         onRequestClose={() => setSelectedMediaModal(null)}
       >
-        <View
-          className="flex-1"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.9)" }}
-        >
+        <View className="flex-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.9)" }}>
           <View className="items-center justify-center flex-1">
-            <TouchableOpacity
-              onPress={() => setSelectedMediaModal(null)}
-              className="absolute z-10 p-2 top-16 right-4"
-            >
+            <TouchableOpacity onPress={() => setSelectedMediaModal(null)} className="absolute z-10 p-2 top-16 right-4">
               <Feather name="x" size={28} color="white" />
             </TouchableOpacity>
 
             {selectedMediaModal && (
               <View className="items-center justify-center w-full h-full">
                 {selectedMediaModal.media_type === "image" ? (
-                  <Image
-                    source={{ uri: selectedMediaModal.url }}
-                    className="w-full h-full"
-                    resizeMode="contain"
-                  />
+                  <Image source={{ uri: selectedMediaModal.url }} className="w-full h-full" resizeMode="contain" />
                 ) : (
                   <View className="items-center justify-center flex-1">
                     <Feather name="play-circle" size={64} color="white" />
-                    <Text className="mt-4 text-lg text-white">
-                      Video playback coming soon
-                    </Text>
+                    <Text className="mt-4 text-lg text-white">Video playback coming soon</Text>
                   </View>
                 )}
               </View>
@@ -1278,8 +1178,160 @@ const ProductDetailsScreen = () => {
         </View>
       </Modal>
 
-      {/* Preference Modal */}
       <Modal
+        transparent
+        visible={showPreOrderModal}
+        animationType="slide"
+        onRequestClose={() => setShowPreOrderModal(false)}
+      >
+        <View className="flex-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <View className="justify-end flex-1">
+            <View className="p-6 bg-white rounded-t-3xl max-h-[80%]">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-semibold">Pre-Order Product</Text>
+                <TouchableOpacity onPress={() => setShowPreOrderModal(false)}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Product Info */}
+                <View className="flex-row p-4 mb-4 rounded-lg bg-gray-50">
+                  <Image source={{ uri: product?.image_keys }} className="w-16 h-16 rounded-lg" resizeMode="cover" />
+                  <View className="flex-1 ml-3">
+                    <Text className="text-lg font-semibold" numberOfLines={2}>
+                      {product?.name}
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      Price: ₱{Number.parseFloat(product?.price || 0).toFixed(2)} {formatUnitType(product?.unit_type)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Quantity Selection */}
+                <View className="mb-4">
+                  <Text className="mb-2 text-lg font-medium">Quantity</Text>
+                  <View className="flex-row items-center justify-between p-3 bg-gray-100 rounded-lg">
+                    <TouchableOpacity
+                      className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                      onPress={() => setSelectedQuantity(Math.max(1, selectedQuantity - 1))}
+                    >
+                      <Feather name="minus" size={20} color="black" />
+                    </TouchableOpacity>
+                    <Text className="text-xl font-semibold">{selectedQuantity}</Text>
+                    <TouchableOpacity
+                      className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                      onPress={() => setSelectedQuantity(selectedQuantity + 1)}
+                    >
+                      <Feather name="plus" size={20} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Delivery Date Selection */}
+                <View className="mb-4">
+                  <Text className="mb-2 text-lg font-medium">Preferred Delivery Date</Text>
+                  <TouchableOpacity
+                    className="flex-row items-center p-3 border border-gray-300 rounded-lg"
+                    onPress={() => {
+                      // Simple date picker - set to tomorrow as minimum
+                      const tomorrow = new Date()
+                      tomorrow.setDate(tomorrow.getDate() + (product?.pre_order_lead_time || 1))
+                      setSelectedDeliveryDate(tomorrow.toISOString().split("T")[0])
+                    }}
+                  >
+                    <Feather name="calendar" size={20} color="#6B7280" />
+                    <Text className="flex-1 ml-3 text-gray-700">
+                      {selectedDeliveryDate
+                        ? new Date(selectedDeliveryDate).toLocaleDateString()
+                        : "Select delivery date"}
+                    </Text>
+                  </TouchableOpacity>
+                  {product?.pre_order_lead_time && (
+                    <Text className="mt-1 text-sm text-gray-500">
+                      Minimum {product.pre_order_lead_time} day(s) lead time required
+                    </Text>
+                  )}
+                </View>
+
+                {/* Preparation Options */}
+                {product?.preparation_options && Object.keys(product.preparation_options).length > 0 && (
+                  <View className="mb-4">
+                    <Text className="mb-2 text-lg font-medium">Preparation Options</Text>
+                    {Object.entries(product.preparation_options).map(
+                      ([option, available]) =>
+                        available && (
+                          <TouchableOpacity
+                            key={option}
+                            className={`flex-row items-center p-3 mb-2 rounded-lg border ${
+                              selectedPreparations[option]
+                                ? "bg-purple-50 border-purple-600"
+                                : "bg-gray-50 border-gray-200"
+                            }`}
+                            onPress={() =>
+                              setSelectedPreparations((prev) => ({
+                                ...prev,
+                                [option]: !prev[option],
+                              }))
+                            }
+                          >
+                            <View
+                              className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
+                                selectedPreparations[option] ? "bg-purple-600 border-purple-600" : "border-gray-300"
+                              }`}
+                            >
+                              {selectedPreparations[option] && <Feather name="check" size={12} color="white" />}
+                            </View>
+                            <Text className="flex-1 capitalize">{option.replace("_", " ")}</Text>
+                          </TouchableOpacity>
+                        ),
+                    )}
+                  </View>
+                )}
+
+                {/* Notes */}
+                <View className="mb-4">
+                  <Text className="mb-2 text-lg font-medium">Special Instructions (Optional)</Text>
+                  <TextInput
+                    className="p-3 border border-gray-300 rounded-lg"
+                    placeholder="Any special requests or notes..."
+                    value={preOrderNotes}
+                    onChangeText={setPreOrderNotes}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                </View>
+
+                {/* Total Price */}
+                <View className="p-4 mb-4 rounded-lg bg-purple-50">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-lg font-medium">Total Pre-Order Amount:</Text>
+                    <Text className="text-2xl font-bold text-purple-600">
+                      ₱{(Number.parseFloat(product?.price || 0) * selectedQuantity).toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              </ScrollView>
+
+              {/* Action Button */}
+              <TouchableOpacity
+                className={`items-center p-4 rounded-lg ${selectedDeliveryDate ? "bg-purple-600" : "bg-gray-300"}`}
+                onPress={handleConfirmPreOrder}
+                disabled={!selectedDeliveryDate || addingToCart}
+              >
+                {addingToCart ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-lg font-semibold text-white">Confirm Pre-Order</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+<Modal
         transparent
         visible={showPreferenceModal}
         animationType="slide"
@@ -1413,7 +1465,7 @@ const ProductDetailsScreen = () => {
         </View>
       </Modal>
     </View>
-  );
-};
+  )
+}
 
-export default ProductDetailsScreen;
+export default ProductDetailsScreen

@@ -1,15 +1,15 @@
-const db = require("../../config/db");
-const supabase = require("../../config/supabase");
+const db = require("../../config/db")
+const supabase = require("../../config/supabase")
 
 const getProductById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
     if (!id) {
       return res.status(400).json({
         success: false,
         message: "Product ID is required",
-      });
+      })
     }
 
     const query = `
@@ -33,6 +33,8 @@ const getProductById = async (req, res) => {
         p.updated_at,
         p.bargaining_enabled,
         p.minimum_offer_price,
+        p.pre_order_enabled,
+        p.pre_order_lead_time,
         s.store_name,
         s.store_description,
         s.account_type,
@@ -42,39 +44,35 @@ const getProductById = async (req, res) => {
       FROM products p
       JOIN sellers s ON p.seller_id = s.id
       WHERE p.id = ? AND p.is_active = 1 AND s.is_active = 1
-    `;
+    `
 
-    const [results] = await db.execute(query, [id]);
+    const [results] = await db.execute(query, [id])
 
     if (results.length === 0) {
       return res.status(404).json({
         success: false,
         message: "Product not found",
-      });
+      })
     }
 
-    const product = results[0];
+    const product = results[0]
 
     // Get seller address details with new structure
     const [addresses] = await db.execute(
       "SELECT type, street_address, barangay, city, province, postal_code, landmark, latitude, longitude FROM seller_addresses WHERE application_id = ?",
-      [product.application_id]
-    );
+      [product.application_id],
+    )
 
     // Transform addresses into object-based structure
     const addressData = {
       pickup_address: {},
       return_address: {},
       store_location: {},
-    };
+    }
 
     addresses.forEach((addr) => {
       const addressKey =
-        addr.type === "pickup"
-          ? "pickup_address"
-          : addr.type === "return"
-          ? "return_address"
-          : "store_location";
+        addr.type === "pickup" ? "pickup_address" : addr.type === "return" ? "return_address" : "store_location"
 
       addressData[addressKey] = {
         street_address: addr.street_address,
@@ -85,34 +83,30 @@ const getProductById = async (req, res) => {
         landmark: addr.landmark,
         latitude: addr.latitude,
         longitude: addr.longitude,
-      };
-    });
+      }
+    })
 
     // Generate public URLs for images
-    let productImageUrl = null;
-    let storeLogoUrl = null;
+    let productImageUrl = null
+    let storeLogoUrl = null
 
     // Generate product image URL if image_keys exists
     if (product.image_keys) {
-      const { data } = supabase.storage
-        .from("products")
-        .getPublicUrl(product.image_keys);
-      productImageUrl = data?.publicUrl || null;
+      const { data } = supabase.storage.from("products").getPublicUrl(product.image_keys)
+      productImageUrl = data?.publicUrl || null
     }
 
     // Generate store logo URL if store_logo_key exists
     if (product.store_logo_key) {
-      const { data } = supabase.storage
-        .from("vendor-assets")
-        .getPublicUrl(product.store_logo_key);
-      storeLogoUrl = data?.publicUrl || null;
+      const { data } = supabase.storage.from("vendor-assets").getPublicUrl(product.store_logo_key)
+      storeLogoUrl = data?.publicUrl || null
     }
 
     // Update the product object with the generated URLs
-    product.image_keys = productImageUrl;
-    product.store_logo_key = storeLogoUrl;
+    product.image_keys = productImageUrl
+    product.store_logo_key = storeLogoUrl
 
-    product.address = addressData;
+    product.address = addressData
 
     res.status(200).json({
       success: true,
@@ -120,15 +114,15 @@ const getProductById = async (req, res) => {
       data: {
         product: product,
       },
-    });
+    })
   } catch (error) {
-    console.error("Server error:", error);
+    console.error("Server error:", error)
     res.status(500).json({
       success: false,
       message: "Internal server error",
       error: error.message,
-    });
+    })
   }
-};
+}
 
-module.exports = getProductById;
+module.exports = getProductById

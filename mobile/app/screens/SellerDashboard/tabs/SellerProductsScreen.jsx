@@ -1,64 +1,85 @@
-"use client";
+"use client"
 
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
-  Alert,
-} from "react-native";
-import { useState, useCallback } from "react";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
-import Feather from "@expo/vector-icons/Feather";
-import axios from "axios";
-import { API_URL } from "../../../config/apiConfig";
-import { useAuth } from "../../../context/AuthContext";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert } from "react-native"
+import { useState, useCallback } from "react"
+import { useFocusEffect, useRoute } from "@react-navigation/native"
+import Feather from "@expo/vector-icons/Feather"
+import axios from "axios"
+import { API_URL } from "../../../config/apiConfig"
+import { useAuth } from "../../../context/AuthContext"
 
 const SellerProductsScreen = ({ navigation }) => {
-  const route = useRoute();
-  const { token } = useAuth();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const route = useRoute()
+  const { token } = useAuth()
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useFocusEffect(
     useCallback(() => {
-      fetchProducts();
-    }, [])
-  );
+      fetchProducts()
+    }, []),
+  )
 
   const fetchProducts = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       const response = await axios.get(`${API_URL}/api/seller/products`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      })
 
       if (response.data.success) {
-        setProducts(response.data.data.products);
+        setProducts(response.data.data.products)
       }
     } catch (error) {
-      console.error("Error fetching products:", error);
-      Alert.alert("Error", "Failed to load products");
+      console.error("Error fetching products:", error)
+      Alert.alert("Error", "Failed to load products")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const togglePreOrderStatus = async (productId, currentStatus) => {
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/seller/products/${productId}/pre-order`,
+        {
+          pre_order_enabled: !currentStatus,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+
+      if (response.data.success) {
+        // Update local state
+        setProducts(
+          products.map((product) =>
+            product.id === productId ? { ...product, pre_order_enabled: !currentStatus } : product,
+          ),
+        )
+        Alert.alert("Success", `Pre-order ${!currentStatus ? "enabled" : "disabled"} for this product`)
+      }
+    } catch (error) {
+      console.error("Error updating pre-order status:", error)
+      Alert.alert("Error", "Failed to update pre-order status")
+    }
+  }
 
   const formatPrice = (price) => {
-    return `₱${Number.parseFloat(price).toFixed(2)}`;
-  };
+    return `₱${Number.parseFloat(price).toFixed(2)}`
+  }
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    });
-  };
+    })
+  }
 
   const ProductCard = ({ product }) => (
     <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg">
@@ -66,11 +87,7 @@ const SellerProductsScreen = ({ navigation }) => {
         {/* Product Image */}
         <View className="w-20 h-20 mr-4 bg-gray-100 rounded-lg">
           {product.image_keys ? (
-            <Image
-              source={{ uri: product.image_keys }}
-              className="w-full h-full rounded-lg"
-              resizeMode="cover"
-            />
+            <Image source={{ uri: product.image_keys }} className="w-full h-full rounded-lg" resizeMode="cover" />
           ) : (
             <View className="items-center justify-center w-full h-full bg-gray-200 rounded-lg">
               <Feather name="image" size={24} color="#9ca3af" />
@@ -81,18 +98,11 @@ const SellerProductsScreen = ({ navigation }) => {
         {/* Product Details */}
         <View className="flex-1">
           <View className="flex-row items-start justify-between">
-            <Text
-              className="flex-1 text-lg font-semibold text-gray-900"
-              numberOfLines={2}
-            >
+            <Text className="flex-1 text-lg font-semibold text-gray-900" numberOfLines={2}>
               {product.name}
             </Text>
-            <View
-              className={`ml-2 px-2 py-1 rounded-full ${product.is_active ? "bg-green-100" : "bg-red-100"}`}
-            >
-              <Text
-                className={`text-xs font-medium ${product.is_active ? "text-green-800" : "text-red-800"}`}
-              >
+            <View className={`ml-2 px-2 py-1 rounded-full ${product.is_active ? "bg-green-100" : "bg-red-100"}`}>
+              <Text className={`text-xs font-medium ${product.is_active ? "text-green-800" : "text-red-800"}`}>
                 {product.is_active ? "Active" : "Inactive"}
               </Text>
             </View>
@@ -105,25 +115,27 @@ const SellerProductsScreen = ({ navigation }) => {
           )}
 
           <View className="flex-row items-center justify-between mt-2">
-            <Text className="text-lg font-bold text-blue-600">
-              {formatPrice(product.price)}
-            </Text>
-            <Text className="text-sm text-gray-500">
-              Stock: {product.stock_quantity}
-            </Text>
+            <Text className="text-lg font-bold text-blue-600">{formatPrice(product.price)}</Text>
+            <Text className="text-sm text-gray-500">Stock: {product.stock_quantity}</Text>
           </View>
 
           {product.category && (
             <View className="mt-1">
-              <Text className="text-xs text-gray-500">
-                Category: {product.category}
-              </Text>
+              <Text className="text-xs text-gray-500">Category: {product.category}</Text>
             </View>
           )}
 
-          <Text className="mt-1 text-xs text-gray-400">
-            Added: {formatDate(product.created_at)}
-          </Text>
+          {product.pre_order_enabled && (
+            <View className="flex-row items-center mt-1">
+              <Feather name="calendar" size={12} color="#8B5CF6" />
+              <Text className="ml-1 text-xs font-medium text-purple-600">Pre-order Available</Text>
+              {product.pre_order_lead_time && (
+                <Text className="ml-2 text-xs text-gray-500">({product.pre_order_lead_time} days lead time)</Text>
+              )}
+            </View>
+          )}
+
+          <Text className="mt-1 text-xs text-gray-400">Added: {formatDate(product.created_at)}</Text>
         </View>
       </View>
 
@@ -132,14 +144,20 @@ const SellerProductsScreen = ({ navigation }) => {
         <TouchableOpacity className="flex-1 py-2 border border-gray-300 rounded-lg">
           <Text className="font-medium text-center text-gray-700">Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="flex-1 py-2 bg-blue-600 rounded-lg">
-          <Text className="font-medium text-center text-white">
-            View Details
+        <TouchableOpacity
+          className={`flex-1 py-2 rounded-lg ${product.pre_order_enabled ? "bg-purple-600" : "bg-gray-200"}`}
+          onPress={() => togglePreOrderStatus(product.id, product.pre_order_enabled)}
+        >
+          <Text className={`font-medium text-center ${product.pre_order_enabled ? "text-white" : "text-gray-700"}`}>
+            {product.pre_order_enabled ? "Pre-order ON" : "Enable Pre-order"}
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="flex-1 py-2 bg-blue-600 rounded-lg">
+          <Text className="font-medium text-center text-white">View Details</Text>
         </TouchableOpacity>
       </View>
     </View>
-  );
+  )
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -165,9 +183,7 @@ const SellerProductsScreen = ({ navigation }) => {
           <View className="items-center justify-center py-20 mt-10 bg-white border border-gray-200 rounded-lg">
             <Feather name="package" size={48} color="#d1d5db" />
             <Text className="mt-4 text-lg font-medium">No Products Yet</Text>
-            <Text className="mt-1 text-gray-500">
-              Click "Add New" to list your first product.
-            </Text>
+            <Text className="mt-1 text-gray-500">Click "Add New" to list your first product.</Text>
           </View>
         ) : (
           <View>
@@ -181,7 +197,7 @@ const SellerProductsScreen = ({ navigation }) => {
         )}
       </ScrollView>
     </View>
-  );
-};
+  )
+}
 
-export default SellerProductsScreen;
+export default SellerProductsScreen
