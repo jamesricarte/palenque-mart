@@ -1,98 +1,124 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import Feather from "@expo/vector-icons/Feather";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import axios from "axios";
+import { useEffect } from "react"
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
+import { View, TouchableOpacity, Text } from "react-native"
+import Ionicons from "@expo/vector-icons/Ionicons"
+import Feather from "@expo/vector-icons/Feather"
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
+import axios from "axios"
 
-import { useSeller } from "../../context/SellerContext";
-import { API_URL } from "../../config/apiConfig";
+import { useSeller } from "../../context/SellerContext"
+import { API_URL } from "../../config/apiConfig"
 
-import SellerOverviewScreen from "./tabs/SellerOverviewScreen";
-import SellerProductsScreen from "./tabs/SellerProductsScreen";
-import SellerOrdersScreen from "./tabs/SellerOrdersScreen";
-import SellerStoreAccountScreen from "./tabs/SellerStoreAccountScreen";
-import SellerChatScreen from "./tabs/SellerChatScreen";
-import SellerAnalyticsScreen from "./tabs/SellerAnalyticsScreen";
+import SellerOverviewScreen from "./tabs/SellerOverviewScreen"
+import SellerProductsScreen from "./tabs/SellerProductsScreen"
+import SellerOrdersScreen from "./tabs/SellerOrdersScreen"
+import SellerStoreAccountScreen from "./tabs/SellerStoreAccountScreen"
+import SellerChatScreen from "./tabs/SellerChatScreen"
+import CreateLivestreamScreen from "../CreateLivestream/CreateLivestreamScreen"
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator()
 
-const SellerDashboard = () => {
-  const {
-    enterSellerDashboard,
-    exitSellerDashboard,
-    setTriggerWebSocket,
-    refreshOrdersData,
-    setSellerId,
-  } = useSeller();
+const SellerDashboard = ({ navigation }) => {
+  const { enterSellerDashboard, exitSellerDashboard, setTriggerWebSocket, refreshOrdersData, setSellerId } = useSeller()
 
   useEffect(() => {
-    enterSellerDashboard();
-    fetchSellerData();
-    fetchOrders();
+    enterSellerDashboard()
+    fetchSellerData()
+    fetchOrders()
 
     return () => {
-      exitSellerDashboard();
-    };
-  }, []);
+      exitSellerDashboard()
+    }
+  }, [])
 
   useEffect(() => {
-    if (refreshOrdersData) fetchOrders();
-  }, [refreshOrdersData]);
+    if (refreshOrdersData) fetchOrders()
+  }, [refreshOrdersData])
 
   const fetchSellerData = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/seller/store-profile`);
+      const response = await axios.get(`${API_URL}/api/seller/store-profile`)
 
       if (response.data.success) {
-        setSellerId(response.data.data.id);
+        setSellerId(response.data.data.id)
       }
     } catch (error) {
-      console.error("Error fetching seller data:", error);
+      console.error("Error fetching seller data:", error)
     }
-  };
+  }
 
   const fetchOrders = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/seller/orders`, {
         params: { status: "all" },
-      });
+      })
 
       if (response.data.success) {
-        // triggerWebSocket &&
-        //   console.log("triggered WebSocket from Seller Dashboard Screen");
-        setTriggerWebSocket(true);
+        setTriggerWebSocket(true)
       }
     } catch (error) {
-      console.error(
-        "Error fetching orders:",
-        error.response?.data || error.message
-      );
+      console.error("Error fetching orders:", error.response?.data || error.message)
     }
-  };
+  }
+
+  const CustomTabBar = ({ state, descriptors, navigation }) => {
+    return (
+      <View className="flex-row bg-white border-t border-gray-200" style={{ height: 80 }}>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key]
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+                ? options.title
+                : route.name
+          const isFocused = state.index === index
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            })
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name)
+            }
+          }
+
+          return (
+            <TouchableOpacity key={route.key} onPress={onPress} className="flex-1 items-center justify-center py-2">
+              <View className="items-center">
+                {options.tabBarIcon &&
+                  options.tabBarIcon({
+                    color: isFocused ? "#1e40af" : "#6b7280",
+                    size: 24,
+                  })}
+                <Text className={`text-xs mt-1 ${isFocused ? "text-blue-600" : "text-gray-500"}`}>{label}</Text>
+              </View>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+    )
+  }
 
   return (
     <Tab.Navigator
       initialRouteName="SellerOverview"
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#1e40af",
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopColor: "#e5e7eb",
-        },
       }}
     >
       <Tab.Screen
         name="SellerOverview"
         component={SellerOverviewScreen}
         options={{
-          title: "Overview",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="analytics" size={size} color={color} />
-          ),
+          title: "Home",
+          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
         }}
       />
       <Tab.Screen
@@ -100,9 +126,15 @@ const SellerDashboard = () => {
         component={SellerProductsScreen}
         options={{
           title: "Products",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="package" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Feather name="package" size={size} color={color} />,
+        }}
+      />
+      <Tab.Screen
+        name="CreateLivestream"
+        component={CreateLivestreamScreen}
+        options={{
+          title: "Live",
+          tabBarIcon: ({ color, size }) => <Ionicons name="videocam-outline" size={size} color={color} />,
         }}
       />
       <Tab.Screen
@@ -110,29 +142,16 @@ const SellerDashboard = () => {
         component={SellerOrdersScreen}
         options={{
           title: "Orders",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="shopping-bag" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Feather name="shopping-bag" size={size} color={color} />,
         }}
       />
-      <Tab.Screen
-        name="SellerAnalytics"
-        component={SellerAnalyticsScreen}
-        options={{
-          title: "Analytics",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bar-chart" size={size} color={color} />
-          ),
-        }}
-      />
+
       <Tab.Screen
         name="SellerChat"
         component={SellerChatScreen}
         options={{
           title: "Chat",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles-outline" size={size} color={color} />,
         }}
       />
       <Tab.Screen
@@ -141,16 +160,12 @@ const SellerDashboard = () => {
         options={{
           title: "Store Account",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons
-              name="storefront-outline"
-              size={size}
-              color={color}
-            />
+            <MaterialCommunityIcons name="storefront-outline" size={size} color={color} />
           ),
         }}
       />
     </Tab.Navigator>
-  );
-};
+  )
+}
 
-export default SellerDashboard;
+export default SellerDashboard
