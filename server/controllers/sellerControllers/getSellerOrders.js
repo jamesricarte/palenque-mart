@@ -27,8 +27,15 @@ const getSellerOrders = async (req, res) => {
     const queryParams = [sellerId];
 
     if (status && status !== "all") {
-      statusFilter = "AND o.status = ?";
-      queryParams.push(status);
+      if (status === "preorder") {
+        // Filter orders that contain pre-order items
+        statusFilter =
+          "AND EXISTS (SELECT 1 FROM order_items oi2 JOIN products p2 ON oi2.product_id = p2.id WHERE oi2.order_id = o.id AND oi2.seller_id = ? AND p2.is_preorder_enabled = 1)";
+        queryParams.push(sellerId);
+      } else {
+        statusFilter = "AND o.status = ?";
+        queryParams.push(status);
+      }
     }
 
     // Get orders that contain items from this seller
@@ -90,7 +97,9 @@ const getSellerOrders = async (req, res) => {
             oi.*,
             p.name as product_name,
             p.image_keys,
-            p.unit_type
+            p.unit_type,
+            p.is_preorder_enabled,
+            p.expected_availability_date
           FROM order_items oi
           JOIN products p ON oi.product_id = p.id
           WHERE oi.order_id = ? AND oi.seller_id = ?
@@ -144,14 +153,26 @@ const getSellerOrders = async (req, res) => {
     );
 
     // Get total count
-    const totalCountStatusFilter =
-      statusFilter === "AND o.status = ?" ? "AND o.status = ?" : "";
+    let totalCountStatusFilter = "";
+    const countQueryParams = [sellerId];
+
+    if (status && status !== "all") {
+      if (status === "preorder") {
+        totalCountStatusFilter =
+          "AND EXISTS (SELECT 1 FROM order_items oi2 JOIN products p2 ON oi2.product_id = p2.id WHERE oi2.order_id = o.id AND oi2.seller_id = ? AND p2.is_preorder_enabled = 1)";
+        countQueryParams.push(sellerId);
+      } else {
+        totalCountStatusFilter = "AND o.status = ?";
+        countQueryParams.push(status);
+      }
+    }
+
     const [countResult] = await db.execute(
       `SELECT COUNT(DISTINCT o.id) as total 
        FROM orders o
        JOIN order_items oi ON o.id = oi.order_id
        WHERE oi.seller_id = ? ${totalCountStatusFilter}`,
-      status && status !== "all" ? [sellerId, status] : [sellerId]
+      countQueryParams
     );
 
     const total = countResult[0].total;

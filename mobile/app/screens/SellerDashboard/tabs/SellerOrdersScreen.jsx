@@ -38,6 +38,7 @@ const SellerOrdersScreen = ({ navigation }) => {
 
   const statusOptions = [
     { value: "all", label: "All Orders", color: "#6B7280", count: 0 },
+    { value: "preorder", label: "Pre-orders", color: "#8B5CF6", count: 0 },
     {
       value: "pending",
       label: "New Orders",
@@ -115,7 +116,6 @@ const SellerOrdersScreen = ({ navigation }) => {
         description: "Order is ready for pickup by delivery partner",
       },
     ],
-    // Removed ready_for_pickup and out_for_delivery actions as requested
   };
 
   const fetchOrders = async (showFilterLoading = false) => {
@@ -133,11 +133,16 @@ const SellerOrdersScreen = ({ navigation }) => {
 
       if (response.data.success) {
         setOrders(response.data.data.orders);
-        // Update status counts
         const allOrders = response.data.data.orders;
         statusOptions.forEach((status) => {
           if (status.value === "all") {
             status.count = allOrders.length;
+          } else if (status.value === "preorder") {
+            status.count = allOrders.filter(
+              (order) =>
+                order.items &&
+                order.items.some((item) => item.is_preorder_enabled === 1)
+            ).length;
           } else {
             status.count = allOrders.filter(
               (order) => order.status === status.value
@@ -145,8 +150,6 @@ const SellerOrdersScreen = ({ navigation }) => {
           }
         });
 
-        // triggerWebSocket &&
-        //   console.log("triggered WebSocket from Seller Orders Screen");
         setTriggerWebSocket(true);
       }
     } catch (error) {
@@ -193,14 +196,12 @@ const SellerOrdersScreen = ({ navigation }) => {
       );
 
       if (response.data.success) {
-        // If status is ready_for_pickup, create delivery assignment
         if (newStatus === "ready_for_pickup") {
           try {
             await createDeliveryAssignment(orderId);
             console.log("Delivery assignment created successfully");
           } catch (error) {
             console.error("Error creating delivery assignment:", error);
-            // Don't fail the status update if delivery assignment creation fails
           }
         }
 
@@ -277,194 +278,232 @@ const SellerOrdersScreen = ({ navigation }) => {
     return urgentStatuses.includes(order.status);
   };
 
-  const renderOrderCard = (order) => (
-    <TouchableOpacity
-      key={order.id}
-      onPress={() => navigateToOrderDetails(order.id)}
-      className={`mx-4 mt-4 bg-white rounded-lg shadow-sm ${
-        getOrderPriority(order) ? "border-l-4 border-orange-500" : ""
-      }`}
-    >
-      {/* Order Header */}
-      <View className="p-4 border-b border-gray-100">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1">
-            <Text className="text-lg font-semibold">{order.order_number}</Text>
-            <Text className="mt-1 text-sm text-gray-500">
-              {formatDate(order.created_at)}
-            </Text>
-          </View>
-          <View className="items-end">
-            <View
-              className="px-3 py-1 rounded-full"
-              style={{
-                backgroundColor: `${getStatusColor(order.status)}20`,
-              }}
-            >
-              <Text
-                className="text-sm font-medium"
-                style={{ color: getStatusColor(order.status) }}
-              >
-                {getStatusLabel(order.status)}
-              </Text>
-            </View>
-            {getOrderPriority(order) && (
-              <View className="flex-row items-center mt-1">
-                <Feather name="clock" size={12} color="#F59E0B" />
-                <Text className="ml-1 text-xs font-medium text-orange-600">
-                  Needs Attention
+  const renderOrderCard = (order) => {
+    const hasPreorderItems =
+      order.items && order.items.some((item) => item.is_preorder_enabled === 1);
+
+    return (
+      <TouchableOpacity
+        key={order.id}
+        onPress={() => navigateToOrderDetails(order.id)}
+        className={`mx-4 mt-4 bg-white rounded-lg shadow-sm ${
+          getOrderPriority(order) ? "border-l-4 border-orange-500" : ""
+        } ${hasPreorderItems ? "border-r-4 border-purple-500" : ""}`}
+      >
+        <View className="p-4 border-b border-gray-100">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text className="text-lg font-semibold">
+                  {order.order_number}
                 </Text>
               </View>
-            )}
-          </View>
-        </View>
+              <Text className="mt-1 text-sm text-gray-500">
+                {formatDate(order.created_at)}
+              </Text>
+            </View>
+            <View className="items-end gap-1.5">
+              {hasPreorderItems && (
+                <View className="px-3 py-1 bg-purple-100 rounded-full">
+                  <Text className="text-sm font-medium text-purple-800">
+                    Pre-order
+                  </Text>
+                </View>
+              )}
+              <View
+                className="px-3 py-1 rounded-full"
+                style={{
+                  backgroundColor: `${getStatusColor(order.status)}20`,
+                }}
+              >
+                <Text
+                  className="text-sm font-medium"
+                  style={{ color: getStatusColor(order.status) }}
+                >
+                  {getStatusLabel(order.status)}
+                </Text>
+              </View>
 
-        <View className="flex-row items-center justify-between mt-2">
-          <Text className="text-sm text-gray-700">
-            {order.customer_first_name} {order.customer_last_name}
-          </Text>
-          <Text className="text-lg font-semibold text-orange-600">
-            {formatCurrency(order.seller_total_amount)}
-          </Text>
-        </View>
-      </View>
-
-      {/* Order Items Display - First Item with Image */}
-      {order.items && order.items.length > 0 && (
-        <View className="px-4 py-3 border-b border-gray-100">
-          <View className="flex-row items-center">
-            {/* First Item Image */}
-            <View className="w-12 h-12 mr-3 bg-gray-200 rounded-lg">
-              {order.items[0].image_keys ? (
-                <Image
-                  source={{ uri: order.items[0].image_keys }}
-                  className="w-full h-full rounded-lg"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="flex items-center justify-center w-full h-full">
-                  <MaterialCommunityIcons
-                    name="image-off-outline"
-                    size={20}
-                    color="#6B7280"
-                  />
+              {getOrderPriority(order) && (
+                <View className="flex-row items-center">
+                  <Feather name="clock" size={12} color="#F59E0B" />
+                  <Text className="ml-1 text-xs font-medium text-orange-600">
+                    Needs Attention
+                  </Text>
                 </View>
               )}
             </View>
+          </View>
 
-            {/* Item Details */}
-            <View className="flex-1">
-              <Text className="font-medium text-gray-800" numberOfLines={1}>
-                {order.items[0].product_name}
-              </Text>
-              <Text className="text-sm text-gray-500">
-                Qty: {order.items[0].quantity} •{" "}
-                {formatCurrency(order.items[0].unit_price)} each
-              </Text>
-              {order.items.length > 1 && (
-                <Text className="mt-1 text-xs font-medium text-orange-600">
-                  +{order.items.length - 1} more item
-                  {order.items.length > 2 ? "s" : ""}
-                </Text>
-              )}
-            </View>
+          <View className="flex-row items-center justify-between mt-2">
+            <Text className="text-sm text-gray-700">
+              {order.customer_first_name} {order.customer_last_name}
+            </Text>
+            <Text className="text-lg font-semibold text-orange-600">
+              {formatCurrency(order.seller_total_amount)}
+            </Text>
           </View>
         </View>
-      )}
 
-      {/* Order Summary */}
-      <View className="p-4">
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-sm text-gray-600">
-            {order.item_count} item(s)
-          </Text>
-          <Text className="text-sm text-gray-600 capitalize">
-            {order.payment_method.replace(/_/g, " ")}
-          </Text>
-        </View>
+        {order.items && order.items.length > 0 && (
+          <View className="px-4 py-3 border-b border-gray-100">
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 mr-3 bg-gray-200 rounded-lg">
+                {order.items[0].image_keys ? (
+                  <Image
+                    source={{ uri: order.items[0].image_keys }}
+                    className="w-full h-full rounded-lg"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="flex items-center justify-center w-full h-full">
+                    <MaterialCommunityIcons
+                      name="image-off-outline"
+                      size={20}
+                      color="#6B7280"
+                    />
+                  </View>
+                )}
+              </View>
 
-        {/* Quick Action Buttons - Hidden for ready_for_pickup and out_for_delivery */}
-        {quickActions[order.status] && (
-          <View className="flex-row space-x-2">
-            {quickActions[order.status].map((action, index) => (
-              <TouchableOpacity
-                key={action.value}
-                onPress={() => openQuickActionModal(order)}
-                className={`flex-1 py-3 rounded-lg flex-row items-center justify-center ${
-                  index === 0 ? "bg-orange-500" : "bg-gray-200"
-                }`}
-              >
-                <Feather
-                  name={action.icon}
-                  size={16}
-                  color={index === 0 ? "white" : "#6B7280"}
-                />
-                <Text
-                  className={`ml-2 font-medium ${index === 0 ? "text-white" : "text-gray-700"}`}
+              <View className="flex-1">
+                <View className="flex-row items-center">
+                  <Text className="font-medium text-gray-800" numberOfLines={1}>
+                    {order.items[0].product_name}
+                  </Text>
+                  {order.items[0].is_preorder_enabled === 1 && (
+                    <View className="px-1 py-0.5 ml-2 bg-purple-100 rounded">
+                      <Text className="text-xs font-medium text-purple-800">
+                        Pre
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Text className="text-sm text-gray-500">
+                  Qty: {order.items[0].quantity} •{" "}
+                  {formatCurrency(order.items[0].unit_price)} each
+                </Text>
+                {order.items[0].is_preorder_enabled === 1 &&
+                  order.items[0].expected_availability_date && (
+                    <Text className="text-xs text-purple-600">
+                      Available:{" "}
+                      {formatDate(order.items[0].expected_availability_date)}
+                    </Text>
+                  )}
+                {order.items.length > 1 && (
+                  <Text className="mt-1 text-xs font-medium text-orange-600">
+                    +{order.items.length - 1} more item
+                    {order.items.length > 2 ? "s" : ""}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+
+        <View className="p-4">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-sm text-gray-600">
+              {order.item_count} item(s)
+            </Text>
+            <Text className="text-sm text-gray-600 capitalize">
+              {order.payment_method.replace(/_/g, " ")}
+            </Text>
+          </View>
+
+          {hasPreorderItems && (
+            <View className="p-3 mb-3 border border-purple-200 rounded-lg bg-purple-50">
+              <View className="flex-row items-center">
+                <Feather name="clock" size={16} color="#8B5CF6" />
+                <Text className="ml-2 text-sm font-medium text-purple-800">
+                  Contains Pre-order Items
+                </Text>
+              </View>
+              <Text className="mt-1 text-xs text-purple-600">
+                This order includes items that are available for pre-order
+              </Text>
+            </View>
+          )}
+
+          {quickActions[order.status] && (
+            <View className="flex-row gap-3">
+              {quickActions[order.status].map((action, index) => (
+                <TouchableOpacity
+                  key={action.value}
+                  onPress={() => openQuickActionModal(order)}
+                  className={`flex-1 py-3 rounded-lg flex-row items-center justify-center ${
+                    index === 0 ? "bg-orange-500" : "bg-gray-200"
+                  }`}
                 >
-                  {action.label}
+                  <Feather
+                    name={action.icon}
+                    size={16}
+                    color={index === 0 ? "white" : "#6B7280"}
+                  />
+                  <Text
+                    className={`ml-2 font-medium ${index === 0 ? "text-white" : "text-gray-700"}`}
+                  >
+                    {action.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {order.status === "ready_for_pickup" && (
+            <View className="p-3 mt-3 border border-green-200 rounded-lg bg-green-50">
+              <View className="flex-row items-center">
+                <Feather name="search" size={16} color="#10B981" />
+                <Text className="ml-2 text-sm font-medium text-green-800">
+                  Looking for Delivery Partner
                 </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+              </View>
+              <Text className="mt-1 text-xs text-green-600">
+                Your order is ready and we're finding a delivery partner to pick
+                it up
+              </Text>
+            </View>
+          )}
 
-        {/* Waiting for Pickup Status */}
-        {order.status === "ready_for_pickup" && (
-          <View className="p-3 mt-3 border border-green-200 rounded-lg bg-green-50">
-            <View className="flex-row items-center">
-              <Feather name="search" size={16} color="#10B981" />
-              <Text className="ml-2 text-sm font-medium text-green-800">
-                Looking for Delivery Partner
+          {order.status === "out_for_delivery" && (
+            <View className="p-3 mt-3 border border-blue-200 rounded-lg bg-blue-50">
+              <View className="flex-row items-center">
+                <Feather name="truck" size={16} color="#06B6D4" />
+                <Text className="ml-2 text-sm font-medium text-blue-800">
+                  Out for Delivery
+                </Text>
+              </View>
+              <Text className="mt-1 text-xs text-blue-600">
+                Your order is on the way to the customer
               </Text>
             </View>
-            <Text className="mt-1 text-xs text-green-600">
-              Your order is ready and we're finding a delivery partner to pick
-              it up
-            </Text>
-          </View>
-        )}
+          )}
 
-        {/* Out for Delivery Status */}
-        {order.status === "out_for_delivery" && (
-          <View className="p-3 mt-3 border border-blue-200 rounded-lg bg-blue-50">
-            <View className="flex-row items-center">
-              <Feather name="truck" size={16} color="#06B6D4" />
-              <Text className="ml-2 text-sm font-medium text-blue-800">
-                Out for Delivery
+          {order.status === "rider_assigned" && order.delivery_partner && (
+            <View className="p-3 mt-3 border rounded-lg border-cyan-200 bg-cyan-50">
+              <View className="flex-row items-center">
+                <Feather name="user-check" size={16} color="#06B6D4" />
+                <Text className="ml-2 text-sm font-medium text-cyan-800">
+                  Rider Assigned
+                </Text>
+              </View>
+              <Text className="mt-1 text-xs text-cyan-600">
+                {order.delivery_partner.first_name}{" "}
+                {order.delivery_partner.last_name} will pick up your order
               </Text>
+              <View className="flex-row items-center mt-1">
+                <Feather name="star" size={12} color="#06B6D4" />
+                <Text className="ml-1 text-xs text-cyan-600">
+                  {order.delivery_partner.rating}/5.0 •{" "}
+                  {order.delivery_partner.vehicle_type}
+                </Text>
+              </View>
             </View>
-            <Text className="mt-1 text-xs text-blue-600">
-              Your order is on the way to the customer
-            </Text>
-          </View>
-        )}
-
-        {/* Rider Assigned Status */}
-        {order.status === "rider_assigned" && order.delivery_partner && (
-          <View className="p-3 mt-3 border rounded-lg border-cyan-200 bg-cyan-50">
-            <View className="flex-row items-center">
-              <Feather name="user-check" size={16} color="#06B6D4" />
-              <Text className="ml-2 text-sm font-medium text-cyan-800">
-                Rider Assigned
-              </Text>
-            </View>
-            <Text className="mt-1 text-xs text-cyan-600">
-              {order.delivery_partner.first_name}{" "}
-              {order.delivery_partner.last_name} will pick up your order
-            </Text>
-            <View className="flex-row items-center mt-1">
-              <Feather name="star" size={12} color="#06B6D4" />
-              <Text className="ml-1 text-xs text-cyan-600">
-                {order.delivery_partner.rating}/5.0 •{" "}
-                {order.delivery_partner.vehicle_type}
-              </Text>
-            </View>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -484,7 +523,6 @@ const SellerOrdersScreen = ({ navigation }) => {
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <Text className="text-xl font-semibold">Order Management</Text>
 
-        {/* Status Filter with Counts - Fixed Colors */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -551,7 +589,6 @@ const SellerOrdersScreen = ({ navigation }) => {
         )}
       </ScrollView>
 
-      {/* Quick Action Modal */}
       <Modal
         visible={quickActionModalVisible}
         transparent={true}

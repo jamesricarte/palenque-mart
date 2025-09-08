@@ -46,7 +46,14 @@ const AccountScreen = () => {
       iconType: "ionicon",
       onPress: () => navigation.navigate("Orders"),
     },
-
+    {
+      id: "preorders",
+      title: "My Pre-Orders",
+      subtitle: "Track your pre-order items",
+      icon: "time-outline",
+      iconType: "ionicon",
+      onPress: () => navigation.navigate("PreOrders"),
+    },
     {
       id: "partnership",
       title: "Partnership Options",

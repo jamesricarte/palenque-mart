@@ -1,0 +1,41 @@
+export default {
+  expo: {
+    name: "Palenque Mart",
+    slug: "Palenque Mart",
+    scheme: "palenquemart",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./app/assets/icon.png",
+    userInterfaceStyle: "light",
+    newArchEnabled: true,
+    splash: {
+      image: "./app/assets/splash-icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
+    },
+    ios: {
+      supportsTablet: true,
+      config: {
+        googleMapsApiKey: "AIzaSyCYnz_StMrjKEKNnnCdciltxcNTKa_8yaU",
+      },
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: "./app/assets/adaptive-icon.png",
+        backgroundColor: "#ffffff",
+      },
+      edgeToEdgeEnabled: true,
+      package: "com.anonymous.PalenqueMart",
+      config: {
+        googleMaps: {
+          apiKey: "AIzaSyCYnz_StMrjKEKNnnCdciltxcNTKa_8yaU",
+        },
+      },
+      softwareKeyboardLayoutMode: "resize",
+    },
+    web: {
+      favicon: "./app/assets/favicon.png",
+      bundler: "metro",
+    },
+  },
+};

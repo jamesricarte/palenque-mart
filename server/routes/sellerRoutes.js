@@ -15,6 +15,8 @@ const addProduct = require("../controllers/sellerControllers/addProduct");
 const getStoreProfile = require("../controllers/sellerControllers/getStoreProfile");
 const updateStoreProfile = require("../controllers/sellerControllers/updateStoreProfile");
 const getProducts = require("../controllers/sellerControllers/getProducts");
+const getProductDetails = require("../controllers/sellerControllers/getProductDetails");
+const updateProduct = require("../controllers/sellerControllers/updateProduct");
 
 const getSellerOrders = require("../controllers/sellerControllers/getSellerOrders");
 const updateOrderStatus = require("../controllers/sellerControllers/updateOrderStatus");
@@ -57,6 +59,12 @@ router.put("/store-profile", authenticateToken, updateStoreProfile);
 
 // Route to get seller's products
 router.get("/products", authenticateToken, getProducts);
+
+// Route to get specific product details
+router.get("/products/:productId", authenticateToken, getProductDetails);
+
+// Route to update product
+router.put("/products/:productId", authenticateToken, updateProduct);
 
 // Route to get seller's orders
 router.get("/orders", authenticateToken, getSellerOrders);

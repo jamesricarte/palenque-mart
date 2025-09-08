@@ -53,6 +53,9 @@ const ProductDetailsScreen = () => {
   const [ongoingBargain, setOngoingBargain] = useState(null);
   const [checkingBargain, setCheckingBargain] = useState(true);
 
+  const [showPreOrderModal, setShowPreOrderModal] = useState(false);
+  const [preOrderQuantity, setPreOrderQuantity] = useState(1);
+
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewFilter, setReviewFilter] = useState("all"); // 'all', '5', '4', '3', '2', '1'
@@ -171,6 +174,64 @@ const ProductDetailsScreen = () => {
     } finally {
       setCheckingBargain(false);
     }
+  };
+
+  const isPreOrderAvailable = () => {
+    if (!product) return false;
+
+    const isOutOfStock = product.stock_quantity === 0;
+    const isPreOrderEnabled = product.is_preorder_enabled === 1;
+    const hasValidAvailabilityDate =
+      product.expected_availability_date &&
+      new Date(product.expected_availability_date) > new Date();
+
+    return isOutOfStock && isPreOrderEnabled && hasValidAvailabilityDate;
+  };
+
+  const handlePreOrder = async () => {
+    if (!user) {
+      Alert.alert("Login Required", "Please login to place pre-orders", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () => navigation.navigate("Login") },
+      ]);
+      return;
+    }
+
+    if (isOwnProduct()) {
+      Alert.alert("Cannot Pre-order", "You cannot pre-order your own product");
+      return;
+    }
+
+    setShowPreOrderModal(true);
+  };
+
+  const handleConfirmPreOrder = async () => {
+    setShowPreOrderModal(false);
+
+    const preOrderItem = {
+      id: product.id,
+      product_id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: preOrderQuantity,
+      unit_type: product.unit_type,
+      image_keys: product.image_keys,
+      seller_id: product.seller_id,
+      store_name: product.store_name,
+      store_logo_key: product.store_logo_key,
+      preparation_options: {},
+      total_price: (
+        Number.parseFloat(product.price) * preOrderQuantity
+      ).toFixed(2),
+      is_preorder: true,
+      expected_availability_date: product.expected_availability_date,
+      max_preorder_quantity: product.max_preorder_quantity,
+    };
+
+    navigation.navigate("Checkout", {
+      items: [preOrderItem],
+      fromCart: false,
+    });
   };
 
   useFocusEffect(
@@ -936,71 +997,71 @@ const ProductDetailsScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      {!isOwnProduct() && (
-        <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
-          <View className="flex-row gap-3">
-            {product.bargaining_enabled === 1 && (
-              <TouchableOpacity
-                className={`flex-1 items-center justify-center p-4 border-2 border-blue-600 rounded-lg ${
-                  product.stock_quantity === 0 || checkingBargain
-                    ? "opacity-50"
-                    : ""
-                }`}
-                onPress={() => {
-                  if (!user) {
-                    Alert.alert(
-                      "Login Required",
-                      "Please login to make an offer",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Login",
-                          onPress: () => navigation.navigate("Login"),
-                        },
-                      ]
-                    );
-                    return;
-                  }
+      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+        <View className="flex-row gap-3">
+          {product.bargaining_enabled === 1 && !isPreOrderAvailable() && (
+            <TouchableOpacity
+              className={`flex-1 items-center justify-center p-4 border-2 border-blue-600 rounded-lg ${
+                product.stock_quantity === 0 || checkingBargain
+                  ? "opacity-50"
+                  : ""
+              }`}
+              onPress={() => {
+                if (!user) {
+                  Alert.alert(
+                    "Login Required",
+                    "Please login to make an offer",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Login",
+                        onPress: () => navigation.navigate("Login"),
+                      },
+                    ]
+                  );
+                  return;
+                }
 
-                  if (ongoingBargain) {
-                    Alert.alert(
-                      "Ongoing Bargain",
-                      "You have an ongoing bargain offer for this product. Please wait for the seller's response or check your conversation.",
-                      [
-                        {
-                          text: "View Conversation",
-                          onPress: () =>
-                            navigation.navigate("ChatConversation", {
-                              conversationId: conversationId,
-                              sellerId: product.seller_id,
-                              storeName: product.store_name,
-                              storeLogo: product.store_logo_key,
-                            }),
-                        },
-                        { text: "OK" },
-                      ]
-                    );
-                  } else {
-                    setShowBargainModal(true);
-                  }
-                }}
-                disabled={product.stock_quantity === 0 || checkingBargain}
-              >
-                {checkingBargain ? (
-                  <ActivityIndicator color="#2563EB" />
-                ) : (
-                  <>
-                    <Feather name="tag" size={20} color="#2563EB" />
-                    <Text
-                      className={`mt-1 font-semibold text-blue-600 ${ongoingBargain ? "text-xs" : ""}`}
-                    >
-                      {ongoingBargain ? "Pending Offer" : "Make Offer"}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
+                if (ongoingBargain) {
+                  Alert.alert(
+                    "Ongoing Bargain",
+                    "You have an ongoing bargain offer for this product. Please wait for the seller's response or check your conversation.",
+                    [
+                      {
+                        text: "View Conversation",
+                        onPress: () =>
+                          navigation.navigate("ChatConversation", {
+                            conversationId: conversationId,
+                            sellerId: product.seller_id,
+                            storeName: product.store_name,
+                            storeLogo: product.store_logo_key,
+                          }),
+                      },
+                      { text: "OK" },
+                    ]
+                  );
+                } else {
+                  setShowBargainModal(true);
+                }
+              }}
+              disabled={product.stock_quantity === 0 || checkingBargain}
+            >
+              {checkingBargain ? (
+                <ActivityIndicator color="#2563EB" />
+              ) : (
+                <>
+                  <Feather name="tag" size={20} color="#2563EB" />
+                  <Text
+                    className={`mt-1 font-semibold text-blue-600 ${ongoingBargain ? "text-xs" : ""}`}
+                  >
+                    {ongoingBargain ? "Pending Offer" : "Make Offer"}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
+          {!isPreOrderAvailable() && (
             <TouchableOpacity
               className={`flex-1 items-center justify-center p-4 border-2 border-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
               onPress={handleAddToCart}
@@ -1017,18 +1078,28 @@ const ProductDetailsScreen = () => {
                 </>
               )}
             </TouchableOpacity>
+          )}
 
-            <TouchableOpacity
-              className={`flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
-              onPress={handleBuyNow}
-              disabled={product.stock_quantity === 0}
-            >
-              <Feather name="zap" size={20} color="white" />
-              <Text className="mt-1 font-semibold text-white">Buy Now</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            className={`flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg ${
+              product.stock_quantity === 0 && !isPreOrderAvailable()
+                ? "opacity-50"
+                : ""
+            }`}
+            onPress={isPreOrderAvailable() ? handlePreOrder : handleBuyNow}
+            disabled={product.stock_quantity === 0 && !isPreOrderAvailable()}
+          >
+            <Feather
+              name={isPreOrderAvailable() ? "clock" : "zap"}
+              size={20}
+              color="white"
+            />
+            <Text className="mt-1 font-semibold text-white">
+              {isPreOrderAvailable() ? "Pre Order" : "Buy Now"}
+            </Text>
+          </TouchableOpacity>
         </View>
-      )}
+      </View>
 
       <Modal
         visible={showBargainModal}
@@ -1407,6 +1478,132 @@ const ProductDetailsScreen = () => {
                     {actionType === "cart" ? "Add to Cart" : "Buy Now"}
                   </Text>
                 )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showPreOrderModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowPreOrderModal(false)}
+      >
+        <View
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="justify-end flex-1">
+            <View className="p-6 bg-white rounded-t-3xl">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-semibold">Pre-Order Details</Text>
+                <TouchableOpacity onPress={() => setShowPreOrderModal(false)}>
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Product Info */}
+              <View className="flex-row p-4 mb-4 rounded-lg bg-gray-50">
+                <Image
+                  source={{ uri: product?.image_keys }}
+                  className="w-16 h-16 rounded-lg"
+                  resizeMode="cover"
+                />
+                <View className="flex-1 ml-3">
+                  <Text className="text-lg font-semibold" numberOfLines={2}>
+                    {product?.name}
+                  </Text>
+                  <Text className="text-sm text-gray-600">
+                    Price: ₱{Number.parseFloat(product?.price || 0).toFixed(2)}
+                  </Text>
+                  <Text className="text-sm text-orange-600">
+                    Expected:{" "}
+                    {product?.expected_availability_date
+                      ? new Date(
+                          product.expected_availability_date
+                        ).toLocaleDateString()
+                      : "TBA"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Quantity Selection */}
+              <View className="mb-4">
+                <Text className="mb-2 text-lg font-medium">Quantity</Text>
+                <View className="flex-row items-center justify-between p-3 bg-gray-100 rounded-lg">
+                  <TouchableOpacity
+                    className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                    onPress={() =>
+                      setPreOrderQuantity(Math.max(1, preOrderQuantity - 1))
+                    }
+                  >
+                    <Feather name="minus" size={20} color="black" />
+                  </TouchableOpacity>
+                  <Text className="text-xl font-semibold">
+                    {preOrderQuantity}
+                  </Text>
+                  <TouchableOpacity
+                    className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                    onPress={() =>
+                      setPreOrderQuantity(
+                        Math.min(
+                          product?.max_preorder_quantity || 999,
+                          preOrderQuantity + 1
+                        )
+                      )
+                    }
+                  >
+                    <Feather name="plus" size={20} color="black" />
+                  </TouchableOpacity>
+                </View>
+                <Text className="mt-1 text-sm text-gray-500">
+                  Max: {product?.max_preorder_quantity || "No limit"} available
+                  for pre-order
+                </Text>
+              </View>
+
+              {/* Pre-order Info */}
+              <View className="p-4 mb-4 rounded-lg bg-blue-50">
+                <View className="flex-row items-center mb-2">
+                  <Feather name="info" size={16} color="#2563EB" />
+                  <Text className="ml-2 font-medium text-blue-800">
+                    Pre-Order Information
+                  </Text>
+                </View>
+                <Text className="text-sm text-blue-700">
+                  • This item is currently out of stock{"\n"}• You will be
+                  charged when the item becomes available{"\n"}• Expected
+                  availability:{" "}
+                  {product?.expected_availability_date
+                    ? new Date(
+                        product.expected_availability_date
+                      ).toLocaleDateString()
+                    : "To be announced"}
+                </Text>
+              </View>
+
+              {/* Total Price */}
+              <View className="p-4 mb-4 bg-gray-100 rounded-lg">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-lg font-medium">Total Price:</Text>
+                  <Text className="text-2xl font-bold text-orange-600">
+                    ₱
+                    {(
+                      Number.parseFloat(product?.price || 0) * preOrderQuantity
+                    ).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Action Button */}
+              <TouchableOpacity
+                className="items-center p-4 bg-orange-600 rounded-lg"
+                onPress={handleConfirmPreOrder}
+              >
+                <Text className="text-lg font-semibold text-white">
+                  Confirm Pre-Order
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

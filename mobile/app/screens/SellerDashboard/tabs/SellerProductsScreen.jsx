@@ -87,14 +87,23 @@ const SellerProductsScreen = ({ navigation }) => {
             >
               {product.name}
             </Text>
-            <View
-              className={`ml-2 px-2 py-1 rounded-full ${product.is_active ? "bg-green-100" : "bg-red-100"}`}
-            >
-              <Text
-                className={`text-xs font-medium ${product.is_active ? "text-green-800" : "text-red-800"}`}
+            <View className="flex-row gap-1 ml-2">
+              <View
+                className={`px-2 py-1 rounded-full ${product.is_active ? "bg-green-100" : "bg-red-100"}`}
               >
-                {product.is_active ? "Active" : "Inactive"}
-              </Text>
+                <Text
+                  className={`text-xs font-medium ${product.is_active ? "text-green-800" : "text-red-800"}`}
+                >
+                  {product.is_active ? "Active" : "Inactive"}
+                </Text>
+              </View>
+              {product.is_preorder_enabled === 1 && (
+                <View className="px-2 py-1 bg-blue-100 rounded-full">
+                  <Text className="text-xs font-medium text-blue-800">
+                    Pre-order
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
@@ -121,6 +130,15 @@ const SellerProductsScreen = ({ navigation }) => {
             </View>
           )}
 
+          {product.is_preorder_enabled === 1 &&
+            product.expected_availability_date && (
+              <View className="mt-1">
+                <Text className="text-xs text-blue-600">
+                  Available: {formatDate(product.expected_availability_date)}
+                </Text>
+              </View>
+            )}
+
           <Text className="mt-1 text-xs text-gray-400">
             Added: {formatDate(product.created_at)}
           </Text>
@@ -129,7 +147,12 @@ const SellerProductsScreen = ({ navigation }) => {
 
       {/* Action Buttons */}
       <View className="flex-row gap-2 pt-3 mt-3 border-t border-gray-100">
-        <TouchableOpacity className="flex-1 py-2 border border-gray-300 rounded-lg">
+        <TouchableOpacity
+          className="flex-1 py-2 border border-gray-300 rounded-lg"
+          onPress={() =>
+            navigation.navigate("EditProduct", { productId: product.id })
+          }
+        >
           <Text className="font-medium text-center text-gray-700">Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity className="flex-1 py-2 bg-blue-600 rounded-lg">

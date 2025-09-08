@@ -45,6 +45,7 @@ import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
 import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
 import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
 import SellerChatConversationScreen from "../screens/SellerDashboard/SellerChatConversationScreen";
+import EditProductScreen from "../screens/SellerDashboard/EditProductScreen";
 
 import DeliveryPartnerDashboardScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDashboardScreen";
 import EditDeliveryPartnerProfileScreen from "../screens/DeliveryPartnerDashboard/EditDeliveryPartnerProfileScreen";
@@ -56,6 +57,7 @@ import CheckoutScreen from "../screens/Checkout/CheckoutScreen";
 import OrderConfirmationScreen from "../screens/Orders/OrderConfirmationScreen";
 import OrdersScreen from "../screens/Orders/OrdersScreen";
 import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
+import PreOrdersScreen from "../screens/PreOrders/PreOrdersScreen";
 
 import AddressManagementScreen from "../screens/AddressManagement/AddressManagementScreen";
 import AddNewAddressScreen from "../screens/AddressManagement/AddNewAddressScreen";
@@ -195,6 +197,7 @@ const MainStackNavigator = () => {
         name="SellerChatConversation"
         component={SellerChatConversationScreen}
       />
+      <Stack.Screen name="EditProduct" component={EditProductScreen} />
 
       {/* Delivery Partner Dashboard */}
       <Stack.Screen
@@ -221,6 +224,7 @@ const MainStackNavigator = () => {
       />
       <Stack.Screen name="Orders" component={OrdersScreen} />
       <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+      <Stack.Screen name="PreOrders" component={PreOrdersScreen} />
 
       {/* Settings */}
       {/* Address Management */}

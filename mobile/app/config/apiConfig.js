@@ -13,6 +13,9 @@ if (__DEV__) {
     const debuggerHost = hostUri.split(":")[0];
     API_URL = `http://${debuggerHost}:${port}`;
     WEBSOCKET_URL = `ws://${debuggerHost}:${port}`;
+  } else if (__LAN_IP__) {
+    API_URL = `http://${__LAN_IP__}:${port}`;
+    WEBSOCKET_URL = `ws://${__LAN_IP__}:${port}`;
   } else {
     // Native build environment - use localhost or your local IP
     // You can replace this with your actual local IP address

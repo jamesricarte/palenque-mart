@@ -82,11 +82,22 @@ const createOrder = async (req, res) => {
         };
       }
 
-      // Check stock availability
-      if (product.stock_quantity < item.quantity) {
+      const isPreOrder = item.is_preorder || false;
+      if (!isPreOrder && product.stock_quantity < item.quantity) {
         return res.status(400).json({
           success: false,
           message: `Insufficient stock for ${product.name}. Available: ${product.stock_quantity}, Requested: ${item.quantity}`,
+        });
+      }
+
+      if (
+        isPreOrder &&
+        product.max_preorder_quantity &&
+        item.quantity > product.max_preorder_quantity
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `Pre-order quantity exceeds limit for ${product.name}. Max allowed: ${product.max_preorder_quantity}`,
         });
       }
 
@@ -96,6 +107,7 @@ const createOrder = async (req, res) => {
         unit_price: item.bargain_data?.offer_price || product.price,
         total_price:
           (item.bargain_data?.offer_price || product.price) * item.quantity,
+        is_preorder: isPreOrder,
       });
     }
 
@@ -167,6 +179,19 @@ const createOrder = async (req, res) => {
       const totalAmount = subtotal + deliveryFee - voucherDiscount;
       totalOrderAmount += totalAmount;
 
+      const hasPreOrderItems = sellerData.items.some(
+        (item) => item.is_preorder
+      );
+      const hasRegularItems = sellerData.items.some(
+        (item) => !item.is_preorder
+      );
+      let orderType = "regular";
+      if (hasPreOrderItems && hasRegularItems) {
+        orderType = "mixed";
+      } else if (hasPreOrderItems) {
+        orderType = "preorder";
+      }
+
       // Create order
       const [orderResult] = await connection.execute(
         `INSERT INTO orders (
@@ -174,8 +199,9 @@ const createOrder = async (req, res) => {
           subtotal, delivery_fee, voucher_discount, total_amount, voucher_id,
           delivery_address_id, delivery_recipient_name, delivery_phone_number,
           delivery_street_address, delivery_barangay, delivery_city, 
-          delivery_province, delivery_postal_code, delivery_landmark, delivery_notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          delivery_province, delivery_postal_code, delivery_landmark, delivery_notes,
+          order_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           userId,
           sellerId,
@@ -198,6 +224,7 @@ const createOrder = async (req, res) => {
           deliveryAddress.postal_code,
           deliveryAddress.landmark,
           deliveryNotes,
+          orderType,
         ]
       );
 
@@ -205,7 +232,7 @@ const createOrder = async (req, res) => {
 
       // Create order items
       for (const item of sellerData.items) {
-        await connection.execute(
+        const [orderItemResult] = await connection.execute(
           `INSERT INTO order_items (
             order_id, product_id, seller_id, quantity, unit_price, total_price, preparation_options, bargain_offer_id
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -221,11 +248,33 @@ const createOrder = async (req, res) => {
           ]
         );
 
-        // Update product stock
-        await connection.execute(
-          "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?",
-          [item.quantity, item.productId]
-        );
+        if (item.is_preorder) {
+          const product = item.product;
+          await connection.execute(
+            `INSERT INTO preorder_items (
+              order_item_id, expected_availability_date, deposit_amount, remaining_balance, status
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+              orderItemResult.insertId,
+              product.expected_availability_date,
+              product.preorder_deposit_required
+                ? product.preorder_deposit_amount || 0
+                : 0,
+              item.total_price -
+                (product.preorder_deposit_required
+                  ? product.preorder_deposit_amount || 0
+                  : 0),
+              "pending_availability",
+            ]
+          );
+        }
+
+        if (!item.is_preorder) {
+          await connection.execute(
+            "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?",
+            [item.quantity, item.productId]
+          );
+        }
       }
 
       // Add to order status history
@@ -240,6 +289,7 @@ const createOrder = async (req, res) => {
         sellerId: sellerId,
         storeName: sellerData.store_name,
         totalAmount: totalAmount,
+        orderType: orderType,
       });
     }
 

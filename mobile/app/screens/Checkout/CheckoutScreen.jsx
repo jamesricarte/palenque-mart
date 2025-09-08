@@ -180,6 +180,7 @@ const CheckoutScreen = () => {
         quantity: item.quantity,
         preparationOptions: item.preparation_options || null,
         bargain_data: item.bargain_data ? item.bargain_data : null,
+        is_preorder: item.is_preorder || false,
       }));
 
       const response = await axios.post(`${API_URL}/api/orders/create`, {
@@ -219,6 +220,10 @@ const CheckoutScreen = () => {
       per_dozen: "Per Dozen",
     };
     return unitMap[unitType] || unitType;
+  };
+
+  const hasPreOrderItems = () => {
+    return items.some((item) => item.is_preorder);
   };
 
   if (loading) {
@@ -360,12 +365,29 @@ const CheckoutScreen = () => {
                   </View>
 
                   <View className="flex-1">
-                    <Text className="text-base font-medium text-gray-900">
-                      {item.name}
-                    </Text>
+                    <View className="flex-row items-center">
+                      <Text className="flex-1 text-base font-medium text-gray-900">
+                        {item.name}
+                      </Text>
+                      {item.is_preorder && (
+                        <View className="px-2 py-1 ml-2 bg-blue-100 rounded-full">
+                          <Text className="text-xs font-medium text-blue-600">
+                            Pre-Order
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     <Text className="text-sm text-gray-500">
                       {formatUnitType(item.unit_type)}
                     </Text>
+                    {item.is_preorder && item.expected_availability_date && (
+                      <Text className="text-xs text-blue-600">
+                        Expected:{" "}
+                        {new Date(
+                          item.expected_availability_date
+                        ).toLocaleDateString()}
+                      </Text>
+                    )}
 
                     <View className="flex-row items-center justify-between mt-2">
                       <Text className="text-sm text-gray-600">
@@ -469,6 +491,20 @@ const CheckoutScreen = () => {
           <Text className="mb-3 text-lg font-semibold text-gray-900">
             Payment Method
           </Text>
+          {hasPreOrderItems() && (
+            <View className="p-3 mb-3 rounded-lg bg-blue-50">
+              <View className="flex-row items-center mb-1">
+                <Feather name="info" size={16} color="#2563EB" />
+                <Text className="ml-2 font-medium text-blue-800">
+                  Pre-Order Payment
+                </Text>
+              </View>
+              <Text className="text-sm text-blue-700">
+                Payment will be processed when pre-ordered items become
+                available
+              </Text>
+            </View>
+          )}
           <View className="flex-row items-center p-3 rounded-lg bg-gray-50">
             <MaterialCommunityIcons name="cash" size={24} color="#059669" />
             <Text className="ml-3 font-medium text-gray-900">

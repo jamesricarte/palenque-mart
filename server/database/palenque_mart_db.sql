@@ -96,7 +96,7 @@ CREATE TABLE `cart` (
 
 LOCK TABLES `cart` WRITE;
 /*!40000 ALTER TABLE `cart` DISABLE KEYS */;
-INSERT INTO `cart` VALUES (28,3,4,1,'2025-09-04 02:01:07','2025-09-04 02:01:07',NULL),(42,4,5,2,'2025-09-05 14:06:44','2025-09-05 14:07:18',35);
+INSERT INTO `cart` VALUES (28,3,4,1,'2025-09-04 02:01:07','2025-09-04 02:01:07',NULL),(42,4,5,3,'2025-09-05 14:06:44','2025-09-07 15:59:18',35);
 /*!40000 ALTER TABLE `cart` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -554,6 +554,9 @@ CREATE TABLE `orders` (
   `cancellation_reason` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `order_type` enum('regular','preorder','mixed') DEFAULT 'regular',
+  `preorder_deposit_paid` decimal(10,2) DEFAULT '0.00',
+  `remaining_balance` decimal(10,2) DEFAULT '0.00',
   PRIMARY KEY (`id`),
   UNIQUE KEY `order_number` (`order_number`),
   KEY `idx_user_id` (`user_id`),
@@ -571,8 +574,38 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,4,1,'ORD1756963951034497','pending','cash_on_delivery','paid',220.00,50.00,0.00,270.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:32:31','2025-09-04 05:50:30'),(2,4,1,'ORD1756964767760974','pending','cash_on_delivery','paid',520.00,50.00,0.00,570.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:46:07','2025-09-04 05:50:30'),(3,4,1,'ORD1756964783647963','pending','cash_on_delivery','paid',110.00,50.00,0.00,160.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:46:23','2025-09-04 05:50:30');
+INSERT INTO `orders` VALUES (1,4,1,'ORD1756963951034497','pending','cash_on_delivery','paid',220.00,50.00,0.00,270.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:32:31','2025-09-04 05:50:30','regular',0.00,0.00),(2,4,1,'ORD1756964767760974','pending','cash_on_delivery','paid',520.00,50.00,0.00,570.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:46:07','2025-09-04 05:50:30','regular',0.00,0.00),(3,4,1,'ORD1756964783647963','pending','cash_on_delivery','paid',110.00,50.00,0.00,160.00,NULL,1,'James Ricarte','+639771495824','5 Tomas Cabiles Street','San Juan','Tabaco','Albay','4511','',NULL,NULL,'',NULL,NULL,NULL,NULL,'2025-09-04 05:46:23','2025-09-04 05:50:30','regular',0.00,0.00);
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `preorder_items`
+--
+
+DROP TABLE IF EXISTS `preorder_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `preorder_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `order_item_id` int NOT NULL,
+  `expected_availability_date` timestamp NULL DEFAULT NULL,
+  `deposit_amount` decimal(10,2) DEFAULT NULL,
+  `remaining_balance` decimal(10,2) DEFAULT NULL,
+  `status` enum('pending_availability','available','ready_for_final_payment','completed') DEFAULT NULL,
+  `availability_notified_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_item_id` (`order_item_id`),
+  CONSTRAINT `preorder_items_ibfk_1` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `preorder_items`
+--
+
+LOCK TABLES `preorder_items` WRITE;
+/*!40000 ALTER TABLE `preorder_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `preorder_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -645,6 +678,11 @@ CREATE TABLE `products` (
   `review_count` int DEFAULT '0',
   `bargaining_enabled` tinyint(1) DEFAULT '1' COMMENT 'Whether bargaining is enabled for this product',
   `minimum_offer_price` decimal(10,2) DEFAULT NULL COMMENT 'Minimum acceptable offer price set by seller',
+  `is_preorder_enabled` tinyint(1) DEFAULT '0',
+  `expected_availability_date` timestamp NULL DEFAULT NULL,
+  `preorder_deposit_required` tinyint(1) DEFAULT '0',
+  `preorder_deposit_amount` decimal(10,2) DEFAULT NULL,
+  `max_preorder_quantity` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_seller_id` (`seller_id`),
   KEY `idx_is_active` (`is_active`),
@@ -660,7 +698,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,20,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-09-04 01:56:46',5.00,2,1,NULL),(2,1,'Bulinaw','Really fresh | labas',120.00,3,'Fish','Other','per_500g','Slaughtered this morning','2025-08-30','From Daraga morning','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/bef4f1a5-5691-4f11-9de6-b0a2beeb5be2-photo.jpeg',1,'2025-08-30 04:20:01','2025-09-04 04:44:56',0.00,0,1,NULL),(3,1,'Whole chicken','Fresh whole chicken',220.00,0,'Poultry',NULL,'per_piece',NULL,'2025-08-27','From westwood poultries','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1c813ab9-f8b4-4a7d-923c-d7f8bbd18849-photo.jpeg',1,'2025-08-30 04:42:03','2025-09-04 05:46:23',0.00,0,1,NULL),(4,1,'Sibuyas','',60.00,0,'Vegetables','Root Vegetables','per_500g','Harvested around this summer season','2025-08-21','From vegetables supplier corp','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/fd74459f-73d3-43a2-89f2-80d7c78ae184-photo.jpeg',1,'2025-08-30 04:43:21','2025-09-04 05:46:07',0.00,0,1,NULL),(5,1,'Fresh meat','',140.00,4,'Meat','Pork Chop','per_500g','Slaughtered yesterday','2025-08-29','Source from ate nenang pigery business ','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1dce5705-ad08-4bd4-a5da-f8cb3b743680-photo.jpeg',1,'2025-08-30 04:45:00','2025-09-04 05:46:07',0.00,0,1,NULL);
+INSERT INTO `products` VALUES (1,1,'Tilapia','',120.00,20,'Fish','Tilapia','per_500g','Harvested this morning','2025-08-22','Sourced from Daraga Market','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/eb5f55da-d117-4a98-87a6-1db0b758fefc-photo.jpeg',1,'2025-08-22 13:55:24','2025-09-04 01:56:46',5.00,2,1,NULL,0,NULL,0,NULL,NULL),(2,1,'Bulinaw','Really fresh | labas',120.00,3,'Fish','Other','per_500g','Slaughtered this morning','2025-08-30','From Daraga morning','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/bef4f1a5-5691-4f11-9de6-b0a2beeb5be2-photo.jpeg',1,'2025-08-30 04:20:01','2025-09-04 04:44:56',0.00,0,1,NULL,0,NULL,0,NULL,NULL),(3,1,'Whole chicken','Fresh whole chicken',220.00,0,'Poultry',NULL,'per_piece',NULL,'2025-08-27','From westwood poultries','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1c813ab9-f8b4-4a7d-923c-d7f8bbd18849-photo.jpeg',1,'2025-08-30 04:42:03','2025-09-04 05:46:23',0.00,0,1,NULL,0,NULL,0,NULL,NULL),(4,1,'Sibuyas','',60.00,0,'Vegetables','Root Vegetables','per_500g','Harvested around this summer season','2025-08-21','From vegetables supplier corp','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/fd74459f-73d3-43a2-89f2-80d7c78ae184-photo.jpeg',1,'2025-08-30 04:43:21','2025-09-04 05:46:07',0.00,0,1,NULL,0,NULL,0,NULL,NULL),(5,1,'Fresh meat','',140.00,4,'Meat','Pork Chop','per_500g','Slaughtered yesterday','2025-08-29','Source from ate nenang pigery business ','{\"cut\": false, \"whole\": false, \"sliced\": false, \"cleaned\": false}','product-images/user_2/1dce5705-ad08-4bd4-a5da-f8cb3b743680-photo.jpeg',1,'2025-08-30 04:45:00','2025-09-04 05:46:07',0.00,0,1,NULL,0,NULL,0,NULL,NULL);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1113,4 +1151,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-05 22:10:22
+-- Dump completed on 2025-09-08  0:31:21
