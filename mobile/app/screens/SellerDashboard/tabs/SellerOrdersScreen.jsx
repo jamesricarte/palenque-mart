@@ -139,9 +139,7 @@ const SellerOrdersScreen = ({ navigation }) => {
             status.count = allOrders.length;
           } else if (status.value === "preorder") {
             status.count = allOrders.filter(
-              (order) =>
-                order.items &&
-                order.items.some((item) => item.is_preorder_enabled === 1)
+              (order) => order.order_type === "preorder"
             ).length;
           } else {
             status.count = allOrders.filter(
@@ -241,12 +239,24 @@ const SellerOrdersScreen = ({ navigation }) => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString.replace(" ", "T")); // safer parsing
     const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
+    const diffInMs = now - date;
+
+    // If date is in the future
+    if (diffInMs < 0) {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    const diffInHours = diffInMs / (1000 * 60 * 60);
 
     if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
       return `${diffInMinutes}m ago`;
     } else if (diffInHours < 24) {
       return `${Math.floor(diffInHours)}h ago`;
@@ -279,8 +289,7 @@ const SellerOrdersScreen = ({ navigation }) => {
   };
 
   const renderOrderCard = (order) => {
-    const hasPreorderItems =
-      order.items && order.items.some((item) => item.is_preorder_enabled === 1);
+    const isPreorderOrder = order.order_type === "preorder";
 
     return (
       <TouchableOpacity
@@ -288,7 +297,7 @@ const SellerOrdersScreen = ({ navigation }) => {
         onPress={() => navigateToOrderDetails(order.id)}
         className={`mx-4 mt-4 bg-white rounded-lg shadow-sm ${
           getOrderPriority(order) ? "border-l-4 border-orange-500" : ""
-        } ${hasPreorderItems ? "border-r-4 border-purple-500" : ""}`}
+        } ${isPreorderOrder ? "border-r-4 border-purple-500" : ""}`}
       >
         <View className="p-4 border-b border-gray-100">
           <View className="flex-row items-center justify-between">
@@ -303,24 +312,21 @@ const SellerOrdersScreen = ({ navigation }) => {
               </Text>
             </View>
             <View className="items-end gap-1.5">
-              {hasPreorderItems && (
-                <View className="px-3 py-1 bg-purple-100 rounded-full">
-                  <Text className="text-sm font-medium text-purple-800">
-                    Pre-order
-                  </Text>
-                </View>
-              )}
               <View
                 className="px-3 py-1 rounded-full"
                 style={{
-                  backgroundColor: `${getStatusColor(order.status)}20`,
+                  backgroundColor: `${getStatusColor(isPreorderOrder ? "preorder" : order.status)}20`,
                 }}
               >
                 <Text
                   className="text-sm font-medium"
-                  style={{ color: getStatusColor(order.status) }}
+                  style={{
+                    color: getStatusColor(
+                      isPreorderOrder ? "preorder" : order.status
+                    ),
+                  }}
                 >
-                  {getStatusLabel(order.status)}
+                  {isPreorderOrder ? "Preorder" : getStatusLabel(order.status)}
                 </Text>
               </View>
 
@@ -343,6 +349,21 @@ const SellerOrdersScreen = ({ navigation }) => {
               {formatCurrency(order.seller_total_amount)}
             </Text>
           </View>
+
+          {isPreorderOrder && (
+            <View className="mt-2">
+              {order.preorder_deposit_paid > 0 && (
+                <Text className="text-sm text-purple-600">
+                  Deposit: {formatCurrency(order.preorder_deposit_paid)}
+                </Text>
+              )}
+              {order.remaining_balance > 0 && (
+                <Text className="text-sm text-purple-600">
+                  Remaining: {formatCurrency(order.remaining_balance)}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
 
         {order.items && order.items.length > 0 && (
@@ -371,7 +392,7 @@ const SellerOrdersScreen = ({ navigation }) => {
                   <Text className="font-medium text-gray-800" numberOfLines={1}>
                     {order.items[0].product_name}
                   </Text>
-                  {order.items[0].is_preorder_enabled === 1 && (
+                  {isPreorderOrder && (
                     <View className="px-1 py-0.5 ml-2 bg-purple-100 rounded">
                       <Text className="text-xs font-medium text-purple-800">
                         Pre
@@ -383,9 +404,9 @@ const SellerOrdersScreen = ({ navigation }) => {
                   Qty: {order.items[0].quantity} •{" "}
                   {formatCurrency(order.items[0].unit_price)} each
                 </Text>
-                {order.items[0].is_preorder_enabled === 1 &&
+                {isPreorderOrder &&
                   order.items[0].expected_availability_date && (
-                    <Text className="text-xs text-purple-600">
+                    <Text className="mt-1.5 text-xs text-purple-600">
                       Available:{" "}
                       {formatDate(order.items[0].expected_availability_date)}
                     </Text>
@@ -411,43 +432,86 @@ const SellerOrdersScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {hasPreorderItems && (
+          {isPreorderOrder && order.status === "pending" && (
             <View className="p-3 mb-3 border border-purple-200 rounded-lg bg-purple-50">
               <View className="flex-row items-center">
                 <Feather name="clock" size={16} color="#8B5CF6" />
                 <Text className="ml-2 text-sm font-medium text-purple-800">
-                  Contains Pre-order Items
+                  Preorder
                 </Text>
               </View>
               <Text className="mt-1 text-xs text-purple-600">
-                This order includes items that are available for pre-order
+                This is a preorder. Items will be available on the expected
+                date.
               </Text>
             </View>
           )}
 
-          {quickActions[order.status] && (
-            <View className="flex-row gap-3">
-              {quickActions[order.status].map((action, index) => (
+          {isPreorderOrder ? (
+            order.status === "pending" ? (
+              <View className="flex-row gap-3">
                 <TouchableOpacity
-                  key={action.value}
                   onPress={() => openQuickActionModal(order)}
-                  className={`flex-1 py-3 rounded-lg flex-row items-center justify-center ${
-                    index === 0 ? "bg-orange-500" : "bg-gray-200"
-                  }`}
+                  className="flex-row items-center justify-center flex-1 py-3 bg-orange-500 rounded-lg"
                 >
-                  <Feather
-                    name={action.icon}
-                    size={16}
-                    color={index === 0 ? "white" : "#6B7280"}
-                  />
-                  <Text
-                    className={`ml-2 font-medium ${index === 0 ? "text-white" : "text-gray-700"}`}
-                  >
-                    {action.label}
+                  <Feather name="check-circle" size={16} color="white" />
+                  <Text className="ml-2 font-medium text-white">
+                    Accept Preorder
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </View>
+                <TouchableOpacity
+                  onPress={() => openQuickActionModal(order)}
+                  className="flex-row items-center justify-center flex-1 py-3 bg-gray-200 rounded-lg"
+                >
+                  <Feather name="x-circle" size={16} color="#6B7280" />
+                  <Text className="ml-2 font-medium text-gray-700">
+                    Decline
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : order.status === "confirmed" || order.status === "cancelled" ? (
+              <View className="p-3 border border-blue-200 rounded-lg bg-blue-50">
+                <View className="flex-row items-center">
+                  <Feather name="info" size={16} color="#3B82F6" />
+                  <Text className="ml-2 text-sm font-medium text-blue-800">
+                    {order.status === "confirmed"
+                      ? "Preorder Accepted"
+                      : "Preorder Declined"}
+                  </Text>
+                </View>
+                {order.status === "confirmed" && (
+                  <Text className="mt-1 text-xs text-blue-600">
+                    This preorder will become a normal order when items are
+                    available.
+                  </Text>
+                )}
+              </View>
+            ) : null
+          ) : (
+            quickActions[order.status] && (
+              <View className="flex-row gap-3">
+                {quickActions[order.status].map((action, index) => (
+                  <TouchableOpacity
+                    key={action.value}
+                    onPress={() => openQuickActionModal(order)}
+                    className={`flex-1 py-3 rounded-lg flex-row items-center justify-center ${
+                      index === 0 ? "bg-orange-500" : "bg-gray-200"
+                    }`}
+                  >
+                    <Feather
+                      name={action.icon}
+                      size={16}
+                      color={index === 0 ? "white" : "#6B7280"}
+                    />
+                    <Text
+                      className={`ml-2 font-medium ${index === 0 ? "text-white" : "text-gray-700"}`}
+                    >
+                      {action.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )
           )}
 
           {order.status === "ready_for_pickup" && (
@@ -630,43 +694,100 @@ const SellerOrdersScreen = ({ navigation }) => {
                   </Text>
                 </View>
 
-                {quickActions[selectedOrder.status]?.map((action) => (
-                  <TouchableOpacity
-                    key={action.value}
-                    onPress={() =>
-                      handleQuickAction(selectedOrder.id, action.value, action)
-                    }
-                    disabled={updatingStatus}
-                    className="flex-row items-center p-4 mb-3 border border-gray-200 rounded-lg"
-                    style={{
-                      backgroundColor: updatingStatus ? "#F3F4F6" : "white",
-                    }}
-                  >
-                    <View
-                      className="items-center justify-center w-10 h-10 mr-4 rounded-full"
-                      style={{ backgroundColor: `${action.color}20` }}
+                {selectedOrder.order_type === "preorder" ? (
+                  selectedOrder.status === "pending" ? (
+                    <View className="flex-row gap-3">
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleQuickAction(selectedOrder.id, "confirmed", {
+                            message: "accepted",
+                            description: "Accept and confirm this preorder",
+                          })
+                        }
+                        className="flex-row items-center justify-center flex-1 py-3 bg-orange-500 rounded-lg"
+                      >
+                        <Feather name="check-circle" size={16} color="white" />
+                        <Text className="ml-2 font-medium text-white">
+                          Accept Preorder
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleQuickAction(selectedOrder.id, "cancelled", {
+                            message: "declined",
+                            description: "Decline this preorder",
+                          })
+                        }
+                        className="flex-row items-center justify-center flex-1 py-3 bg-gray-200 rounded-lg"
+                      >
+                        <Feather name="x-circle" size={16} color="#6B7280" />
+                        <Text className="ml-2 font-medium text-gray-700">
+                          Decline
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : selectedOrder.status === "confirmed" ||
+                    selectedOrder.status === "cancelled" ? (
+                    <View className="p-3 border border-blue-200 rounded-lg bg-blue-50">
+                      <View className="flex-row items-center">
+                        <Feather name="info" size={16} color="#3B82F6" />
+                        <Text className="ml-2 text-sm font-medium text-blue-800">
+                          {selectedOrder.status === "confirmed"
+                            ? "Preorder Accepted"
+                            : "Preorder Declined"}
+                        </Text>
+                      </View>
+                      <Text className="mt-1 text-xs text-blue-600">
+                        This preorder will become a normal order when items are
+                        available.
+                      </Text>
+                    </View>
+                  ) : null
+                ) : (
+                  quickActions[selectedOrder.status]?.map((action) => (
+                    <TouchableOpacity
+                      key={action.value}
+                      onPress={() =>
+                        handleQuickAction(
+                          selectedOrder.id,
+                          action.value,
+                          action
+                        )
+                      }
+                      disabled={updatingStatus}
+                      className="flex-row items-center p-4 mb-3 border border-gray-200 rounded-lg"
+                      style={{
+                        backgroundColor: updatingStatus ? "#F3F4F6" : "white",
+                      }}
                     >
-                      <Feather
-                        name={action.icon}
-                        size={20}
-                        color={action.color}
-                      />
-                    </View>
-                    <View className="flex-1">
-                      <Text
-                        className={`font-medium ${updatingStatus ? "text-gray-400" : "text-gray-900"}`}
+                      <View
+                        className="items-center justify-center w-10 h-10 mr-4 rounded-full"
+                        style={{ backgroundColor: `${action.color}20` }}
                       >
-                        {action.label}
-                      </Text>
-                      <Text
-                        className={`text-sm ${updatingStatus ? "text-gray-300" : "text-gray-500"}`}
-                      >
-                        {action.description}
-                      </Text>
-                    </View>
-                    {updatingStatus && <DefaultLoadingAnimation size="small" />}
-                  </TouchableOpacity>
-                ))}
+                        <Feather
+                          name={action.icon}
+                          size={20}
+                          color={action.color}
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <Text
+                          className={`font-medium ${updatingStatus ? "text-gray-400" : "text-gray-900"}`}
+                        >
+                          {action.label}
+                        </Text>
+                        <Text
+                          className={`text-sm ${updatingStatus ? "text-gray-300" : "text-gray-500"}`}
+                        >
+                          {action.description}
+                        </Text>
+                      </View>
+                      {updatingStatus && (
+                        <DefaultLoadingAnimation size="small" />
+                      )}
+                    </TouchableOpacity>
+                  ))
+                )}
               </>
             )}
           </View>

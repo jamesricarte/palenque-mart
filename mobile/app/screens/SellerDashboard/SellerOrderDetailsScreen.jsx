@@ -6,18 +6,18 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
   Modal,
+  Image,
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
+import MapView, { Marker } from "react-native-maps";
+import LottieView from "lottie-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useSeller } from "../../context/SellerContext";
 import { API_URL } from "../../config/apiConfig";
 import axios from "axios";
 import DefaultLoadingAnimation from "../../components/DefaultLoadingAnimation";
-import LottieView from "lottie-react-native";
-import MapView, { Marker } from "react-native-maps";
 
 const SellerOrderDetailsScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
@@ -103,6 +103,27 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     ],
   };
 
+  const preorderQuickActions = {
+    pending: [
+      {
+        value: "confirmed",
+        label: "Accept Preorder",
+        message: "accepted",
+        color: "#10B981",
+        icon: "check-circle",
+        description: "Accept and confirm this preorder",
+      },
+      {
+        value: "cancelled",
+        label: "Decline Preorder",
+        message: "declined",
+        color: "#EF4444",
+        icon: "x-circle",
+        description: "Decline this preorder",
+      },
+    ],
+  };
+
   useEffect(() => {
     fetchOrderDetails();
 
@@ -133,10 +154,10 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         setDeliveryPartnerCoordinates(deliveryPartnerLocation);
       } else {
         setDeliveryPartnerCoordinates({
-          latitude: parseFloat(
+          latitude: Number.parseFloat(
             order.delivery_partner?.location?.latitude || null
           ),
-          longitude: parseFloat(
+          longitude: Number.parseFloat(
             order.delivery_partner?.location?.longitude || null
           ),
         });
@@ -157,6 +178,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
 
       if (response.data.success) {
         setOrder(response.data.data.order);
+
         const orderDetails = response.data.data.order;
 
         if (
@@ -181,9 +203,11 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         navigation.goBack();
       }
     } catch (error) {
-      console.error("Error fetching order details:", error.response.data);
+      console.error(
+        "Error fetching order details:",
+        error.response?.data || error.message
+      );
       Alert.alert("Error", "Failed to fetch order details");
-      navigation.goBack();
     } finally {
       setLoading(false);
     }
@@ -214,10 +238,14 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
             // Don't fail the status update if delivery assignment creation fails
           }
         }
-        Alert.alert(
-          "Success",
-          `Order ${actionData.message.toLowerCase()} successfully`
-        );
+
+        let successMessage = `Order ${actionData.message.toLowerCase()} successfully`;
+        if (order.order_type === "preorder" && newStatus === "confirmed") {
+          successMessage =
+            "Preorder accepted successfully. This preorder will become a normal order when items are available.";
+        }
+
+        Alert.alert("Success", successMessage);
         fetchOrderDetails();
         setStatusModalVisible(false);
       } else {
@@ -263,10 +291,10 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString.replace(" ", "T"));
     return date.toLocaleDateString("en-US", {
       year: "numeric",
-      month: "short",
+      month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
@@ -275,6 +303,24 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
 
   const formatCurrency = (amount) => {
     return `₱${Number.parseFloat(amount).toFixed(2)}`;
+  };
+
+  const calculateDeliveryProgress = () => {
+    if (!order.delivery_assignment) return 0;
+
+    const status = order.delivery_assignment.status;
+    switch (status) {
+      case "looking_for_rider":
+        return 25;
+      case "rider_assigned":
+        return 50;
+      case "picked_up":
+        return 75;
+      case "delivered":
+        return 100;
+      default:
+        return 0;
+    }
   };
 
   if (loading) {
@@ -316,6 +362,8 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     );
   }
 
+  const isPreorderOrder = order.order_type === "preorder";
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -340,7 +388,73 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         </View>
       </View>
 
-      <ScrollView className="flex-1">
+      <ScrollView
+        className="flex-1"
+        style={{
+          marginBottom:
+            (isPreorderOrder && preorderQuickActions[order.status]) ||
+            (!isPreorderOrder && quickActions[order.status])
+              ? 130
+              : 0,
+        }}
+      >
+        {isPreorderOrder && (
+          <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
+            <View className="p-4">
+              <View className="flex-row items-center mb-3">
+                <View className="items-center justify-center w-8 h-8 mr-3 bg-purple-100 rounded-full">
+                  <Feather name="clock" size={16} color="#8B5CF6" />
+                </View>
+                <Text className="text-lg font-semibold text-purple-800">
+                  Preorder Information
+                </Text>
+              </View>
+
+              <View className="p-3 border border-purple-200 rounded-lg bg-purple-50">
+                <Text className="mb-2 text-sm font-medium text-purple-800">
+                  This is a preorder. Items will be available on the expected
+                  date.
+                </Text>
+
+                {order.preorder_deposit_paid > 0 && (
+                  <View className="flex-row justify-between mb-1">
+                    <Text className="text-sm text-purple-600">
+                      Deposit Paid:
+                    </Text>
+                    <Text className="text-sm font-medium text-purple-800">
+                      {formatCurrency(order.preorder_deposit_paid)}
+                    </Text>
+                  </View>
+                )}
+
+                {order.remaining_balance > 0 && (
+                  <View className="flex-row justify-between mb-1">
+                    <Text className="text-sm text-purple-600">
+                      Remaining Balance:
+                    </Text>
+                    <Text className="text-sm font-medium text-purple-800">
+                      {formatCurrency(order.remaining_balance)}
+                    </Text>
+                  </View>
+                )}
+
+                {order.items &&
+                  order.items[0] &&
+                  order.items[0].expected_availability_date && (
+                    <View className="flex-row justify-between">
+                      <Text className="text-sm text-purple-600">
+                        Expected Available:
+                      </Text>
+                      <Text className="text-sm font-medium text-purple-800">
+                        {formatDate(order.items[0].expected_availability_date)}
+                      </Text>
+                    </View>
+                  )}
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Looking for Rider UI - Centered and Beautiful */}
         {order.status === "ready_for_pickup" && (
           <View className="items-center justify-center flex-1 px-8 mt-4">
@@ -400,219 +514,132 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                       </Text>
                     </View>
                   </View>
+                  <View
+                    className="px-2 py-1 rounded-full"
+                    style={{
+                      backgroundColor: `${getDeliveryStatusColor(order.delivery_assignment.status)}20`,
+                    }}
+                  >
+                    <Text
+                      className="text-xs font-medium"
+                      style={{
+                        color: getDeliveryStatusColor(
+                          order.delivery_assignment.status
+                        ),
+                      }}
+                    >
+                      {getDeliveryStatusLabel(order.delivery_assignment.status)}
+                    </Text>
+                  </View>
                 </View>
               )}
 
-              {/* Map Section for Rider Assigned and Beyond */}
-              {["rider_assigned", "out_for_delivery"].includes(order.status) &&
-                order.pickup_coordinates &&
-                order.delivery_coordinates && (
-                  <View className="mb-4 bg-white rounded-lg shadow-sm">
-                    <View>
-                      {/* Map Preview */}
-                      <TouchableOpacity
-                        onPress={() => setFullScreenMapVisible(true)}
-                        className="relative h-48 overflow-hidden rounded-lg"
-                      >
-                        <MapView
-                          style={{ flex: 1 }}
-                          region={{
-                            latitude:
-                              (order.pickup_coordinates.latitude +
-                                order.delivery_coordinates.latitude) /
-                              2,
-                            longitude:
-                              (order.pickup_coordinates.longitude +
-                                order.delivery_coordinates.longitude) /
-                              2,
-                            latitudeDelta:
-                              Math.abs(
-                                order.pickup_coordinates.latitude -
-                                  order.delivery_coordinates.latitude
-                              ) *
-                                2 +
-                              0.01,
-                            longitudeDelta:
-                              Math.abs(
-                                order.pickup_coordinates.longitude -
-                                  order.delivery_coordinates.longitude
-                              ) *
-                                2 +
-                              0.01,
-                          }}
-                          scrollEnabled={false}
-                          zoomEnabled={false}
-                        >
-                          <Marker
-                            coordinate={order.pickup_coordinates}
-                            title="Pickup Location"
-                            pinColor="#10B981"
-                          />
-                          <Marker
-                            coordinate={order.delivery_coordinates}
-                            title="Delivery Location"
-                            pinColor="#EF4444"
-                          />
-                          {deliveryPartnerCoordinates && (
-                            <Marker
-                              coordinate={deliveryPartnerCoordinates}
-                              title="Delivery Partner Location"
-                              pinColor="#06B6D4"
-                            />
-                          )}
-                        </MapView>
+              {/* Delivery Progress */}
+              <View className="mb-4">
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="font-medium text-gray-800">
+                    Delivery Progress
+                  </Text>
+                  <Text className="text-sm text-gray-600">
+                    {calculateDeliveryProgress()}%
+                  </Text>
+                </View>
+                <View className="w-full h-2 bg-gray-200 rounded-full">
+                  <View
+                    className="h-2 bg-blue-500 rounded-full"
+                    style={{ width: `${calculateDeliveryProgress()}%` }}
+                  />
+                </View>
+              </View>
 
-                        {/* Pickup Location Label */}
+              {/* Map Section */}
+              {["rider_assigned", "out_for_delivery"].includes(order.status) &&
+                (order.pickup_coordinates || order.delivery_coordinates) && (
+                  <View className="mb-4">
+                    <TouchableOpacity
+                      onPress={() => setFullScreenMapVisible(true)}
+                      className="relative h-48 overflow-hidden rounded-lg"
+                    >
+                      <MapView
+                        style={{ height: 200 }}
+                        region={{
+                          latitude:
+                            (order.pickup_coordinates.latitude +
+                              order.delivery_coordinates.latitude) /
+                            2,
+                          longitude:
+                            (order.pickup_coordinates.longitude +
+                              order.delivery_coordinates.longitude) /
+                            2,
+                          latitudeDelta:
+                            Math.abs(
+                              order.pickup_coordinates.latitude -
+                                order.delivery_coordinates.latitude
+                            ) *
+                              2 +
+                            0.01,
+                          longitudeDelta:
+                            Math.abs(
+                              order.pickup_coordinates.longitude -
+                                order.delivery_coordinates.longitude
+                            ) *
+                              2 +
+                            0.01,
+                        }}
+                        scrollEnabled={false}
+                        zoomEnabled={false}
+                      >
+                        <Marker
+                          coordinate={order.pickup_coordinates}
+                          title="Pickup Location"
+                          pinColor="#10B981"
+                        />
+                        <Marker
+                          coordinate={order.delivery_coordinates}
+                          title="Delivery Location"
+                          pinColor="#EF4444"
+                        />
+                        {deliveryPartnerCoordinates && (
+                          <Marker
+                            coordinate={deliveryPartnerCoordinates}
+                            title="Delivery Partner Location"
+                            pinColor="#06B6D4"
+                          />
+                        )}
+                      </MapView>
+
+                      {/* Pickup Location Label */}
+                      {order.status === "out_for_delivery" &&
+                      order.delivery_assignment?.status === "picked_up" ? (
+                        <View className="absolute px-3 py-1 rounded-full bg-cyan-500 top-3 left-3">
+                          <Text className="text-xs font-medium text-white">
+                            Delivery Partner
+                          </Text>
+                        </View>
+                      ) : (
                         <View className="absolute px-3 py-1 bg-green-500 rounded-full top-3 left-3">
                           <Text className="text-xs font-medium text-white">
                             Pickup
                           </Text>
                         </View>
+                      )}
 
-                        {/* Delivery Location Label */}
-                        <View className="absolute px-3 py-1 bg-red-500 rounded-full top-3 right-3">
-                          <Text className="text-xs font-medium text-white">
-                            Delivery
-                          </Text>
-                        </View>
-
-                        {/* Tap to expand indicator */}
-                        <View className="absolute px-3 py-1 bg-black bg-opacity-50 rounded-full bottom-3 right-3">
-                          <Text className="text-xs text-white">
-                            Tap to expand
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-
-              {/* Delivery Status */}
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-gray-600">Delivery Status:</Text>
-                <View
-                  className="px-3 py-1 rounded-full"
-                  style={{
-                    backgroundColor: `${getDeliveryStatusColor(order.delivery_assignment.status)}20`,
-                  }}
-                >
-                  <Text
-                    className="text-sm font-medium"
-                    style={{
-                      color: getDeliveryStatusColor(
-                        order.delivery_assignment.status
-                      ),
-                    }}
-                  >
-                    {getDeliveryStatusLabel(order.delivery_assignment.status)}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Progress Bar */}
-              <View className="mb-4">
-                <View className="h-2 bg-gray-200 rounded-full">
-                  <View
-                    className={`h-2 rounded-full ${order.status === "delivered" ? "bg-green-500" : "bg-blue-500"}`}
-                    style={{ width: `${deliveryProgress * 100}%` }}
-                  />
-                </View>
-              </View>
-
-              {/* Delivery Progress */}
-              <View className="space-y-3">
-                {[
-                  {
-                    status: "looking_for_rider",
-                    label: "Looking for Rider",
-                    icon: "search",
-                  },
-                  {
-                    status: "rider_assigned",
-                    label: "Rider Assigned",
-                    icon: "user-check",
-                  },
-                  {
-                    status: "picked_up",
-                    label: "Order Picked Up",
-                    icon: "package",
-                  },
-                  {
-                    status: "delivered",
-                    label: "Order Delivered",
-                    icon: "check-circle",
-                  },
-                ].map((step, index) => {
-                  const isCompleted =
-                    deliveryStatusOptions.findIndex(
-                      (s) => s.value === order.delivery_assignment.status
-                    ) >=
-                    deliveryStatusOptions.findIndex(
-                      (s) => s.value === step.status
-                    );
-                  const isCurrent =
-                    order.delivery_assignment.status === step.status;
-
-                  return (
-                    <View key={step.status} className="flex-row items-center">
-                      <View
-                        className={`w-6 h-6 rounded-full items-center justify-center ${
-                          isCompleted
-                            ? "bg-green-500"
-                            : isCurrent
-                              ? "bg-orange-500"
-                              : "bg-gray-200"
-                        }`}
-                      >
-                        <Feather
-                          name={step.icon}
-                          size={12}
-                          color={isCompleted || isCurrent ? "white" : "#6B7280"}
-                        />
+                      {/* Delivery Location Label */}
+                      <View className="absolute px-3 py-1 bg-red-500 rounded-full top-3 right-3">
+                        <Text className="text-xs font-medium text-white">
+                          Delivery
+                        </Text>
                       </View>
-                      <Text
-                        className={`ml-3 text-sm ${
-                          isCompleted
-                            ? "text-green-600 font-medium"
-                            : isCurrent
-                              ? "text-orange-600 font-medium"
-                              : "text-gray-500"
-                        }`}
-                      >
-                        {step.label}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
 
-              {/* Delivery Times */}
-              <View className="mt-4 space-y-2">
-                {order.delivery_assignment.assigned_at && (
-                  <View className="flex-row justify-between">
-                    <Text className="text-gray-600">Assigned At:</Text>
-                    <Text className="font-medium">
-                      {formatDate(order.delivery_assignment.assigned_at)}
-                    </Text>
+                      {/* Tap to expand indicator */}
+                      <View className="absolute px-3 py-1 bg-black bg-opacity-50 rounded-full bottom-3 right-3">
+                        <Text className="text-xs text-white">
+                          Tap to expand
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
                   </View>
                 )}
-                {order.delivery_assignment.pickup_time && (
-                  <View className="flex-row justify-between">
-                    <Text className="text-gray-600">Picked Up At:</Text>
-                    <Text className="font-medium">
-                      {formatDate(order.delivery_assignment.pickup_time)}
-                    </Text>
-                  </View>
-                )}
-                {order.delivery_assignment.delivery_time && (
-                  <View className="flex-row justify-between">
-                    <Text className="text-gray-600">Delivered At:</Text>
-                    <Text className="font-medium">
-                      {formatDate(order.delivery_assignment.delivery_time)}
-                    </Text>
-                  </View>
-                )}
-              </View>
             </View>
           </View>
         )}
@@ -623,7 +650,11 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
             <Text className="mb-4 text-lg font-semibold">Order Progress</Text>
             <View className="space-y-3">
               {[
-                { status: "pending", label: "Order Received", icon: "inbox" },
+                {
+                  status: "pending",
+                  label: "Order Received",
+                  icon: "inbox",
+                },
                 {
                   status: "confirmed",
                   label: "Order Confirmed",
@@ -651,9 +682,14 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                 },
                 { status: "delivered", label: "Delivered", icon: "check" },
               ].map((step, index) => {
-                const isCompleted =
-                  statusOptions.findIndex((s) => s.value === order.status) >=
-                  statusOptions.findIndex((s) => s.value === step.status);
+                let isCompleted;
+                if (order.status === "cancelled") {
+                  isCompleted = step.status === "pending";
+                } else {
+                  isCompleted =
+                    statusOptions.findIndex((s) => s.value === order.status) >=
+                    statusOptions.findIndex((s) => s.value === step.status);
+                }
                 const isCurrent = order.status === step.status;
 
                 return (
@@ -691,12 +727,10 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Order Info */}
+        {/* Order Summary */}
         <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
           <View className="p-4">
-            <Text className="mb-3 text-lg font-semibold">
-              Order Information
-            </Text>
+            <Text className="mb-3 text-lg font-semibold">Order Summary</Text>
             <View className="space-y-2">
               <View className="flex-row justify-between">
                 <Text className="text-gray-600">Order Date:</Text>
@@ -752,7 +786,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         </View>
 
         {/* Delivery Address */}
-        <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
+        <View className="mx-4 mt-4 mb-4 bg-white rounded-lg shadow-sm">
           <View className="p-4">
             <Text className="mb-3 text-lg font-semibold">Delivery Address</Text>
             <View className="p-3 rounded-lg bg-gray-50">
@@ -802,9 +836,18 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                   )}
                 </View>
                 <View className="flex-1">
-                  <Text className="text-lg font-medium">
-                    {item.product_name}
-                  </Text>
+                  <View className="flex-row items-center">
+                    <Text className="text-lg font-medium">
+                      {item.product_name}
+                    </Text>
+                    {isPreorderOrder && (
+                      <View className="px-2 py-1 ml-2 bg-purple-100 rounded">
+                        <Text className="text-xs font-medium text-purple-800">
+                          Preorder
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <Text className="text-gray-600">
                     Quantity: {item.quantity}
                   </Text>
@@ -812,6 +855,16 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                     {item.unit_type.replace("_", " ")} •{" "}
                     {formatCurrency(item.unit_price)} each
                   </Text>
+                  {isPreorderOrder && item.expected_availability_date && (
+                    <Text className="mt-1 text-xs text-purple-600">
+                      Available: {formatDate(item.expected_availability_date)}
+                    </Text>
+                  )}
+                  {isPreorderOrder && item.preorder_status && (
+                    <Text className="mt-1 text-xs text-purple-600 capitalize">
+                      Status: {item.preorder_status.replace("_", " ")}
+                    </Text>
+                  )}
                 </View>
                 <Text className="text-lg font-semibold">
                   {formatCurrency(item.total_price)}
@@ -820,50 +873,36 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
             ))}
           </View>
         </View>
-
-        {/* Delivered Confirmation */}
-        {order.status === "delivered" && (
-          <View className="mx-4 mb-8 border border-green-200 rounded-lg bg-green-50">
-            <View className="items-center p-4">
-              <View className="items-center justify-center w-16 h-16 mb-3 bg-green-500 rounded-full">
-                <Feather name="check" size={32} color="white" />
-              </View>
-              <Text className="mb-1 text-lg font-semibold text-green-800">
-                Order Delivered Successfully!
-              </Text>
-              <Text className="text-center text-green-700">
-                This order has been completed and delivered to the customer.
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Action Buttons */}
-        {quickActions[order.status] && (
-          <View className="mx-4 mt-4 mb-8">
-            {quickActions[order.status].map((action, index) => (
-              <TouchableOpacity
-                key={action.value}
-                onPress={() => setStatusModalVisible(true)}
-                className={`py-4 rounded-lg mb-3 flex-row items-center justify-center ${
-                  index === 0 ? "bg-orange-500" : "bg-gray-200"
-                }`}
-              >
-                <Feather
-                  name={action.icon}
-                  size={20}
-                  color={index === 0 ? "white" : "#6B7280"}
-                />
-                <Text
-                  className={`ml-2 text-lg font-semibold ${index === 0 ? "text-white" : "text-gray-700"}`}
-                >
-                  {action.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
       </ScrollView>
+
+      {((isPreorderOrder && preorderQuickActions[order.status]) ||
+        (!isPreorderOrder && quickActions[order.status])) && (
+        <View className="absolute bottom-0 left-0 right-0 px-4 py-4 bg-white border-t border-gray-200">
+          {(isPreorderOrder
+            ? preorderQuickActions[order.status]
+            : quickActions[order.status]
+          )?.map((action, index) => (
+            <TouchableOpacity
+              key={action.value}
+              onPress={() => setStatusModalVisible(true)}
+              className={`py-4 rounded-lg mb-3 flex-row items-center justify-center ${
+                index === 0 ? "bg-orange-500" : "bg-gray-200"
+              }`}
+            >
+              <Feather
+                name={action.icon}
+                size={20}
+                color={index === 0 ? "white" : "#6B7280"}
+              />
+              <Text
+                className={`ml-2 text-lg font-semibold ${index === 0 ? "text-white" : "text-gray-700"}`}
+              >
+                {action.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* Status Update Modal */}
       <Modal
@@ -878,7 +917,11 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         >
           <View className="p-6 bg-white rounded-t-3xl">
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-semibold">Update Order Status</Text>
+              <Text className="text-xl font-semibold">
+                {isPreorderOrder
+                  ? "Update Preorder Status"
+                  : "Update Order Status"}
+              </Text>
               <TouchableOpacity onPress={() => setStatusModalVisible(false)}>
                 <Feather name="x" size={24} color="#6B7280" />
               </TouchableOpacity>
@@ -891,9 +934,17 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
               <Text className="text-sm text-gray-600">
                 Current Status: {getStatusLabel(order.status)}
               </Text>
+              {isPreorderOrder && (
+                <Text className="text-sm text-purple-600">
+                  Order Type: Preorder
+                </Text>
+              )}
             </View>
 
-            {quickActions[order.status]?.map((action) => (
+            {(isPreorderOrder
+              ? preorderQuickActions[order.status]
+              : quickActions[order.status]
+            )?.map((action) => (
               <TouchableOpacity
                 key={action.value}
                 onPress={() => handleStatusUpdate(action.value, action)}
@@ -931,12 +982,10 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       {/* Full Screen Map Modal */}
       <Modal
         visible={fullScreenMapVisible}
-        transparent={false}
         animationType="slide"
         onRequestClose={() => setFullScreenMapVisible(false)}
       >
         <View className="flex-1">
-          {/* Header */}
           <View className="flex-row items-center px-4 pt-16 pb-4 bg-white border-b border-gray-200">
             <TouchableOpacity
               onPress={() => setFullScreenMapVisible(false)}
@@ -944,7 +993,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
             >
               <Feather name="x" size={24} color="#374151" />
             </TouchableOpacity>
-            <Text className="text-xl font-semibold">Delivery Map</Text>
+            <Text className="text-xl font-semibold">Delivery Tracking</Text>
           </View>
 
           {/* Full Screen Map */}
@@ -1000,9 +1049,20 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
               </MapView>
 
               {/* Location Labels */}
-              <View className="absolute px-4 py-2 bg-green-500 rounded-full top-4 left-4">
-                <Text className="font-medium text-white">Pickup Location</Text>
-              </View>
+              {order.status === "out_for_delivery" &&
+              order.delivery_assignment?.status === "picked_up" ? (
+                <View className="absolute px-4 py-2 rounded-full bg-cyan-500 top-4 left-4">
+                  <Text className="font-medium text-white">
+                    Delivery Partner
+                  </Text>
+                </View>
+              ) : (
+                <View className="absolute px-4 py-2 bg-green-500 rounded-full top-4 left-4">
+                  <Text className="font-medium text-white">
+                    Pickup Location
+                  </Text>
+                </View>
+              )}
 
               <View className="absolute px-4 py-2 bg-red-500 rounded-full top-4 right-4">
                 <Text className="font-medium text-white">

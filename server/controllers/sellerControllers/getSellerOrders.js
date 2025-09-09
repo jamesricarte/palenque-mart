@@ -28,10 +28,7 @@ const getSellerOrders = async (req, res) => {
 
     if (status && status !== "all") {
       if (status === "preorder") {
-        // Filter orders that contain pre-order items
-        statusFilter =
-          "AND EXISTS (SELECT 1 FROM order_items oi2 JOIN products p2 ON oi2.product_id = p2.id WHERE oi2.order_id = o.id AND oi2.seller_id = ? AND p2.is_preorder_enabled = 1)";
-        queryParams.push(sellerId);
+        statusFilter = "AND o.order_type = 'preorder'";
       } else {
         statusFilter = "AND o.status = ?";
         queryParams.push(status);
@@ -57,6 +54,9 @@ const getSellerOrders = async (req, res) => {
         o.delivery_notes,
         o.created_at,
         o.updated_at,
+        o.order_type,
+        o.preorder_deposit_paid,
+        o.remaining_balance,
         u.first_name as customer_first_name,
         u.last_name as customer_last_name,
         COUNT(oi.id) as item_count,
@@ -80,7 +80,7 @@ const getSellerOrders = async (req, res) => {
       GROUP BY  o.id, o.order_number, o.status, o.payment_method, o.payment_status, o.total_amount, o.delivery_recipient_name, o.delivery_phone_number,
       o.delivery_street_address, o.delivery_barangay, o.delivery_city,
       o.delivery_province, o.delivery_landmark, o.delivery_notes,
-      o.created_at, o.updated_at, u.first_name, u.last_name,
+      o.created_at, o.updated_at, o.order_type, o.preorder_deposit_paid, o.remaining_balance, u.first_name, u.last_name,
       da.id, da.status, da.assigned_at,
       dp.partner_id, dp.vehicle_type, dp.rating,
       du.first_name, du.last_name, du.phone
@@ -92,20 +92,35 @@ const getSellerOrders = async (req, res) => {
     // Get order items for each order from this seller
     const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
-        const [items] = await db.execute(
-          `SELECT 
+        let itemsQuery = `SELECT 
             oi.*,
             p.name as product_name,
             p.image_keys,
-            p.unit_type,
+            p.unit_type`;
+
+        if (order.order_type === "preorder") {
+          itemsQuery += `,
+            pi.expected_availability_date,
+            pi.deposit_amount,
+            pi.remaining_balance as preorder_remaining_balance,
+            pi.status as preorder_status,
+            pi.availability_notified_at
+          FROM order_items oi
+          JOIN products p ON oi.product_id = p.id
+          LEFT JOIN preorder_items pi ON oi.id = pi.order_item_id`;
+        } else {
+          itemsQuery += `,
             p.is_preorder_enabled,
             p.expected_availability_date
           FROM order_items oi
-          JOIN products p ON oi.product_id = p.id
+          JOIN products p ON oi.product_id = p.id`;
+        }
+
+        itemsQuery += `
           WHERE oi.order_id = ? AND oi.seller_id = ?
-          ORDER BY oi.created_at`,
-          [order.id, sellerId]
-        );
+          ORDER BY oi.created_at`;
+
+        const [items] = await db.execute(itemsQuery, [order.id, sellerId]);
 
         // Generate public URLs for product images
         const itemsWithImages = items.map((item) => {
@@ -158,9 +173,7 @@ const getSellerOrders = async (req, res) => {
 
     if (status && status !== "all") {
       if (status === "preorder") {
-        totalCountStatusFilter =
-          "AND EXISTS (SELECT 1 FROM order_items oi2 JOIN products p2 ON oi2.product_id = p2.id WHERE oi2.order_id = o.id AND oi2.seller_id = ? AND p2.is_preorder_enabled = 1)";
-        countQueryParams.push(sellerId);
+        totalCountStatusFilter = "AND o.order_type = 'preorder'";
       } else {
         totalCountStatusFilter = "AND o.status = ?";
         countQueryParams.push(status);

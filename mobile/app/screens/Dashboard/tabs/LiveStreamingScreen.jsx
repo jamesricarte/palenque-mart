@@ -1,9 +1,32 @@
 import { View, Text } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const LiveStreamingScreen = () => {
   return (
-    <View className="flex flex-col items-center justify-center h-screen">
-      <Text>LiveStreamingScreen</Text>
+    <View className="flex-1 bg-gray-50">
+      {/* Header */}
+      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <Text className="text-2xl font-semibold">Live Streams</Text>
+      </View>
+
+      <View className="items-center justify-center flex-1 p-8">
+        <View className="items-center justify-center w-20 h-20 mb-6 bg-orange-100 rounded-full">
+          <Ionicons name="videocam" size={40} color="#f97316" />
+        </View>
+
+        <Text className="mb-2 text-xl font-semibold text-center text-gray-900">
+          Live Streaming
+        </Text>
+
+        <Text className="mb-8 text-lg text-center text-gray-600">
+          This feature will be coming soon
+        </Text>
+
+        <Text className="text-sm leading-6 text-center text-gray-500">
+          We're working hard to bring you live streaming capabilities. Stay
+          tuned for updates!
+        </Text>
+      </View>
     </View>
   );
 };

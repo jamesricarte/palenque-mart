@@ -54,20 +54,36 @@ const getSellerOrderDetails = async (req, res) => {
 
     const order = orderRows[0];
 
-    // Get order items for this seller only
-    const [items] = await db.execute(
-      `SELECT 
+    let itemsQuery = `SELECT 
         oi.*,
         p.name as product_name,
         p.image_keys,
         p.unit_type,
-        p.description as product_description
+        p.description as product_description`;
+
+    if (order.order_type === "preorder") {
+      itemsQuery += `,
+        pi.expected_availability_date,
+        pi.deposit_amount,
+        pi.remaining_balance as preorder_remaining_balance,
+        pi.status as preorder_status,
+        pi.availability_notified_at
       FROM order_items oi
       JOIN products p ON oi.product_id = p.id
+      LEFT JOIN preorder_items pi ON oi.id = pi.order_item_id`;
+    } else {
+      itemsQuery += `,
+        p.is_preorder_enabled,
+        p.expected_availability_date
+      FROM order_items oi
+      JOIN products p ON oi.product_id = p.id`;
+    }
+
+    itemsQuery += `
       WHERE oi.order_id = ? AND oi.seller_id = ?
-      ORDER BY oi.created_at`,
-      [orderId, sellerId]
-    );
+      ORDER BY oi.created_at`;
+
+    const [items] = await db.execute(itemsQuery, [orderId, sellerId]);
 
     // Generate public URLs for product images
     const itemsWithImages = items.map((item) => {

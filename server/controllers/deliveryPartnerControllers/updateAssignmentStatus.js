@@ -92,7 +92,9 @@ const updateAssignmentStatus = async (req, res) => {
 
     // If order status is delivered, update the delivered_at timestamp
     const ordersDeliveredAtUpdate =
-      orderStatus === "delivered" ? ", delivered_at = CURRENT_TIMESTAMP" : "";
+      orderStatus === "delivered"
+        ? ", delivered_at = CURRENT_TIMESTAMP, payment_status = 'paid'"
+        : "";
 
     await db.execute(
       `UPDATE orders SET status = ?${ordersDeliveredAtUpdate} WHERE id = ?`,
