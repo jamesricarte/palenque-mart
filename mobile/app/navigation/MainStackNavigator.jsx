@@ -17,6 +17,7 @@ import CartScreen from "../screens/Cart/CartScreen";
 import PartnershipOptionsScreen from "../screens/PartnershipOptions/PartnershipOptionsScreen";
 import NotificationsScreen from "../screens/Dashboard/tabs/NotificationsScreen";
 import SettingsScreen from "../screens/Settings/SettingsScreen";
+import CategoryProductsScreen from "../screens/Dashboard/CategoryProductsScreen";
 
 import ProfileScreen from "../screens/Profile/ProfileScreen";
 import EditEmailScreen from "../screens/Profile/EditEmailScreen";
@@ -113,6 +114,10 @@ const MainStackNavigator = () => {
       />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen
+        name="CategoryProducts"
+        component={CategoryProductsScreen}
+      />
 
       {/* Profile */}
       <Stack.Screen name="Profile" component={ProfileScreen} />

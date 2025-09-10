@@ -3,7 +3,9 @@ const supabase = require("../../config/supabase");
 
 const getAllProducts = async (req, res) => {
   try {
-    const query = `
+    const { category, sortBy } = req.query;
+
+    let query = `
       SELECT 
         p.id,
         p.seller_id,
@@ -23,10 +25,44 @@ const getAllProducts = async (req, res) => {
       FROM products p
       JOIN sellers s ON p.seller_id = s.id
       WHERE p.is_active = 1 AND s.is_active = 1
-      ORDER BY p.created_at DESC
     `;
 
-    const [results] = await db.execute(query);
+    const queryParams = [];
+    if (category) {
+      query += ` AND p.category = ?`;
+      queryParams.push(category);
+    }
+
+    let orderBy = ` ORDER BY p.created_at DESC`; // default sorting
+
+    if (sortBy) {
+      switch (sortBy) {
+        case "newest":
+          orderBy = ` ORDER BY p.created_at DESC`;
+          break;
+        case "oldest":
+          orderBy = ` ORDER BY p.created_at ASC`;
+          break;
+        case "price_low":
+          orderBy = ` ORDER BY p.price ASC`;
+          break;
+        case "price_high":
+          orderBy = ` ORDER BY p.price DESC`;
+          break;
+        case "name_asc":
+          orderBy = ` ORDER BY p.name ASC`;
+          break;
+        case "name_desc":
+          orderBy = ` ORDER BY p.name DESC`;
+          break;
+        default:
+          orderBy = ` ORDER BY p.created_at DESC`;
+      }
+    }
+
+    query += orderBy;
+
+    const [results] = await db.execute(query, queryParams);
 
     // Generate public URLs for images
     const productsWithUrls = results.map((product) => {

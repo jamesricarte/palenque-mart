@@ -10,27 +10,27 @@ import {
   RefreshControl,
   FlatList,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 
-import { useAuth } from "../../../context/AuthContext";
-import { API_URL } from "../../../config/apiConfig";
-import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
+import { useAuth } from "../../context/AuthContext";
+import { API_URL } from "../../config/apiConfig";
+import PersonalizedLoadingAnimation from "../../components/PersonalizedLoadingAnimation";
 
-const HomeScreen = ({ navigation }) => {
+const CategoryProductsScreen = ({ navigation, route }) => {
   const { user } = useAuth();
+  const { category } = route.params || {};
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(category || "All");
   const [sortBy, setSortBy] = useState("newest");
-  const [cartCount, setCartCount] = useState(0);
 
   const fetchCategories = async () => {
     try {
@@ -40,18 +40,17 @@ const HomeScreen = ({ navigation }) => {
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
-      // Fallback categories if API fails
       setCategories(["All", "Fish", "Poultry", "Vegetables", "Meat"]);
     }
   };
 
-  const fetchProducts = async (category = null, sort = "newest") => {
+  const fetchProducts = async (categoryFilter = null, sort = "newest") => {
     try {
       let url = `${API_URL}/api/products/all`;
       const params = new URLSearchParams();
 
-      if (category && category !== "All") {
-        params.append("category", category);
+      if (categoryFilter && categoryFilter !== "All") {
+        params.append("category", categoryFilter);
       }
 
       if (sort) {
@@ -74,22 +73,10 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const fetchCartCount = async () => {
-    if (!user) return;
-    try {
-      const response = await axios.get(`${API_URL}/api/cart/count`);
-      if (response.data.success) {
-        setCartCount(response.data.data.totalItems);
-      }
-    } catch (error) {
-      console.error("Error fetching cart count:", error);
-    }
-  };
-
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchProducts(
-      selectedFilter === "All" ? null : selectedFilter,
+      selectedCategory === "All" ? null : selectedCategory,
       sortBy
     );
     setRefreshing(false);
@@ -97,22 +84,12 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchCategories();
-    fetchProducts();
-  }, [user]);
+    fetchProducts(selectedCategory === "All" ? null : selectedCategory);
+  }, []);
 
   useEffect(() => {
-    if (selectedFilter) {
-      fetchProducts(selectedFilter === "All" ? null : selectedFilter, sortBy);
-    }
-  }, [selectedFilter, sortBy]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (user) {
-        fetchCartCount();
-      }
-    }, [])
-  );
+    fetchProducts(selectedCategory === "All" ? null : selectedCategory, sortBy);
+  }, [selectedCategory, sortBy]);
 
   const filteredProducts = products.filter(
     (product) =>
@@ -124,7 +101,6 @@ const HomeScreen = ({ navigation }) => {
         product.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // Helper function to format address
   const formatAddress = (product) => {
     const addressParts = [];
     if (product.city) addressParts.push(product.city);
@@ -284,40 +260,16 @@ const HomeScreen = ({ navigation }) => {
       <View className="flex-1 bg-white">
         <View className="flex gap-4 px-4 pt-16 pb-6 bg-white border-b border-gray-200">
           <View className="flex flex-row items-center justify-between">
-            <Image
-              source={require("../../../assets/images/Palenque-Logo-v1.png")}
-              className="h-16 w-52"
-              resizeMode="cover"
-            />
             <TouchableOpacity
-              onPress={() => navigation.push("Cart")}
-              className="relative p-2"
+              onPress={() => navigation.goBack()}
+              className="p-2"
             >
-              <Ionicons name="bag-outline" size={24} color="black" />
-              {cartCount > 0 && (
-                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
-                  <Text className="text-xs font-bold text-white">
-                    {cartCount}
-                  </Text>
-                </View>
-              )}
+              <Ionicons name="arrow-back" size={24} color="black" />
             </TouchableOpacity>
-          </View>
-          <View className="flex flex-row items-center">
-            <View className="relative flex-1">
-              <TextInput
-                className="p-3 pr-10 text-base border border-gray-200 bg-gray-50 rounded-xl"
-                placeholder="Search products, stores..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              <Ionicons
-                name="search"
-                size={20}
-                color="#6B7280"
-                style={{ position: "absolute", right: 12, top: 12 }}
-              />
-            </View>
+            <Text className="text-lg font-semibold text-gray-900">
+              {category || "All Categories"}
+            </Text>
+            <View className="w-10" />
           </View>
         </View>
 
@@ -331,32 +283,23 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View className="flex-1 bg-gray-50">
+      {/* Header */}
       <View className="flex gap-4 px-4 pt-16 pb-6 bg-white border-b border-gray-200">
         <View className="flex flex-row items-center justify-between">
-          <Image
-            source={require("../../../assets/images/Palenque-Logo-v1.png")}
-            className="h-16 w-52"
-            resizeMode="cover"
-          />
-          <TouchableOpacity
-            onPress={() => navigation.push("Cart")}
-            className="relative p-2"
-          >
-            <Ionicons name="bag-outline" size={24} color="black" />
-            {cartCount > 0 && (
-              <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
-                <Text className="text-xs font-bold text-white">
-                  {cartCount}
-                </Text>
-              </View>
-            )}
+          <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
+            <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
+          <Text className="text-lg font-semibold text-gray-900">
+            {selectedCategory === "All" ? "All Categories" : selectedCategory}
+          </Text>
+          <View className="w-10" />
         </View>
+
         <View className="flex flex-row items-center">
           <View className="relative flex-1">
             <TextInput
               className="p-3 pr-10 text-base border border-gray-200 bg-gray-50 rounded-xl"
-              placeholder="Search products, stores..."
+              placeholder="Search products..."
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -376,21 +319,11 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Category Filter */}
         <View className="py-4 bg-white border-b border-gray-200">
-          <View className="flex-row items-center justify-between px-4 mb-3">
-            <Text className="text-lg font-semibold text-gray-900">
-              Categories
-            </Text>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("CategoryProducts", {
-                  category: selectedFilter === "All" ? null : selectedFilter,
-                })
-              }
-            >
-              <Text className="text-orange-500 font-medium">View All</Text>
-            </TouchableOpacity>
-          </View>
+          <Text className="px-4 mb-3 text-lg font-semibold text-gray-900">
+            Filter by Category
+          </Text>
 
           <FlatList
             data={categories}
@@ -401,31 +334,11 @@ const HomeScreen = ({ navigation }) => {
             renderItem={({ item }) => (
               <CategoryCard
                 category={item}
-                isSelected={selectedFilter === item}
-                onPress={() => {
-                  if (item === selectedFilter) {
-                    // If clicking on selected category, navigate to category screen
-                    navigation.navigate("CategoryProducts", {
-                      category: item === "All" ? null : item,
-                    });
-                  } else {
-                    // Otherwise, just filter the current view
-                    setSelectedFilter(item);
-                  }
-                }}
+                isSelected={selectedCategory === item}
+                onPress={() => setSelectedCategory(item)}
               />
             )}
           />
-        </View>
-
-        {/* Header Section */}
-        <View className="px-4 py-6 bg-white border-b border-gray-200">
-          <Text className="mb-2 text-xl font-semibold text-gray-900">
-            Fresh Products from Local Sellers
-          </Text>
-          <Text className="text-gray-600">
-            Discover quality products from trusted sellers in your area
-          </Text>
         </View>
 
         <View className="px-4 py-4 bg-white border-b border-gray-200">
@@ -482,9 +395,9 @@ const HomeScreen = ({ navigation }) => {
                 <Text className="text-lg font-semibold text-gray-900">
                   {searchQuery
                     ? `Search Results (${filteredProducts.length})`
-                    : selectedFilter === "All"
+                    : selectedCategory === "All"
                       ? `All Products (${filteredProducts.length})`
-                      : `${selectedFilter} (${filteredProducts.length})`}
+                      : `${selectedCategory} (${filteredProducts.length})`}
                 </Text>
               </View>
 
@@ -505,7 +418,9 @@ const HomeScreen = ({ navigation }) => {
               <Text className="px-8 text-center text-gray-500">
                 {searchQuery
                   ? "Try adjusting your search terms"
-                  : "Check back later for new products from our sellers"}
+                  : selectedCategory === "All"
+                    ? "Check back later for new products from our sellers"
+                    : `No products available in ${selectedCategory} category`}
               </Text>
               {searchQuery && (
                 <TouchableOpacity
@@ -518,37 +433,9 @@ const HomeScreen = ({ navigation }) => {
             </View>
           )}
         </View>
-
-        {/* Bottom spacing for auth buttons */}
-        <View className="h-32" />
       </ScrollView>
-
-      {/* Authentication Buttons - Fixed at bottom */}
-      {!user && (
-        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300">
-          <View className="flex flex-row justify-center gap-4 px-6 py-6">
-            <TouchableOpacity
-              className="flex-1 px-6 py-3 border-2 border-black rounded-xl max-w-32"
-              onPress={() => navigation.push("Login")}
-            >
-              <Text className="text-lg font-semibold text-center text-black">
-                Login
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-1 px-6 py-3 bg-black rounded-xl max-w-32"
-              onPress={() => navigation.push("SignUp")}
-            >
-              <Text className="text-lg font-semibold text-center text-white">
-                Sign up
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
     </View>
   );
 };
 
-export default HomeScreen;
+export default CategoryProductsScreen;
