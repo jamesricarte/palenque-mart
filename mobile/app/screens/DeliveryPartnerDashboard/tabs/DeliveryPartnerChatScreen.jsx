@@ -156,7 +156,7 @@ const DeliveryPartnerChatScreen = ({ navigation }) => {
     return (
       <View className="flex-1 bg-gray-50">
         {/* Header */}
-        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <View className="px-4 pt-4 pb-5 bg-white border-b border-gray-200">
           <Text className="text-2xl font-semibold">Messages</Text>
         </View>
 
@@ -183,7 +183,7 @@ const DeliveryPartnerChatScreen = ({ navigation }) => {
     return (
       <View className="flex-1 bg-gray-50">
         {/* Header */}
-        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <View className="px-4 pt-4 pb-5 bg-white border-b border-gray-200">
           <Text className="text-2xl font-semibold">Messages</Text>
         </View>
 
@@ -198,7 +198,7 @@ const DeliveryPartnerChatScreen = ({ navigation }) => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+      <View className="px-4 pt-4 pb-5 bg-white border-b border-gray-200">
         <Text className="text-2xl font-semibold">Messages</Text>
         <Text className="text-sm text-gray-600">
           Chat with sellers about deliveries

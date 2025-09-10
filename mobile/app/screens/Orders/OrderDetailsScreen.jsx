@@ -296,7 +296,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         fetchOrderDetails();
       }
     } catch (error) {
-      console.error("Error cancelling order:", error);
+      console.error("Error cancelling order:", error.response.data);
       Alert.alert("Error", "Failed to cancel order");
     }
   };

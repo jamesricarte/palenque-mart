@@ -10,6 +10,7 @@ import {
   Platform,
   Image,
   Alert,
+  Keyboard,
 } from "react-native";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
@@ -28,6 +29,8 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const scrollViewRef = useRef(null);
+
+  const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
   const fetchMessages = async () => {
     try {
@@ -134,6 +137,24 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
   const MessageBubble = ({ message }) => {
     const isDeliveryPartner = message.sender_type === "delivery_partner";
 
+    useEffect(() => {
+      const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
+        setKeyboardVisibility(false);
+      });
+
+      const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
+        setKeyboardVisibility(true);
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 0);
+      });
+
+      return () => {
+        keyboardDidHide.remove();
+        keyboardDidShow.remove();
+      };
+    }, []);
+
     return (
       <View
         className={`mb-3 ${isDeliveryPartner ? "items-end" : "items-start"}`}
@@ -153,7 +174,7 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
         </View>
         <Text className="mt-1 text-xs text-gray-500">
           {formatMessageTime(message.created_at)}
-          {message.is_read && isDeliveryPartner && (
+          {message.is_read === 1 && isDeliveryPartner && (
             <Text className="text-green-600"> ✓✓</Text>
           )}
         </Text>
@@ -172,7 +193,9 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-gray-50"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={
+        Platform.OS === "android" && !keyBoardVisibility ? null : "padding"
+      }
     >
       {/* Header */}
       <View className="flex flex-row items-center px-4 pt-12 pb-4 bg-white border-b border-gray-200">
