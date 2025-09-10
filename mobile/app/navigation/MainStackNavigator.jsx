@@ -51,6 +51,7 @@ import EditProductScreen from "../screens/SellerDashboard/EditProductScreen";
 import DeliveryPartnerDashboardScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDashboardScreen";
 import EditDeliveryPartnerProfileScreen from "../screens/DeliveryPartnerDashboard/EditDeliveryPartnerProfileScreen";
 import DeliveryPartnerDeliveryDetailsScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDeliveryDetailsScreen";
+import DeliveryPartnerChatConversationScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerChatConversationScreen";
 
 import ProductDetailsScreen from "../screens/ProductDetails/ProductDetailsScreen";
 
@@ -216,6 +217,10 @@ const MainStackNavigator = () => {
       <Stack.Screen
         name="DeliveryPartnerDeliveryDetails"
         component={DeliveryPartnerDeliveryDetailsScreen}
+      />
+      <Stack.Screen
+        name="DeliveryPartnerChatConversation"
+        component={DeliveryPartnerChatConversationScreen}
       />
 
       {/* Product Details */}

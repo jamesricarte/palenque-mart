@@ -14,6 +14,12 @@ const getSellerConversationMessages = require("../controllers/chatControllers/ge
 const sendSellerMessage = require("../controllers/chatControllers/sendSellerMessage");
 const markSellerMessagesAsRead = require("../controllers/chatControllers/markSellerMessagesAsRead");
 
+const getDeliveryPartnerConversationId = require("../controllers/chatControllers/getDeliveryPartnerConversationId");
+const getDeliveryPartnerConversations = require("../controllers/chatControllers/getDeliveryPartnerConversations");
+const getDeliveryPartnerConversationMessages = require("../controllers/chatControllers/getDeliveryPartnerConversationMessages");
+const sendDeliveryPartnerMessage = require("../controllers/chatControllers/sendDeliveryPartnerMessage");
+const markDeliveryPartnerMessagesAsRead = require("../controllers/chatControllers/markDeliveryPartnerMessagesAsRead");
+
 // Consumer/User chat routes
 router.get(
   "/:sellerId/conversation-id",
@@ -45,6 +51,32 @@ router.put(
   "/seller/conversations/:conversationId/mark-read",
   authenticateToken,
   markSellerMessagesAsRead
+);
+
+router.get(
+  "/delivery-partner/:sellerId/conversation-id",
+  authenticateToken,
+  getDeliveryPartnerConversationId
+);
+router.get(
+  "/delivery-partner/conversations",
+  authenticateToken,
+  getDeliveryPartnerConversations
+);
+router.get(
+  "/delivery-partner/conversations/:conversationId/messages",
+  authenticateToken,
+  getDeliveryPartnerConversationMessages
+);
+router.post(
+  "/delivery-partner/send-message",
+  authenticateToken,
+  sendDeliveryPartnerMessage
+);
+router.put(
+  "/delivery-partner/conversations/:conversationId/mark-read",
+  authenticateToken,
+  markDeliveryPartnerMessagesAsRead
 );
 
 module.exports = router;

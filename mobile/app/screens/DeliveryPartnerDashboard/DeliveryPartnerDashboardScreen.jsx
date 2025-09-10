@@ -15,6 +15,7 @@ import DeliveryPartnerOverviewScreen from "./tabs/DeliveryPartnerOverviewScreen"
 import DeliveryPartnerDeliveriesScreen from "./tabs/DeliveryPartnerDeliveriesScreen";
 import DeliveryPartnerHistoryScreen from "./tabs/DeliveryPartnerHistoryScreen";
 import DeliveryPartnerAccountScreen from "./tabs/DeliveryPartnerAccountScreen";
+import DeliveryPartnerChatScreen from "./tabs/DeliveryPartnerChatScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -137,6 +138,8 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
               iconName = focused ? "time" : "time-outline";
             } else if (route.name === "Account") {
               iconName = focused ? "person" : "person-outline";
+            } else if (route.name === "Chat") {
+              iconName = focused ? "chatbubbles" : "chatbubbles-outline";
             }
 
             return <IconComponent name={iconName} size={size} color={color} />;
@@ -164,6 +167,7 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
           component={DeliveryPartnerDeliveriesScreen}
         />
         <Tab.Screen name="History" component={DeliveryPartnerHistoryScreen} />
+        <Tab.Screen name="Chat" component={DeliveryPartnerChatScreen} />
         <Tab.Screen name="Account">
           {(props) => (
             <DeliveryPartnerAccountScreen

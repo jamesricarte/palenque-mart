@@ -61,6 +61,34 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
     }
   };
 
+  const handleChatWithSeller = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/chat/delivery-partner/${deliveryDetails.seller_id}/conversation-id`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        navigation.navigate("DeliveryPartnerChatConversation", {
+          conversationId: response.data.data.conversationId,
+          sellerId: deliveryDetails.seller_id,
+          storeName: deliveryDetails.store_name,
+          storeLogo: deliveryDetails.store_logo_url,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error getting conversation ID:",
+        error.response?.data || error
+      );
+      Alert.alert("Error", "Failed to open chat");
+    }
+  };
+
   const handleAcceptDelivery = () => {
     Alert.alert(
       "Accept Delivery",
@@ -510,6 +538,12 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
                 </Text>
                 <Text className="text-sm text-gray-600">Store</Text>
               </View>
+              <TouchableOpacity
+                onPress={handleChatWithSeller}
+                className="p-2 ml-2 bg-green-100 rounded-full"
+              >
+                <MaterialIcons name="chat" size={20} color="#16a34a" />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -646,7 +680,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
                 </Text>
                 <Text className="ml-8 text-gray-700">
                   {deliveryDetails.delivery_province}{" "}
-                  {deliveryDetails.delivery_postal_code}
+                  {deliveryDetails.postal_code}
                 </Text>
                 {deliveryDetails.delivery_landmark && (
                   <Text className="ml-8 text-gray-600">
