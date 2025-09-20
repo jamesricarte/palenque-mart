@@ -7,6 +7,7 @@ import { DeliveryPartnerProvider } from "./context/DeliveryPartnerContext";
 import { SellerProvider } from "./context/SellerContext";
 import LoadingScreen from "./screens/LoadingScreen";
 import { prettyLog } from "./utils/prettyLog";
+import { StatusBar } from "expo-status-bar";
 
 import "../global.css";
 global.prettyLog = prettyLog;
@@ -28,13 +29,16 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <SellerProvider>
-        <DeliveryPartnerProvider>
-          <AppContent />
-        </DeliveryPartnerProvider>
-      </SellerProvider>
-    </AuthProvider>
+    <>
+      <StatusBar style="dark" />
+      <AuthProvider>
+        <SellerProvider>
+          <DeliveryPartnerProvider>
+            <AppContent />
+          </DeliveryPartnerProvider>
+        </SellerProvider>
+      </AuthProvider>
+    </>
   );
 };
 

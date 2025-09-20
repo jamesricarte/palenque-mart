@@ -1,5 +1,5 @@
-const db = require("../../config/db");
-const supabase = require("../../config/supabase");
+const db = require("../../../config/db");
+const supabase = require("../../../config/supabase");
 
 const getUserConversations = async (req, res) => {
   try {

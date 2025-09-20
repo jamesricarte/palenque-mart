@@ -1,20 +1,23 @@
-const db = require("../../config/db")
+const db = require("../../../config/db");
 
 const getSellerConversations = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = req.user.id;
 
     // Get seller ID from user
-    const [sellerCheck] = await db.execute("SELECT id FROM sellers WHERE user_id = ? AND is_active = 1", [userId])
+    const [sellerCheck] = await db.execute(
+      "SELECT id FROM sellers WHERE user_id = ? AND is_active = 1",
+      [userId]
+    );
 
     if (sellerCheck.length === 0) {
       return res.status(403).json({
         success: false,
         message: "Seller account not found",
-      })
+      });
     }
 
-    const sellerId = sellerCheck[0].id
+    const sellerId = sellerCheck[0].id;
 
     const query = `
       SELECT 
@@ -31,23 +34,23 @@ const getSellerConversations = async (req, res) => {
       LEFT JOIN messages m ON c.last_message_id = m.id
       WHERE c.seller_id = ? AND c.is_active = 1
       ORDER BY c.last_message_at DESC, c.created_at DESC
-    `
+    `;
 
-    const [conversations] = await db.execute(query, [sellerId])
+    const [conversations] = await db.execute(query, [sellerId]);
 
     res.json({
       success: true,
       data: {
         conversations: conversations,
       },
-    })
+    });
   } catch (error) {
-    console.error("Error fetching seller conversations:", error)
+    console.error("Error fetching seller conversations:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch conversations",
-    })
+    });
   }
-}
+};
 
-module.exports = getSellerConversations
+module.exports = getSellerConversations;

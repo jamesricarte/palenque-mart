@@ -21,18 +21,15 @@ import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
 
-const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
+const SellerDeliveryPartnerChatScreen = ({ navigation, route }) => {
   const { user, token, socketMessage } = useAuth();
   const {
     conversationId,
-    sellerId,
-    storeName,
-    storeLogo,
-    consumerId,
-    consumerName,
+    deliveryPartnerId,
+    deliveryPartnerName,
+    deliveryPartnerProfilePicture,
     orderId,
     orderNumber,
-    chatType,
     deliveryStatus,
   } = route.params;
 
@@ -47,7 +44,7 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
   const fetchMessages = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}/api/chat/delivery-partner/conversations/${conversationId}/messages?orderId=${orderId}&chatType=${chatType}`,
+        `${API_URL}/api/chat/seller/conversations/${conversationId}/messages?orderId=${orderId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,7 +58,7 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
         markMessagesAsRead();
       }
     } catch (error) {
-      console.error("Error fetching messages:", error.response.data);
+      console.error("Error fetching messages:", error.response?.data || error);
     } finally {
       setLoading(false);
     }
@@ -70,11 +67,14 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
   const markMessagesAsRead = async () => {
     try {
       await axios.put(
-        `${API_URL}/api/chat/delivery-partner/conversations/${conversationId}/mark-read`,
+        `${API_URL}/api/chat/seller/delivery-partner/conversations/${conversationId}/mark-read`,
         {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
+          },
+          params: {
+            orderId: orderId,
           },
         }
       );
@@ -92,15 +92,13 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/chat/delivery-partner/send-message`,
+        `${API_URL}/api/chat/seller/delivery-partner/send-message`,
         {
           conversationId,
-          sellerId: chatType === "seller" ? sellerId : null,
-          consumerId: chatType === "consumer" ? consumerId : null,
+          deliveryPartnerId,
           messageText,
           messageType: "text",
           orderId, // Include order ID for order-based chat
-          chatType, // Include chat type
         },
         {
           headers: {
@@ -183,7 +181,7 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
   }, []);
 
   const MessageItem = ({ message, showDate }) => {
-    const isDeliveryPartner = message.sender_type === "delivery_partner";
+    const isSeller = message.sender_type === "seller";
 
     return (
       <View>
@@ -198,22 +196,16 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
         )}
 
         <View
-          className={`flex-row mb-3 ${isDeliveryPartner ? "justify-end" : "justify-start"}`}
+          className={`flex-row mb-3 ${isSeller ? "justify-end" : "justify-start"}`}
         >
-          {!isDeliveryPartner && (
+          {!isSeller && (
             <View className="mr-2">
-              {chatType === "seller" ? (
-                storeLogo ? (
-                  <Image
-                    source={{ uri: storeLogo }}
-                    className="w-8 h-8 rounded-full"
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full">
-                    <MaterialIcons name="store" size={16} color="#6B7280" />
-                  </View>
-                )
+              {deliveryPartnerProfilePicture ? (
+                <Image
+                  source={{ uri: deliveryPartnerProfilePicture }}
+                  className="w-8 h-8 rounded-full"
+                  resizeMode="cover"
+                />
               ) : (
                 <View className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full">
                   <MaterialIcons name="person" size={16} color="#3b82f6" />
@@ -224,19 +216,19 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
 
           <View
             className={`max-w-[80%] px-4 py-3 rounded-2xl ${
-              isDeliveryPartner
-                ? "bg-green-600 rounded-br-md"
+              isSeller
+                ? "bg-orange-600 rounded-br-md"
                 : "bg-gray-200 rounded-bl-md"
             }`}
           >
             <Text
-              className={`text-base ${isDeliveryPartner ? "text-white" : "text-gray-900"}`}
+              className={`text-base ${isSeller ? "text-white" : "text-gray-900"}`}
             >
               {message.message_text}
             </Text>
 
             <Text
-              className={`mt-1 text-xs ${isDeliveryPartner ? "text-green-100" : "text-gray-500"}`}
+              className={`mt-1 text-xs ${isSeller ? "text-orange-100" : "text-gray-500"}`}
             >
               {formatMessageTime(message.created_at)}
             </Text>
@@ -275,17 +267,11 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
           </TouchableOpacity>
 
           <View className="flex-row items-center flex-1">
-            {chatType === "seller" ? (
-              storeLogo ? (
-                <Image
-                  source={{ uri: storeLogo }}
-                  className="w-10 h-10 mr-3 rounded-full"
-                />
-              ) : (
-                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-gray-200 rounded-full">
-                  <MaterialIcons name="store" size={20} color="#6B7280" />
-                </View>
-              )
+            {deliveryPartnerProfilePicture ? (
+              <Image
+                source={{ uri: deliveryPartnerProfilePicture }}
+                className="w-10 h-10 mr-3 rounded-full"
+              />
             ) : (
               <View className="flex items-center justify-center w-10 h-10 mr-3 bg-blue-100 rounded-full">
                 <MaterialIcons name="person" size={20} color="#3b82f6" />
@@ -293,21 +279,19 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
             )}
             <View className="flex-1">
               <Text className="text-lg font-semibold text-gray-900">
-                {chatType === "seller" ? storeName : consumerName}
+                {deliveryPartnerName}
               </Text>
-              <Text className="text-sm text-gray-600">
-                {chatType === "seller" ? "Seller" : "Recipient"}
-              </Text>
+              <Text className="text-sm text-gray-600">Delivery Partner</Text>
             </View>
           </View>
         </View>
 
-        <View className="px-2 py-2 rounded-lg bg-green-50">
-          <Text className="text-sm font-medium text-green-800">
-            Delivery: {orderNumber}
+        <View className="px-2 py-2 rounded-lg bg-orange-50">
+          <Text className="text-sm font-medium text-orange-800">
+            Order: {orderNumber}
           </Text>
-          <Text className="text-xs text-green-600">
-            Chat for this delivery only • Status:{" "}
+          <Text className="text-xs text-orange-600">
+            Chat for this order only • Status:{" "}
             {deliveryStatus.replace("_", " ")}
           </Text>
         </View>
@@ -328,10 +312,10 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
               color="#9CA3AF"
             />
             <Text className="mt-4 text-lg font-medium text-gray-600">
-              Start the conversation
+              No conversation yet
             </Text>
             <Text className="mt-2 text-center text-gray-500">
-              Send a message to communicate about this delivery
+              Send a message to start communicating about this order
             </Text>
           </View>
         ) : (
@@ -366,7 +350,7 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
           <TouchableOpacity
             onPress={sendMessage}
             disabled={!newMessage.trim() || sending}
-            className={`p-3 rounded-full ${newMessage.trim() && !sending ? "bg-green-600" : "bg-gray-300"}`}
+            className={`p-3 rounded-full ${newMessage.trim() && !sending ? "bg-orange-600" : "bg-gray-300"}`}
           >
             <MaterialIcons
               name="send"
@@ -388,4 +372,4 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
   );
 };
 
-export default DeliveryPartnerChatConversationScreen;
+export default SellerDeliveryPartnerChatScreen;

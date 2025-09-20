@@ -10,21 +10,26 @@ import {
   Image,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { API_URL } from "../../config/apiConfig";
 import MapView, { Marker } from "react-native-maps";
 import { useDeliveryPartner } from "../../context/DeliveryPartnerContext";
+import { StatusBar } from "expo-status-bar";
+import { useFocusEffect } from "@react-navigation/native";
 
 const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
-  const { token } = useAuth();
-  const { currentLocation } = useDeliveryPartner();
+  const { token, user } = useAuth();
+  const { currentLocation, deliveryPartnerId } = useDeliveryPartner();
   const { assignmentId } = route.params;
   const [deliveryDetails, setDeliveryDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showFullScreenMap, setShowFullScreenMap] = useState(false);
+
+  const [sellerUnreadCount, setSellerUnreadCount] = useState(0);
+  const [consumerUnreadCount, setConsumerUnreadCount] = useState(0);
 
   const mapRef = useRef(null);
 
@@ -61,10 +66,39 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
     }
   };
 
+  const fetchUnreadCounts = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/chat/unread-counts/multiple?userId=${deliveryPartnerId}&userType=delivery_partner&orderId=${deliveryDetails.order_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setSellerUnreadCount(response.data.data.seller.unreadCount);
+        setConsumerUnreadCount(response.data.data.consumer.unreadCount);
+      }
+    } catch (error) {
+      console.error("Error fetching unread counts:", error);
+    }
+  };
+
+  // Call fetchUnreadCounts in useEffect
+  useFocusEffect(
+    useCallback(() => {
+      if (deliveryDetails) {
+        fetchUnreadCounts();
+      }
+    }, [deliveryDetails])
+  );
+
   const handleChatWithSeller = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}/api/chat/delivery-partner/${deliveryDetails.seller_id}/conversation-id`,
+        `${API_URL}/api/chat/delivery-partner/${deliveryDetails.seller_id}/conversation-id?orderId=${deliveryDetails.order_id}&chatType=seller`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -78,6 +112,41 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
           sellerId: deliveryDetails.seller_id,
           storeName: deliveryDetails.store_name,
           storeLogo: deliveryDetails.store_logo_url,
+          orderId: deliveryDetails.order_id,
+          orderNumber: deliveryDetails.order_number,
+          chatType: "seller",
+          deliveryStatus: deliveryDetails.delivery_status,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error getting conversation ID:",
+        error.response?.data || error
+      );
+      Alert.alert("Error", "Failed to open chat");
+    }
+  };
+
+  const handleChatWithConsumer = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/chat/delivery-partner/${deliveryDetails.user_id}/conversation-id?orderId=${deliveryDetails.order_id}&chatType=consumer`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        navigation.navigate("DeliveryPartnerChatConversation", {
+          conversationId: response.data.data.conversationId,
+          consumerId: deliveryDetails.user_id,
+          consumerName: deliveryDetails.delivery_recipient_name,
+          orderId: deliveryDetails.order_id,
+          orderNumber: deliveryDetails.order_number,
+          chatType: "consumer",
+          deliveryStatus: deliveryDetails.delivery_status,
         });
       }
     } catch (error) {
@@ -485,6 +554,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
   if (loading) {
     return (
       <View className="items-center justify-center flex-1 bg-gray-50">
+        <StatusBar style="dark" />
         <Text className="text-gray-500">Loading delivery details...</Text>
       </View>
     );
@@ -493,6 +563,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
   if (!deliveryDetails) {
     return (
       <View className="items-center justify-center flex-1 bg-gray-50">
+        <StatusBar style="dark" />
         <Text className="text-gray-500">Delivery details not found</Text>
       </View>
     );
@@ -500,6 +571,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
 
   return (
     <>
+      <StatusBar style="dark" />
       <ScrollView className="flex-1 bg-gray-50">
         <View className="p-4 pt-12">
           {/* Header */}
@@ -538,12 +610,53 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
                 </Text>
                 <Text className="text-sm text-gray-600">Store</Text>
               </View>
-              <TouchableOpacity
-                onPress={handleChatWithSeller}
-                className="p-2 ml-2 bg-green-100 rounded-full"
-              >
-                <MaterialIcons name="chat" size={20} color="#16a34a" />
-              </TouchableOpacity>
+
+              <View className="relative">
+                <TouchableOpacity
+                  onPress={handleChatWithSeller}
+                  className="p-2 ml-2 bg-green-100 rounded-full"
+                >
+                  <MaterialIcons name="chat" size={20} color="#16a34a" />
+                </TouchableOpacity>
+                {sellerUnreadCount > 0 && (
+                  <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center">
+                    <Text className="text-xs font-bold text-white">
+                      {sellerUnreadCount > 99 ? "99+" : sellerUnreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Delivery Recipient Information */}
+          <View className="p-4 mb-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <View className="flex flex-row items-center">
+              <View className="flex items-center justify-center w-12 h-12 mr-3 bg-blue-100 rounded-full">
+                <MaterialIcons name="person" size={24} color="#3b82f6" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-semibold text-gray-900">
+                  {deliveryDetails.delivery_recipient_name}
+                </Text>
+                <Text className="text-sm text-gray-600">Recipient</Text>
+              </View>
+
+              <View className="relative">
+                <TouchableOpacity
+                  onPress={handleChatWithConsumer}
+                  className="p-2 ml-2 bg-blue-100 rounded-full"
+                >
+                  <MaterialIcons name="chat" size={20} color="#3b82f6" />
+                </TouchableOpacity>
+                {consumerUnreadCount > 0 && (
+                  <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center">
+                    <Text className="text-xs font-bold text-white">
+                      {consumerUnreadCount > 99 ? "99+" : consumerUnreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
 
@@ -774,7 +887,9 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
             )}
 
           {/* Timestamps */}
-          <View className="p-4 mb-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <View
+            className={`p-4  bg-white border border-gray-200 rounded-lg shadow-sm ${deliveryDetails.delivery_status !== "delivered" ? "mb-24" : "mb-6"}`}
+          >
             <Text className="mb-4 text-lg font-semibold text-gray-900">
               Timeline
             </Text>
@@ -823,14 +938,18 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
               )}
             </View>
           </View>
-
-          {/* Action Buttons */}
-          <View className="mb-6">{renderActionButtons()}</View>
         </View>
       </ScrollView>
 
       {/* Full Screen Map Modal */}
       {renderFullScreenMap()}
+
+      {/* Action Buttons at Bottom */}
+      {deliveryDetails && renderActionButtons() && (
+        <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+          {renderActionButtons()}
+        </View>
+      )}
     </>
   );
 };

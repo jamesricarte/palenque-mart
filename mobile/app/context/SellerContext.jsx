@@ -214,6 +214,7 @@ export const SellerProvider = ({ children }) => {
     setTriggerWebSocket,
     refreshOrdersData,
     setRefreshOrdersData,
+    sellerId,
     setSellerId,
     startTrackingDeliveryPartner,
     stopTrackingDeliveryPartner,

@@ -169,6 +169,13 @@ const getSellerOrderDetails = async (req, res) => {
         };
 
         if (assignment.delivery_partner_id) {
+          let profile_picture_url = null;
+
+          const { data } = supabase.storage
+            .from("delivery-partner-assets")
+            .getPublicUrl(assignment.profile_picture);
+          profile_picture_url = data.publicUrl;
+
           deliveryPartner = {
             id: assignment.id,
             partner_id: assignment.partner_id,
@@ -177,7 +184,7 @@ const getSellerOrderDetails = async (req, res) => {
             phone: assignment.partner_phone,
             vehicle_type: assignment.vehicle_type,
             rating: assignment.rating,
-            profile_picture: assignment.profile_picture,
+            profile_picture: profile_picture_url,
             location: {
               latitude: assignment.delivery_partner_latitude,
               longitude: assignment.delivery_partner_longitude,

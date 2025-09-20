@@ -12,17 +12,22 @@ import {
   TextInput,
   FlatList,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { API_URL } from "../../config/apiConfig";
+import MapView, { Marker } from "react-native-maps";
+import { useAuth } from "../../context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const OrderDetailsScreen = ({ route, navigation }) => {
+  const { user } = useAuth();
   const { orderId, showReviewForm } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deliveryPartner, setDeliveryPartner] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [productRating, setProductRating] = useState(0);
   const [productReviewText, setProductReviewText] = useState("");
@@ -38,16 +43,36 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [orderProductReview, setOrderProductReview] = useState(null);
   const [orderSellerReview, setOrderSellerReview] = useState(null);
   const [initialShowReviewForm, setInitialShowReviewForm] = useState(true);
+  const [conversationId, setConversationId] = useState(null);
+  const [deliveryTrackingModalVisible, setDeliveryTrackingModalVisible] =
+    useState(false);
+
+  const [deliveryPartnerUnreadCount, setDeliveryPartnerUnreadCount] =
+    useState(0);
 
   useEffect(() => {
     fetchOrderDetails();
   }, []);
 
   useEffect(() => {
+    if (deliveryPartner && order) {
+      fetchConversationId();
+    }
+  }, [deliveryPartner, order]);
+
+  useEffect(() => {
     if (showReviewForm && initialShowReviewForm && order && canReview()) {
       openReviewModal();
     }
   }, [initialShowReviewForm, order]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (deliveryPartner && order) {
+        fetchDeliveryPartnerUnreadCount();
+      }
+    }, [deliveryPartner, order])
+  );
 
   const fetchOrderDetails = async () => {
     try {
@@ -56,12 +81,48 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         setOrder(response.data.data.order);
         setOrderProductReview(response.data.data.order.orderProductReview);
         setOrderSellerReview(response.data.data.order.orderSellerReview);
+        if (response.data.data.order.deliveryPartner) {
+          setDeliveryPartner(response.data.data.order.deliveryPartner);
+        }
       }
     } catch (error) {
       console.error("Error fetching order details:", error);
       Alert.alert("Error", "Failed to load order details");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchConversationId = async () => {
+    if (!deliveryPartner && !order) return;
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/chat/delivery-partner/${deliveryPartner.id}/order/${order.id}/conversation-id`
+      );
+
+      if (response.data.success) {
+        setConversationId(response.data.data.conversationId);
+      }
+    } catch (error) {
+      console.error(
+        "Error getting conversation ID:",
+        error.response.data.message || error
+      );
+    }
+  };
+
+  const fetchDeliveryPartnerUnreadCount = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/chat/unread-count?userId=${user.id}&userType=user&orderId=${order.id}`
+      );
+
+      if (response.data.success) {
+        setDeliveryPartnerUnreadCount(response.data.data.unreadCount);
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
     }
   };
 
@@ -181,8 +242,6 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         });
       });
 
-      prettyLog(formData);
-
       const response = await axios.post(
         `${API_URL}/api/reviews/submit`,
         formData,
@@ -210,7 +269,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         fetchOrderDetails();
       }
     } catch (error) {
-      console.error("Error submitting review:", error);
+      console.error("Error submitting review:", error.response.data);
       Alert.alert(
         "Error",
         error.response?.data?.message || "Failed to submit review"
@@ -328,6 +387,97 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     }
     return "Write Review";
   };
+
+  const handleMessageDeliveryPartner = async () => {
+    if (!deliveryPartner) {
+      Alert.alert(
+        "No Delivery Partner",
+        "This order doesn't have a delivery partner assigned yet."
+      );
+      return;
+    }
+
+    navigation.navigate("UserDeliveryPartnerChat", {
+      conversationId: conversationId || null,
+      orderId: order.id,
+      orderNumber: order.order_number,
+      deliveryPartnerId: deliveryPartner.id,
+      deliveryPartnerName: `${deliveryPartner.first_name} ${deliveryPartner.last_name}`,
+      deliveryPartnerPhone: deliveryPartner.phone_number,
+      deliveryPartnerProfilePicture: deliveryPartner.profile_picture_key,
+      deliveryStatus: order.status,
+    });
+  };
+
+  const canTrackDelivery = () => {
+    return (
+      order &&
+      deliveryPartner &&
+      ["rider_assigned", "out_for_delivery"].includes(order.status)
+    );
+  };
+
+  const handleTrackDelivery = () => {
+    if (!canTrackDelivery()) {
+      Alert.alert(
+        "Tracking Unavailable",
+        "Delivery tracking is not available for this order yet."
+      );
+      return;
+    }
+
+    navigation.navigate("DeliveryTracking", {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      deliveryPartnerId: deliveryPartner.id,
+      deliveryPartnerName: `${deliveryPartner.first_name} ${deliveryPartner.last_name}`,
+      deliveryPartnerPhone: deliveryPartner.phone_number,
+      deliveryAddress: {
+        street: order.delivery_street_address,
+        barangay: order.delivery_barangay,
+        city: order.delivery_city,
+        province: order.delivery_province,
+      },
+      conversationId: conversationId,
+      deliveryPartnerProfilePicture: deliveryPartner.profile_picture_key,
+      deliveryStatus: order.status,
+      deliveryPartnerLocation: deliveryPartner.location,
+      deliveryLocation: order.delivery_coordinates,
+    });
+  };
+
+  const mapRegion =
+    deliveryPartner && Object.values(deliveryPartner?.location).every(Boolean)
+      ? {
+          latitude:
+            (Number(deliveryPartner?.location.latitude) +
+              Number(order.delivery_coordinates.latitude)) /
+            2,
+          longitude:
+            (Number(deliveryPartner?.location.longitude) +
+              Number(order.delivery_coordinates.longitude)) /
+            2,
+          latitudeDelta:
+            Math.abs(
+              Number(deliveryPartner?.location.latitude) -
+                Number(order.delivery_coordinates.latitude)
+            ) *
+              2 +
+            0.01,
+          longitudeDelta:
+            Math.abs(
+              Number(deliveryPartner?.location.longitude) -
+                Number(order.delivery_coordinates.longitude)
+            ) *
+              2 +
+            0.01,
+        }
+      : {
+          latitude: Number(order?.delivery_coordinates?.latitude),
+          longitude: Number(order?.delivery_coordinates?.longitude),
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        };
 
   if (loading) {
     return (
@@ -573,6 +723,120 @@ const OrderDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
 
+        {/* Delivery Partner Information */}
+        {deliveryPartner && (
+          <View className="p-4 mb-4 bg-white rounded-lg">
+            <Text className="mb-3 text-lg font-semibold text-gray-900">
+              Delivery Partner
+            </Text>
+
+            <View className="flex-row items-center justify-between ">
+              <View className="flex-row items-center flex-1">
+                {deliveryPartner.profile_picture_key ? (
+                  <Image
+                    source={{ uri: deliveryPartner.profile_picture_key }}
+                    className="w-12 h-12 mr-3 rounded-full"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="flex items-center justify-center w-12 h-12 mr-3 bg-green-100 rounded-full">
+                    <MaterialCommunityIcons
+                      name="account"
+                      size={20}
+                      color="#059669"
+                    />
+                  </View>
+                )}
+
+                <View className="flex-1">
+                  <Text className="text-base font-semibold text-gray-900">
+                    {deliveryPartner.first_name} {deliveryPartner.last_name}
+                  </Text>
+                  <Text className="text-sm text-gray-600">
+                    {deliveryPartner.phone_number}
+                  </Text>
+                  {deliveryPartner.vehicle_type && (
+                    <Text className="text-xs text-gray-500 capitalize">
+                      {deliveryPartner.vehicle_type.replace("_", " ")}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              <View className="flex-row gap-2">
+                {/* Message Button */}
+                <View className="relative">
+                  <TouchableOpacity
+                    className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full"
+                    onPress={handleMessageDeliveryPartner}
+                  >
+                    <Feather name="message-circle" size={18} color="#2563EB" />
+                  </TouchableOpacity>
+                  {deliveryPartnerUnreadCount > 0 && (
+                    <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center">
+                      <Text className="text-xs font-bold text-white">
+                        {deliveryPartnerUnreadCount > 99
+                          ? "99+"
+                          : deliveryPartnerUnreadCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            </View>
+
+            <View className="p-4 mt-4 rounded-lg bg-orange-50">
+              <Text className="mb-1 text-sm font-semibold text-orange-800">
+                Order #{order.order_number}
+              </Text>
+              <Text className="text-sm text-orange-600">
+                Your order is on the way!
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {canTrackDelivery() && (
+          <View className="mb-4">
+            <TouchableOpacity
+              onPress={handleTrackDelivery}
+              className="relative h-48 overflow-hidden rounded-lg"
+            >
+              <MapView
+                style={{ height: 200 }}
+                region={mapRegion}
+                scrollEnabled={false}
+                zoomEnabled={false}
+              >
+                {order.delivery_coordinates && (
+                  <Marker
+                    coordinate={{
+                      latitude: order.delivery_coordinates.latitude,
+                      longitude: order.delivery_coordinates.longitude,
+                    }}
+                    title="Delivery Location"
+                    pinColor="#EF4444"
+                  />
+                )}
+                {deliveryPartner && deliveryPartner.location && (
+                  <Marker
+                    coordinate={{
+                      latitude: Number.parseFloat(
+                        deliveryPartner.location.latitude
+                      ),
+                      longitude: Number.parseFloat(
+                        deliveryPartner.location.longitude
+                      ),
+                    }}
+                    title="Delivery Partner Location"
+                    pinColor="#06B6D4"
+                  />
+                )}
+              </MapView>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Order Summary */}
         <View className="p-4 mb-4 bg-white rounded-lg">
           <Text className="mb-3 text-lg font-semibold text-gray-900">
@@ -647,6 +911,45 @@ const OrderDetailsScreen = ({ route, navigation }) => {
 
       {/* Action Buttons */}
       <View className="p-4 bg-white border-t border-gray-200">
+        {/* Delivery Tracking and Messaging Buttons */}
+        {deliveryPartner &&
+          ["rider_assigned", "out_for_delivery"].includes(order.status) && (
+            <View className="flex-row gap-3 mb-3">
+              <View className="relative">
+                <TouchableOpacity
+                  className="flex-row items-center justify-center flex-1 p-4 bg-blue-600 rounded-lg"
+                  onPress={handleMessageDeliveryPartner}
+                >
+                  <Feather name="message-circle" size={20} color="white" />
+                  <Text className="ml-2 font-semibold text-white">
+                    Message Rider
+                  </Text>
+                </TouchableOpacity>
+                {deliveryPartnerUnreadCount > 0 && (
+                  <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[24px] h-[24px] items-center justify-center">
+                    <Text className="text-sm font-bold text-white">
+                      {deliveryPartnerUnreadCount > 99
+                        ? "99+"
+                        : deliveryPartnerUnreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {canTrackDelivery() && (
+                <TouchableOpacity
+                  className="flex-row items-center justify-center flex-1 p-4 bg-green-600 rounded-lg"
+                  onPress={handleTrackDelivery}
+                >
+                  <Feather name="map-pin" size={20} color="white" />
+                  <Text className="ml-2 font-semibold text-white">
+                    Track Order
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
         {canCancelOrder() && (
           <TouchableOpacity
             className="items-center p-4 mb-3 border border-red-600 rounded-lg"

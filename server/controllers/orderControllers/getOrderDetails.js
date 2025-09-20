@@ -38,7 +38,8 @@ const getOrderDetails = async (req, res) => {
         p.unit_type,
         s.seller_id as seller_seller_id,
         s.store_name,
-        s.store_logo_key
+        s.store_logo_key,
+        s.application_id as seller_application_id
       FROM order_items oi
       JOIN products p ON oi.product_id = p.id
       JOIN sellers s ON oi.seller_id = s.id
@@ -115,6 +116,120 @@ const getOrderDetails = async (req, res) => {
       [orderId]
     );
 
+    let deliveryPartner = null;
+    let deliveryAssignment = null;
+    let pickupCoordinates = null;
+    let deliveryCoordinates = null;
+
+    if (
+      [
+        "rider_assigned",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+        "refunded",
+      ].includes(order.status)
+    ) {
+      // Get delivery assignment and partner info
+      const [assignmentRows] = await db.execute(
+        `SELECT 
+          da.*,
+          dp.id as delivery_partner_id,
+          dp.partner_id,
+          dp.vehicle_type,
+          dp.rating,
+          dp.profile_picture,
+          dp.current_location_lat as delivery_partner_latitude,
+          dp.current_location_lng as delivery_partner_longitude,
+          u.first_name as partner_first_name,
+          u.last_name as partner_last_name,
+          u.phone as partner_phone
+        FROM delivery_assignments da
+        LEFT JOIN delivery_partners dp ON da.delivery_partner_id = dp.id
+        LEFT JOIN users u ON dp.user_id = u.id
+        WHERE da.order_id = ?`,
+        [orderId]
+      );
+
+      if (assignmentRows.length > 0) {
+        const assignment = assignmentRows[0];
+        deliveryAssignment = {
+          id: assignment.id,
+          status: assignment.status,
+          assigned_at: assignment.assigned_at,
+          pickup_time: assignment.pickup_time,
+          delivery_time: assignment.delivery_time,
+          delivery_fee: assignment.delivery_fee,
+        };
+
+        if (assignment.delivery_partner_id) {
+          let profile_picture_url = null;
+
+          // Generate delivery partner profile picture URL
+          if (assignment.profile_picture) {
+            const { data } = supabase.storage
+              .from("delivery-partner-assets")
+              .getPublicUrl(assignment.profile_picture);
+            profile_picture_url = data.publicUrl;
+          }
+
+          deliveryPartner = {
+            id: assignment.delivery_partner_id,
+            partner_id: assignment.partner_id,
+            first_name: assignment.partner_first_name,
+            last_name: assignment.partner_last_name,
+            phone_number: assignment.partner_phone,
+            vehicle_type: assignment.vehicle_type,
+            rating: assignment.rating,
+            profile_picture_key: profile_picture_url,
+            location: {
+              latitude: assignment.delivery_partner_latitude,
+              longitude: assignment.delivery_partner_longitude,
+            },
+          };
+        }
+      }
+
+      // Get seller pickup coordinates if items exist
+      if (items.length > 0) {
+        const [pickupRows] = await db.execute(
+          `SELECT latitude, longitude 
+           FROM seller_addresses 
+           WHERE application_id = ? AND type = 'pickup'`,
+          [items[0].seller_application_id]
+        );
+
+        if (pickupRows.length > 0) {
+          pickupCoordinates = {
+            latitude: Number.parseFloat(pickupRows[0].latitude),
+            longitude: Number.parseFloat(pickupRows[0].longitude),
+          };
+        }
+      }
+
+      // Get delivery coordinates from order
+      if (order.delivery_latitude && order.delivery_longitude) {
+        deliveryCoordinates = {
+          latitude: Number.parseFloat(order.delivery_latitude),
+          longitude: Number.parseFloat(order.delivery_longitude),
+        };
+      } else {
+        const [deliveryAddressRows] = await db.execute(
+          `SELECT latitude, longitude 
+           FROM user_addresses 
+           WHERE id = ?`,
+          [order.delivery_address_id]
+        );
+
+        if (deliveryAddressRows.length > 0) {
+          deliveryCoordinates = {
+            latitude: Number.parseFloat(deliveryAddressRows[0].latitude),
+            longitude: Number.parseFloat(deliveryAddressRows[0].longitude),
+          };
+        }
+      }
+    }
+
     // Format the order response with stored delivery address fields
     const orderResponse = {
       ...order,
@@ -131,6 +246,10 @@ const getOrderDetails = async (req, res) => {
       statusHistory,
       orderProductReview,
       orderSellerReview,
+      deliveryPartner,
+      delivery_assignment: deliveryAssignment,
+      pickup_coordinates: pickupCoordinates,
+      delivery_coordinates: deliveryCoordinates,
     };
 
     res.json({

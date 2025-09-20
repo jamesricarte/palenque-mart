@@ -1,7 +1,7 @@
-const db = require("../../config/db");
-const supabase = require("../../config/supabase");
+const db = require("../../../config/db");
+const supabase = require("../../../config/supabase");
 
-const getConversationMessages = async (req, res) => {
+const getUserConversationMessages = async (req, res) => {
   try {
     const userId = req.user.id;
     const { conversationId } = req.params;
@@ -102,4 +102,4 @@ const getConversationMessages = async (req, res) => {
   }
 };
 
-module.exports = getConversationMessages;
+module.exports = getUserConversationMessages;

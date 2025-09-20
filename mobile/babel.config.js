@@ -18,10 +18,7 @@ const LAN_IP = getLanIp();
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: [
-      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
-      "nativewind/babel",
-    ],
+    presets: [["expo", { jsxImportSource: "nativewind" }], "nativewind/babel"],
     plugins: [
       [
         "transform-define",
@@ -37,6 +34,7 @@ module.exports = function (api) {
           path: ".env",
         },
       ],
+      "react-native-worklets/plugin",
     ],
   };
 };

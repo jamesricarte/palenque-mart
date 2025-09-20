@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -18,16 +18,18 @@ import { useSeller } from "../../context/SellerContext";
 import { API_URL } from "../../config/apiConfig";
 import axios from "axios";
 import DefaultLoadingAnimation from "../../components/DefaultLoadingAnimation";
+import { useFocusEffect } from "@react-navigation/native";
 
 const SellerOrderDetailsScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const {
     createDeliveryAssignment,
     startTrackingDeliveryPartner,
     stopTrackingDeliveryPartner,
     deliveryPartnerLocation,
     refreshOrdersData,
+    sellerId,
   } = useSeller();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +41,9 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
   const [deliveryPartnerCoordinates, setDeliveryPartnerCoordinates] =
     useState(null);
 
+  const [deliveryPartnerUnreadCount, setDeliveryPartnerUnreadCount] =
+    useState(0);
+
   const statusOptions = [
     { value: "pending", label: "Pending", color: "#F59E0B" },
     { value: "confirmed", label: "Confirmed", color: "#3B82F6" },
@@ -48,6 +53,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     { value: "out_for_delivery", label: "Out for Delivery", color: "#06B6D4" },
     { value: "delivered", label: "Delivered", color: "#059669" },
     { value: "cancelled", label: "Cancelled", color: "#EF4444" },
+    { value: "refunded", label: "Refunded", color: "#EF4444" },
   ];
 
   const deliveryStatusOptions = [
@@ -60,6 +66,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     { value: "picked_up", label: "Picked Up", color: "#8B5CF6" },
     { value: "delivered", label: "Delivered", color: "#059669" },
     { value: "cancelled", label: "Cancelled", color: "#EF4444" },
+    { value: "refunded", label: "Refunded", color: "#EF4444" },
   ];
 
   const quickActions = {
@@ -133,6 +140,14 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (refreshOrdersData) fetchOrderDetails();
   }, [refreshOrdersData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (order && order.delivery_partner) {
+        fetchDeliveryPartnerUnreadCount();
+      }
+    }, [order])
+  );
 
   useEffect(() => {
     // Simulate delivery progress
@@ -213,6 +228,25 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     }
   };
 
+  const fetchDeliveryPartnerUnreadCount = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/chat/unread-count?userId=${sellerId}&userType=seller&orderId=${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setDeliveryPartnerUnreadCount(response.data.data.unreadCount);
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+    }
+  };
+
   const handleStatusUpdate = async (newStatus, actionData) => {
     setUpdatingStatus(true);
     try {
@@ -259,6 +293,35 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       Alert.alert("Error", "Failed to update order status");
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleMessageDeliveryPartner = async () => {
+    try {
+      // Get conversation ID for seller-delivery partner chat
+      const response = await axios.get(
+        `${API_URL}/api/chat/seller/conversation-id/${order.delivery_partner.id}?orderId=${orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        navigation.navigate("SellerDeliveryPartnerChat", {
+          conversationId: response.data.data.conversationId,
+          deliveryPartnerId: order.delivery_partner.id,
+          deliveryPartnerName: `${order.delivery_partner.first_name} ${order.delivery_partner.last_name}`,
+          deliveryPartnerProfilePicture: order.delivery_partner.profile_picture,
+          orderId: orderId,
+          orderNumber: order.order_number,
+          deliveryStatus: order.status,
+        });
+      }
+    } catch (error) {
+      console.error("Error getting conversation ID:", error);
+      Alert.alert("Error", "Failed to open chat");
     }
   };
 
@@ -495,9 +558,17 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
               {/* Delivery Partner Info */}
               {order.delivery_partner && (
                 <View className="flex-row items-center p-3 mb-4 rounded-lg bg-cyan-50">
-                  <View className="items-center justify-center w-12 h-12 mr-3 rounded-full bg-cyan-200">
-                    <Feather name="user" size={20} color="#06B6D4" />
-                  </View>
+                  {order.delivery_partner.profile_picture ? (
+                    <Image
+                      source={{ uri: order.delivery_partner.profile_picture }}
+                      className="w-12 h-12 mr-3 rounded-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="items-center justify-center w-12 h-12 mr-3 rounded-full bg-cyan-200">
+                      <Feather name="user" size={20} color="#06B6D4" />
+                    </View>
+                  )}
                   <View className="flex-1">
                     <Text className="font-semibold text-gray-800">
                       {order.delivery_partner.first_name}{" "}
@@ -514,22 +585,59 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                       </Text>
                     </View>
                   </View>
-                  <View
-                    className="px-2 py-1 rounded-full"
-                    style={{
-                      backgroundColor: `${getDeliveryStatusColor(order.delivery_assignment.status)}20`,
-                    }}
-                  >
-                    <Text
-                      className="text-xs font-medium"
+                  <View className="flex-col items-end">
+                    <View
+                      className="px-2 py-1 mb-2 rounded-full"
                       style={{
-                        color: getDeliveryStatusColor(
-                          order.delivery_assignment.status
-                        ),
+                        backgroundColor: `${getDeliveryStatusColor(order.delivery_assignment.status)}20`,
                       }}
                     >
-                      {getDeliveryStatusLabel(order.delivery_assignment.status)}
-                    </Text>
+                      <Text
+                        className="text-xs font-medium"
+                        style={{
+                          color: getDeliveryStatusColor(
+                            order.delivery_assignment.status
+                          ),
+                        }}
+                      >
+                        {getDeliveryStatusLabel(
+                          order.delivery_assignment.status
+                        )}
+                      </Text>
+                    </View>
+                    {/* Message button for delivery partner */}
+                    {[
+                      "rider_assigned",
+                      "out_for_delivery",
+                      "delivered",
+                      "cancelled",
+                      "refunded",
+                    ].includes(order.status) && (
+                      <View className="relative">
+                        <TouchableOpacity
+                          onPress={handleMessageDeliveryPartner}
+                          className="flex-row items-center px-3 py-1 bg-orange-100 rounded-full"
+                        >
+                          <Feather
+                            name="message-circle"
+                            size={14}
+                            color="#EA580C"
+                          />
+                          <Text className="ml-1 text-xs font-medium text-orange-600">
+                            Message
+                          </Text>
+                        </TouchableOpacity>
+                        {deliveryPartnerUnreadCount > 0 && (
+                          <View className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[16px] h-[16px] items-center justify-center">
+                            <Text className="text-xs font-bold text-white">
+                              {deliveryPartnerUnreadCount > 99
+                                ? "99+"
+                                : deliveryPartnerUnreadCount}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
                   </View>
                 </View>
               )}
@@ -681,9 +789,14 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                   icon: "truck",
                 },
                 { status: "delivered", label: "Delivered", icon: "check" },
+                { status: "cancelled", label: "Cancelled", icon: "x" },
+                { status: "refunded", label: "Refunded", icon: "x" },
               ].map((step, index) => {
                 let isCompleted;
-                if (order.status === "cancelled") {
+                if (
+                  order.status === "cancelled" ||
+                  order.status === "refunded"
+                ) {
                   isCompleted = step.status === "pending";
                 } else {
                   isCompleted =
@@ -1038,7 +1151,6 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                   description="Customer delivery address"
                   pinColor="#EF4444"
                 />
-
                 {deliveryPartnerCoordinates && (
                   <Marker
                     coordinate={deliveryPartnerCoordinates}
@@ -1048,7 +1160,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                 )}
               </MapView>
 
-              {/* Location Labels */}
+              {/* Pickup Location Label */}
               {order.status === "out_for_delivery" &&
               order.delivery_assignment?.status === "picked_up" ? (
                 <View className="absolute px-4 py-2 rounded-full bg-cyan-500 top-4 left-4">
@@ -1064,6 +1176,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                 </View>
               )}
 
+              {/* Delivery Location Label */}
               <View className="absolute px-4 py-2 bg-red-500 rounded-full top-4 right-4">
                 <Text className="font-medium text-white">
                   Delivery Location

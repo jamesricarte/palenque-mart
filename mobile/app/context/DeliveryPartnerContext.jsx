@@ -220,6 +220,7 @@ export const DeliveryPartnerProvider = ({ children }) => {
     enterDeliveryDashboard,
     exitDeliveryDashboard,
     isOnline,
+    deliveryPartnerId,
     setDeliveryPartnerId,
     refreshOrderData,
   };

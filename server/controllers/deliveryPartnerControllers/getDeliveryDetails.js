@@ -46,6 +46,7 @@ const getDeliveryDetails = async (req, res) => {
         da.delivery_address,
         da.special_instructions,
         da.created_at as assignment_created,
+        o.user_id,
         o.seller_id,
         o.order_number,
         o.status as order_status,

@@ -1,7 +1,7 @@
 "use client";
 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import HomeScreen from "./tabs/HomeScreen";
 import LiveStreamingScreen from "./tabs/LiveStreamingScreen";

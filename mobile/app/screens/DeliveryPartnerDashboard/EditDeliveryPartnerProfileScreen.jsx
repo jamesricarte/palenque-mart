@@ -15,6 +15,7 @@ import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { API_URL } from "../../config/apiConfig";
+import { StatusBar } from "expo-status-bar";
 
 const EditDeliveryPartnerProfileScreen = ({ route, navigation }) => {
   const { token } = useAuth();
@@ -106,6 +107,7 @@ const EditDeliveryPartnerProfileScreen = ({ route, navigation }) => {
 
   return (
     <>
+      <StatusBar style="dark" />
       {/* Header */}
       <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-300">
         <TouchableOpacity onPress={() => navigation.goBack()}>

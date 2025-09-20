@@ -388,7 +388,7 @@ const HomeScreen = ({ navigation }) => {
                 })
               }
             >
-              <Text className="text-orange-500 font-medium">View All</Text>
+              <Text className="font-medium text-orange-500">View All</Text>
             </TouchableOpacity>
           </View>
 

@@ -9,13 +9,14 @@ import { useAuth } from "../../context/AuthContext";
 import { useDeliveryPartner } from "../../context/DeliveryPartnerContext";
 import axios from "axios";
 import { API_URL } from "../../config/apiConfig";
+import { StatusBar } from "expo-status-bar";
 
 // Import tab screens
 import DeliveryPartnerOverviewScreen from "./tabs/DeliveryPartnerOverviewScreen";
 import DeliveryPartnerDeliveriesScreen from "./tabs/DeliveryPartnerDeliveriesScreen";
 import DeliveryPartnerHistoryScreen from "./tabs/DeliveryPartnerHistoryScreen";
 import DeliveryPartnerAccountScreen from "./tabs/DeliveryPartnerAccountScreen";
-import DeliveryPartnerChatScreen from "./tabs/DeliveryPartnerChatScreen";
+// import DeliveryPartnerChatScreen from "./tabs/DeliveryPartnerChatScreen"; // Removed Chat tab from bottom navigation
 
 const Tab = createBottomTabNavigator();
 
@@ -95,6 +96,7 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View className="items-center justify-center flex-1 bg-white">
+        <StatusBar style="light" />
         <Text className="text-gray-500">
           Loading delivery partner dashboard...
         </Text>
@@ -104,6 +106,7 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
 
   return (
     <>
+      <StatusBar style="light" />
       {/* Header */}
       <View className="flex flex-row items-center justify-between px-4 pt-16 pb-4 bg-green-600">
         <View className="flex-1">
@@ -138,8 +141,6 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
               iconName = focused ? "time" : "time-outline";
             } else if (route.name === "Account") {
               iconName = focused ? "person" : "person-outline";
-            } else if (route.name === "Chat") {
-              iconName = focused ? "chatbubbles" : "chatbubbles-outline";
             }
 
             return <IconComponent name={iconName} size={size} color={color} />;
@@ -167,7 +168,6 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
           component={DeliveryPartnerDeliveriesScreen}
         />
         <Tab.Screen name="History" component={DeliveryPartnerHistoryScreen} />
-        <Tab.Screen name="Chat" component={DeliveryPartnerChatScreen} />
         <Tab.Screen name="Account">
           {(props) => (
             <DeliveryPartnerAccountScreen

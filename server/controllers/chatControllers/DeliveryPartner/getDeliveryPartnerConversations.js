@@ -1,4 +1,5 @@
-const db = require("../../config/db");
+const db = require("../../../config/db");
+const supabase = require("../../../config/supabase");
 
 const getDeliveryPartnerConversations = async (req, res) => {
   try {
@@ -39,10 +40,27 @@ const getDeliveryPartnerConversations = async (req, res) => {
 
     const [conversations] = await db.execute(query, [deliveryPartnerId]);
 
+    const conversationWithLogos = await Promise.all(
+      conversations.map(async (conversation) => {
+        let store_logo_url = null;
+
+        const { data } = supabase.storage
+          .from("vendor-assets")
+          .getPublicUrl(conversation.store_logo_key);
+
+        store_logo_url = data.publicUrl;
+
+        return {
+          ...conversation,
+          store_logo_url,
+        };
+      })
+    );
+
     res.json({
       success: true,
       data: {
-        conversations,
+        conversations: conversationWithLogos,
         total: conversations.length,
       },
     });

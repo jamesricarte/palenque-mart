@@ -3,68 +3,90 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../context/AuthContext";
 
-import LoginScreen from "../screens/Auth/Login/LoginScreen";
+// Address Management
+import AddressManagementScreen from "../screens/AddressManagement/AddressManagementScreen";
+import AddNewAddressScreen from "../screens/AddressManagement/AddNewAddressScreen";
 
+// Admin
+import AdminDashboardScreen from "../screens/Admin/AdminDashboardScreen";
+import AdminDeliveryPartnerApplicationDetailsScreen from "../screens/Admin/AdminDeliveryPartnerApplicationDetailsScreen";
+import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApplicationDetailsScreen";
+
+// Auth
+import LoginScreen from "../screens/Auth/Login/LoginScreen";
 import SignUpScreen from "../screens/Auth/SignUp/SignUpScreen";
-import MobileNumberRegistrationScreen from "../screens/Auth/SignUp/MobileNumberRegistrationScreen";
+
 import AccountDetailsCreationScreen from "../screens/Auth/SignUp/AccountDetailsCreationScreen";
+import MobileNumberRegistrationScreen from "../screens/Auth/SignUp/MobileNumberRegistrationScreen";
 
 import EmailSentVerificationScreen from "../screens/Auth/Verification/EmailSentVerificationScreen";
 import MobileNumberVerificationScreen from "../screens/Auth/Verification/MobileNumberVerificationScreen";
 
-import DashboardScreen from "../screens/Dashboard/DashboardScreen";
+// Cart
 import CartScreen from "../screens/Cart/CartScreen";
-import PartnershipOptionsScreen from "../screens/PartnershipOptions/PartnershipOptionsScreen";
-import NotificationsScreen from "../screens/Dashboard/tabs/NotificationsScreen";
-import SettingsScreen from "../screens/Settings/SettingsScreen";
+
+// Chat
+import ChatConversationScreen from "../screens/Chat/ChatConversationScreen";
+import UserDeliveryPartnerChatScreen from "../screens/Chat/UserDeliveryPartnerChatScreen";
+
+// Checkout
+import CheckoutScreen from "../screens/Checkout/CheckoutScreen";
+
+// Dashboard
+import DashboardScreen from "../screens/Dashboard/DashboardScreen";
 import CategoryProductsScreen from "../screens/Dashboard/CategoryProductsScreen";
 
-import ProfileScreen from "../screens/Profile/ProfileScreen";
-import EditEmailScreen from "../screens/Profile/EditEmailScreen";
-import EditMobileNumberScreen from "../screens/Profile/EditMobileNumberScreen";
+// Delivery Partner Dashboard
+import DeliveryPartnerChatConversationScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerChatConversationScreen";
+import DeliveryPartnerDashboardScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDashboardScreen";
+import DeliveryPartnerDeliveryDetailsScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDeliveryDetailsScreen";
+import EditDeliveryPartnerProfileScreen from "../screens/DeliveryPartnerDashboard/EditDeliveryPartnerProfileScreen";
 
-import SellerWelcomeScreen from "../screens/PartnershipOptions/Seller/SellerWelcomeScreen";
-import SellerAccountTypeScreen from "../screens/PartnershipOptions/Seller/SellerAccountTypeScreen";
-import SellerRegistrationFormScreen from "../screens/PartnershipOptions/Seller/SellerRegistrationFormScreen";
-import SellerAddressSetupScreen from "../screens/PartnershipOptions/Seller/SellerAddressSetupScreen";
-import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/SellerReviewSubmitScreen";
-import SellerSubmissionSuccessScreen from "../screens/PartnershipOptions/Seller/SellerSubmissionSuccessScreen";
-import SellerApplicationStatusScreen from "../screens/PartnershipOptions/Seller/SellerApplicationStatusScreen";
+// Orders
+import DeliveryTrackingScreen from "../screens/Orders/DeliveryTrackingScreen";
+import OrderConfirmationScreen from "../screens/Orders/OrderConfirmationScreen";
+import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
+import OrdersScreen from "../screens/Orders/OrdersScreen";
 
-import DeliveryPartnerWelcomeScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerWelcomeScreen";
+// Partnership Options
+import PartnershipOptionsScreen from "../screens/PartnershipOptions/PartnershipOptionsScreen";
+
+import DeliveryPartnerApplicationStatusScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerApplicationStatusScreen";
 import DeliveryPartnerRegistrationFormScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerRegistrationFormScreen";
 import DeliveryPartnerReviewSubmitScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerReviewSubmitScreen";
 import DeliveryPartnerSubmissionSuccessScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerSubmissionSuccessScreen";
-import DeliveryPartnerApplicationStatusScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerApplicationStatusScreen";
+import DeliveryPartnerWelcomeScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerWelcomeScreen";
 
-import AdminDashboardScreen from "../screens/Admin/AdminDashboardScreen";
-import AdminSellerApplicationDetailsScreen from "../screens/Admin/AdminSellerApplicationDetailsScreen";
-import AdminDeliveryPartnerApplicationDetailsScreen from "../screens/Admin/AdminDeliveryPartnerApplicationDetailsScreen";
+import SellerAccountTypeScreen from "../screens/PartnershipOptions/Seller/SellerAccountTypeScreen";
+import SellerAddressSetupScreen from "../screens/PartnershipOptions/Seller/SellerAddressSetupScreen";
+import SellerApplicationStatusScreen from "../screens/PartnershipOptions/Seller/SellerApplicationStatusScreen";
+import SellerRegistrationFormScreen from "../screens/PartnershipOptions/Seller/SellerRegistrationFormScreen";
+import SellerReviewSubmitScreen from "../screens/PartnershipOptions/Seller/SellerReviewSubmitScreen";
+import SellerSubmissionSuccessScreen from "../screens/PartnershipOptions/Seller/SellerSubmissionSuccessScreen";
+import SellerWelcomeScreen from "../screens/PartnershipOptions/Seller/SellerWelcomeScreen";
 
-import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
-import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
-import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
-import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
-import SellerChatConversationScreen from "../screens/SellerDashboard/SellerChatConversationScreen";
-import EditProductScreen from "../screens/SellerDashboard/EditProductScreen";
-
-import DeliveryPartnerDashboardScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDashboardScreen";
-import EditDeliveryPartnerProfileScreen from "../screens/DeliveryPartnerDashboard/EditDeliveryPartnerProfileScreen";
-import DeliveryPartnerDeliveryDetailsScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerDeliveryDetailsScreen";
-import DeliveryPartnerChatConversationScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerChatConversationScreen";
-
-import ProductDetailsScreen from "../screens/ProductDetails/ProductDetailsScreen";
-
-import CheckoutScreen from "../screens/Checkout/CheckoutScreen";
-import OrderConfirmationScreen from "../screens/Orders/OrderConfirmationScreen";
-import OrdersScreen from "../screens/Orders/OrdersScreen";
-import OrderDetailsScreen from "../screens/Orders/OrderDetailsScreen";
+// Pre Orders
 import PreOrdersScreen from "../screens/PreOrders/PreOrdersScreen";
 
-import AddressManagementScreen from "../screens/AddressManagement/AddressManagementScreen";
-import AddNewAddressScreen from "../screens/AddressManagement/AddNewAddressScreen";
+// Product Details
+import ProductDetailsScreen from "../screens/ProductDetails/ProductDetailsScreen";
 
-import ChatConversationScreen from "../screens/Chat/ChatConversationScreen";
+// Profile
+import EditEmailScreen from "../screens/Profile/EditEmailScreen";
+import EditMobileNumberScreen from "../screens/Profile/EditMobileNumberScreen";
+import ProfileScreen from "../screens/Profile/ProfileScreen";
+
+// Seller Dashboard
+import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
+import EditProductScreen from "../screens/SellerDashboard/EditProductScreen";
+import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
+import SellerChatConversationScreen from "../screens/SellerDashboard/SellerChatConversationScreen";
+import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
+import SellerDeliveryPartnerChatScreen from "../screens/SellerDashboard/SellerDeliveryPartnerChatScreen";
+import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
+
+// Settings
+import SettingsScreen from "../screens/Settings/SettingsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -82,22 +104,37 @@ const MainStackNavigator = () => {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      {/* Address Management */}
+      <Stack.Screen
+        name="AddressManagement"
+        component={AddressManagementScreen}
+      />
+      <Stack.Screen name="AddNewAddress" component={AddNewAddressScreen} />
+
+      {/* Admin */}
       <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+      <Stack.Screen
+        name="AdminDeliveryPartnerApplicationDetails"
+        component={AdminDeliveryPartnerApplicationDetailsScreen}
+      />
+      <Stack.Screen
+        name="AdminSellerApplicationDetails"
+        component={AdminSellerApplicationDetailsScreen}
+      />
 
       {/* Auth */}
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
-      <Stack.Screen
-        name="MobileNumberRegistration"
-        component={MobileNumberRegistrationScreen}
-      />
+
       <Stack.Screen
         name="AccountDetailsCreation"
         component={AccountDetailsCreationScreen}
       />
+      <Stack.Screen
+        name="MobileNumberRegistration"
+        component={MobileNumberRegistrationScreen}
+      />
 
-      {/* Verification */}
       <Stack.Screen
         name="EmailSentVerification"
         component={EmailSentVerificationScreen}
@@ -107,59 +144,69 @@ const MainStackNavigator = () => {
         component={MobileNumberVerificationScreen}
       />
 
-      {/* Dashboard */}
+      {/* Cart */}
       <Stack.Screen name="Cart" component={CartScreen} />
+
+      {/* Chat */}
       <Stack.Screen
-        name="PartnershipOptions"
-        component={PartnershipOptionsScreen}
+        name="ChatConversation"
+        component={ChatConversationScreen}
       />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen
+        name="UserDeliveryPartnerChat"
+        component={UserDeliveryPartnerChatScreen}
+      />
+
+      {/* Checkout */}
+      <Stack.Screen name="Checkout" component={CheckoutScreen} />
+
+      {/* Dashboard */}
       <Stack.Screen
         name="CategoryProducts"
         component={CategoryProductsScreen}
       />
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
 
-      {/* Profile */}
-      <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="EditEmail" component={EditEmailScreen} />
+      {/* DeliveryPartnerDashboard */}
       <Stack.Screen
-        name="EditMobileNumber"
-        component={EditMobileNumberScreen}
-      />
-
-      {/* Partnership Options*/}
-      {/* Seller */}
-      <Stack.Screen name="SellerWelcome" component={SellerWelcomeScreen} />
-      <Stack.Screen
-        name="SellerAccountType"
-        component={SellerAccountTypeScreen}
+        name="DeliveryPartnerChatConversation"
+        component={DeliveryPartnerChatConversationScreen}
       />
       <Stack.Screen
-        name="SellerRegistrationForm"
-        component={SellerRegistrationFormScreen}
+        name="DeliveryPartnerDashboard"
+        component={DeliveryPartnerDashboardScreen}
       />
       <Stack.Screen
-        name="SellerAddressSetup"
-        component={SellerAddressSetupScreen}
+        name="DeliveryPartnerDeliveryDetails"
+        component={DeliveryPartnerDeliveryDetailsScreen}
       />
       <Stack.Screen
-        name="SellerReviewSubmit"
-        component={SellerReviewSubmitScreen}
-      />
-      <Stack.Screen
-        name="SellerSubmissionSuccess"
-        component={SellerSubmissionSuccessScreen}
-      />
-      <Stack.Screen
-        name="SellerApplicationStatus"
-        component={SellerApplicationStatusScreen}
+        name="EditDeliveryPartnerProfile"
+        component={EditDeliveryPartnerProfileScreen}
       />
 
-      {/* Delivery Partner */}
+      {/* Orders */}
       <Stack.Screen
-        name="DeliveryPartnerWelcome"
-        component={DeliveryPartnerWelcomeScreen}
+        name="DeliveryTracking"
+        component={DeliveryTrackingScreen}
+      />
+      <Stack.Screen
+        name="OrderConfirmation"
+        component={OrderConfirmationScreen}
+      />
+      <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+      <Stack.Screen name="Orders" component={OrdersScreen} />
+
+      {/* Partnership Options */}
+      <Stack.Screen
+        name="PartnershipOptions"
+        component={PartnershipOptionsScreen}
+      />
+
+      {/* Delivery Partner Partnership Options */}
+      <Stack.Screen
+        name="DeliveryPartnerApplicationStatus"
+        component={DeliveryPartnerApplicationStatusScreen}
       />
       <Stack.Screen
         name="DeliveryPartnerRegistrationForm"
@@ -174,27 +221,54 @@ const MainStackNavigator = () => {
         component={DeliveryPartnerSubmissionSuccessScreen}
       />
       <Stack.Screen
-        name="DeliveryPartnerApplicationStatus"
-        component={DeliveryPartnerApplicationStatusScreen}
+        name="DeliveryPartnerWelcome"
+        component={DeliveryPartnerWelcomeScreen}
       />
 
-      {/* Admin */}
+      {/* Seller Partnership Options*/}
       <Stack.Screen
-        name="AdminSellerApplicationDetails"
-        component={AdminSellerApplicationDetailsScreen}
+        name="SellerAccountType"
+        component={SellerAccountTypeScreen}
       />
       <Stack.Screen
-        name="AdminDeliveryPartnerApplicationDetails"
-        component={AdminDeliveryPartnerApplicationDetailsScreen}
+        name="SellerAddressSetup"
+        component={SellerAddressSetupScreen}
       />
+      <Stack.Screen
+        name="SellerApplicationStatus"
+        component={SellerApplicationStatusScreen}
+      />
+      <Stack.Screen
+        name="SellerRegistrationForm"
+        component={SellerRegistrationFormScreen}
+      />
+      <Stack.Screen
+        name="SellerReviewSubmit"
+        component={SellerReviewSubmitScreen}
+      />
+      <Stack.Screen
+        name="SellerSubmissionSuccess"
+        component={SellerSubmissionSuccessScreen}
+      />
+      <Stack.Screen name="SellerWelcome" component={SellerWelcomeScreen} />
+
+      {/* Pre Orders */}
+      <Stack.Screen name="PreOrders" component={PreOrdersScreen} />
+
+      {/* Product Details */}
+      <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+
+      {/* Profile */}
+      <Stack.Screen name="EditEmail" component={EditEmailScreen} />
+      <Stack.Screen
+        name="EditMobileNumber"
+        component={EditMobileNumberScreen}
+      />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
 
       {/* Seller Dashboard */}
-      <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} />
       <Stack.Screen name="AddProduct" component={AddProductScreen} />
-      <Stack.Screen
-        name="SellerOrderDetails"
-        component={SellerOrderDetailsScreen}
-      />
+      <Stack.Screen name="EditProduct" component={EditProductScreen} />
       <Stack.Screen
         name="EditStoreProfile"
         component={EditStoreProfileScreen}
@@ -203,52 +277,18 @@ const MainStackNavigator = () => {
         name="SellerChatConversation"
         component={SellerChatConversationScreen}
       />
-      <Stack.Screen name="EditProduct" component={EditProductScreen} />
-
-      {/* Delivery Partner Dashboard */}
+      <Stack.Screen name="SellerDashboard" component={SellerDashboardScreen} />
       <Stack.Screen
-        name="DeliveryPartnerDashboard"
-        component={DeliveryPartnerDashboardScreen}
+        name="SellerDeliveryPartnerChat"
+        component={SellerDeliveryPartnerChatScreen}
       />
       <Stack.Screen
-        name="EditDeliveryPartnerProfile"
-        component={EditDeliveryPartnerProfileScreen}
+        name="SellerOrderDetails"
+        component={SellerOrderDetailsScreen}
       />
-      <Stack.Screen
-        name="DeliveryPartnerDeliveryDetails"
-        component={DeliveryPartnerDeliveryDetailsScreen}
-      />
-      <Stack.Screen
-        name="DeliveryPartnerChatConversation"
-        component={DeliveryPartnerChatConversationScreen}
-      />
-
-      {/* Product Details */}
-      <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
-
-      {/* Order */}
-      <Stack.Screen name="Checkout" component={CheckoutScreen} />
-      <Stack.Screen
-        name="OrderConfirmation"
-        component={OrderConfirmationScreen}
-      />
-      <Stack.Screen name="Orders" component={OrdersScreen} />
-      <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
-      <Stack.Screen name="PreOrders" component={PreOrdersScreen} />
 
       {/* Settings */}
-      {/* Address Management */}
-      <Stack.Screen
-        name="AddressManagement"
-        component={AddressManagementScreen}
-      />
-      <Stack.Screen name="AddNewAddress" component={AddNewAddressScreen} />
-
-      {/* Chat */}
-      <Stack.Screen
-        name="ChatConversation"
-        component={ChatConversationScreen}
-      />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 };
