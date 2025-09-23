@@ -579,6 +579,29 @@ const ChatConversationScreen = ({ route, navigation }) => {
                         Accept
                       </Text>
                     </TouchableOpacity>
+
+                    <TouchableOpacity
+                      className="flex-row items-center flex-1 p-3 bg-white border border-gray-300 rounded-lg"
+                      onPress={() =>
+                        Alert.alert(
+                          "Reject Offer",
+                          "Are you sure you want to reject this bargain offer?",
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            {
+                              text: "Reject",
+                              onPress: () =>
+                                handleBargainResponse(bargainData.id, "reject"),
+                            },
+                          ]
+                        )
+                      }
+                    >
+                      <Feather name="x" size={16} color="#DC2626" />
+                      <Text className="ml-1 text-sm font-medium text-red-600">
+                        Reject
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                   {!bargainData.is_final_offer && (
                     <TouchableOpacity

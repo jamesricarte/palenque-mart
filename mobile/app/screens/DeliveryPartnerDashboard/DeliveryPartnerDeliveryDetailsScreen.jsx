@@ -158,54 +158,6 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleAcceptDelivery = () => {
-    Alert.alert(
-      "Accept Delivery",
-      "Are you sure you want to accept this delivery?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Accept",
-          onPress: () => acceptDelivery(),
-        },
-      ]
-    );
-  };
-
-  const acceptDelivery = async () => {
-    try {
-      setUpdating(true);
-
-      const response = await axios.post(
-        `${API_URL}/api/delivery-partner/accept-assignment`,
-        { assignmentId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        Alert.alert("Success", "Delivery accepted successfully!");
-        fetchDeliveryDetails();
-      } else {
-        Alert.alert(
-          "Error",
-          response.data.message || "Failed to accept delivery"
-        );
-      }
-    } catch (error) {
-      console.error("Error accepting delivery:", error.response?.data || error);
-      Alert.alert("Error", "Failed to accept delivery. Please try again.");
-    } finally {
-      setUpdating(false);
-    }
-  };
-
   const handleUpdateStatus = (newStatus, confirmMessage) => {
     Alert.alert("Update Status", confirmMessage, [
       {
@@ -233,7 +185,21 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
       );
 
       if (response.data.success) {
-        Alert.alert("Success", "Delivery status updated successfully!");
+        const formatStatusPastTense = () => {
+          const statusPastTense = {
+            accept: "accepted",
+            decline: "declined",
+            picked_up: "picked up",
+            delivered: "delivered",
+          };
+
+          return statusPastTense[status];
+        };
+
+        Alert.alert(
+          "Success",
+          `Delivery ${formatStatusPastTense()} successfully!`
+        );
         fetchDeliveryDetails(); // Refresh the details
       } else {
         Alert.alert(
@@ -297,15 +263,36 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
 
     if (candidateStatus === "pending") {
       return (
-        <TouchableOpacity
-          onPress={handleAcceptDelivery}
-          disabled={updating}
-          className={`w-full py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-green-600"}`}
-        >
-          <Text className="font-semibold text-center text-white">
-            {updating ? "Accepting..." : "Accept Delivery"}
-          </Text>
-        </TouchableOpacity>
+        <View className="flex-row gap-3">
+          <TouchableOpacity
+            onPress={() =>
+              handleUpdateStatus(
+                "accept",
+                "Are you sure you want to accept this delivery?"
+              )
+            }
+            disabled={updating}
+            className={`flex-1 py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-green-600"}`}
+          >
+            <Text className="font-semibold text-center text-white">
+              {updating ? "Accepting..." : "Accept Delivery"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              handleUpdateStatus(
+                "decline",
+                "Are you sure you want to decline this delivery?"
+              )
+            }
+            disabled={updating}
+            className={`flex-1 py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-red-600"}`}
+          >
+            <Text className="font-semibold text-center text-white">
+              {updating ? "Declining..." : "Decline Delivery"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       );
     }
 

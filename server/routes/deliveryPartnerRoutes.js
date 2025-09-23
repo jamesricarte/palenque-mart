@@ -18,7 +18,6 @@ const getDeliveryHistory = require("../controllers/deliveryPartnerControllers/ge
 const getDeliveryDetails = require("../controllers/deliveryPartnerControllers/getDeliveryDetails");
 const toggleOnlineStatus = require("../controllers/deliveryPartnerControllers/toggleOnlineStatus");
 const updateLocation = require("../controllers/deliveryPartnerControllers/updateLocation");
-const acceptAssignment = require("../controllers/deliveryPartnerControllers/acceptAssignment");
 const updateAssignmentStatus = require("../controllers/deliveryPartnerControllers/updateAssignmentStatus");
 
 // Application routes
@@ -53,8 +52,7 @@ router.put("/toggle-online-status", authenticateToken, toggleOnlineStatus);
 // New route for updating location
 router.put("/update-location", authenticateToken, updateLocation);
 
-// New routes for accepting assignments and updating status
-router.post("/accept-assignment", authenticateToken, acceptAssignment);
+// New route for updating assignment status
 router.put(
   "/update-assignment-status",
   authenticateToken,

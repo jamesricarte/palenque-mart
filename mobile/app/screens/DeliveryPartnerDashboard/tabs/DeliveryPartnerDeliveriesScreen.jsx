@@ -62,54 +62,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
     setRefreshing(false);
   };
 
-  const handleAcceptDelivery = (assignmentId) => {
-    Alert.alert(
-      "Accept Delivery",
-      "Are you sure you want to accept this delivery?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Accept",
-          onPress: () => acceptDelivery(assignmentId),
-        },
-      ]
-    );
-  };
-
-  const acceptDelivery = async (assignmentId) => {
-    try {
-      setUpdatingStatus((prev) => ({ ...prev, [assignmentId]: true }));
-
-      const response = await axios.post(
-        `${API_URL}/api/delivery-partner/accept-assignment`,
-        { assignmentId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        Alert.alert("Success", "Delivery accepted successfully!");
-        fetchAvailableDeliveries();
-      } else {
-        Alert.alert(
-          "Error",
-          response.data.message || "Failed to accept delivery"
-        );
-      }
-    } catch (error) {
-      console.error("Error accepting delivery:", error.response?.data || error);
-      Alert.alert("Error", "Failed to accept delivery. Please try again.");
-    } finally {
-      setUpdatingStatus((prev) => ({ ...prev, [assignmentId]: false }));
-    }
-  };
-
   const handleUpdateStatus = (assignmentId, newStatus, statusText) => {
     Alert.alert(
       "Update Status",
@@ -142,7 +94,21 @@ const DeliveryPartnerDeliveriesScreen = () => {
       );
 
       if (response.data.success) {
-        Alert.alert("Success", "Delivery status updated successfully!");
+        const formatStatusPastTense = () => {
+          const statusPastTense = {
+            accept: "accepted",
+            decline: "declined",
+            picked_up: "picked up",
+            delivered: "delivered",
+          };
+
+          return statusPastTense[status];
+        };
+
+        Alert.alert(
+          "Success",
+          `Delivery ${formatStatusPastTense()} successfully!`
+        );
         fetchAvailableDeliveries();
       } else {
         Alert.alert(
@@ -213,15 +179,28 @@ const DeliveryPartnerDeliveriesScreen = () => {
 
     if (candidateStatus === "pending") {
       return (
-        <TouchableOpacity
-          onPress={() => handleAcceptDelivery(assignmentId)}
-          disabled={isUpdating}
-          className={`w-full py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-green-600"}`}
-        >
-          <Text className="font-semibold text-center text-white">
-            {isUpdating ? "Accepting..." : "Accept Delivery"}
-          </Text>
-        </TouchableOpacity>
+        <View className="flex-row gap-3 mt-2">
+          <TouchableOpacity
+            onPress={() => handleUpdateStatus(assignmentId, "accept", "Accept")}
+            disabled={isUpdating}
+            className={`flex-1 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-green-600"}`}
+          >
+            <Text className="font-semibold text-center text-white">
+              {isUpdating ? "Accepting..." : "Accept Delivery"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              handleUpdateStatus(assignmentId, "decline", "Decline")
+            }
+            disabled={isUpdating}
+            className={`flex-1 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-red-600"}`}
+          >
+            <Text className="font-semibold text-center text-white">
+              {isUpdating ? "Declining..." : "Decline Delivery"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       );
     }
 
@@ -233,7 +212,7 @@ const DeliveryPartnerDeliveriesScreen = () => {
               handleUpdateStatus(assignmentId, "picked_up", "Picked Up")
             }
             disabled={isUpdating}
-            className={`w-full py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-blue-600"}`}
+            className={`w-full mt-2 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-blue-600"}`}
           >
             <Text className="font-semibold text-center text-white">
               {isUpdating ? "Updating..." : "Mark as Picked Up"}
@@ -249,7 +228,7 @@ const DeliveryPartnerDeliveriesScreen = () => {
               handleUpdateStatus(assignmentId, "delivered", "Delivered")
             }
             disabled={isUpdating}
-            className={`w-full py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-green-600"}`}
+            className={`w-full mt-2 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-green-600"}`}
           >
             <Text className="font-semibold text-center text-white">
               {isUpdating ? "Updating..." : "Mark as Delivered"}
@@ -269,7 +248,7 @@ const DeliveryPartnerDeliveriesScreen = () => {
       className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm"
     >
       {/* Delivery Header */}
-      <View className="flex flex-row items-center justify-between mb-3">
+      <View className="flex gap-1 mb-5">
         <Text className="text-lg font-semibold text-gray-900">
           {delivery.order_number}
         </Text>

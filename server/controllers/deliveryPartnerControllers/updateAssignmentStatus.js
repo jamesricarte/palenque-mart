@@ -13,8 +13,10 @@ const updateAssignmentStatus = async (req, res) => {
       });
     }
 
-    // Validate status
+    // Validate status - now includes accept and decline
     const validStatuses = [
+      "accept",
+      "decline",
       "rider_assigned",
       "picked_up",
       "delivered",
@@ -43,6 +45,103 @@ const updateAssignmentStatus = async (req, res) => {
     }
 
     const partnerId = deliveryPartners[0].id;
+
+    if (status === "accept" || status === "decline") {
+      // Check if assignment exists and is available, and if this partner is a candidate
+      const [assignments] = await db.execute(
+        `SELECT da.id, da.order_id 
+         FROM delivery_assignments da
+         JOIN delivery_candidates dc ON da.id = dc.assignment_id
+         WHERE da.id = ? AND da.status = 'looking_for_rider' AND da.delivery_partner_id IS NULL
+         AND dc.delivery_partner_id = ? AND dc.status = 'pending'`,
+        [assignmentId, partnerId]
+      );
+
+      if (assignments.length === 0) {
+        return res.status(404).json({
+          message:
+            "Assignment not found, already assigned, or you are not a candidate",
+          success: false,
+          error: { code: "ASSIGNMENT_NOT_AVAILABLE" },
+        });
+      }
+
+      const assignment = assignments[0];
+
+      if (status === "accept") {
+        // Update assignment with delivery partner and status
+        await db.execute(
+          "UPDATE delivery_assignments SET delivery_partner_id = ?, status = 'rider_assigned', assigned_at = CURRENT_TIMESTAMP WHERE id = ?",
+          [partnerId, assignmentId]
+        );
+
+        // Update order status to rider_assigned
+        await db.execute(
+          "UPDATE orders SET status = 'rider_assigned' WHERE id = ?",
+          [assignment.order_id]
+        );
+
+        // Update order items statuses to rider_assigned
+        await db.execute(
+          "UPDATE order_items SET item_status = 'rider_assigned' WHERE order_id = ?",
+          [assignment.order_id]
+        );
+
+        // Update delivery partner status to occupied
+        await db.execute(
+          "UPDATE delivery_partners SET status = 'occupied' WHERE id = ?",
+          [partnerId]
+        );
+
+        // Update the accepted candidate status and set other candidates to expired
+        await db.execute(
+          "UPDATE delivery_candidates SET status = 'accepted', responded_at = CURRENT_TIMESTAMP WHERE assignment_id = ? AND delivery_partner_id = ?",
+          [assignmentId, partnerId]
+        );
+
+        await db.execute(
+          "UPDATE delivery_candidates SET status = 'expired', responded_at = CURRENT_TIMESTAMP WHERE assignment_id = ? AND delivery_partner_id != ? AND status = 'pending'",
+          [assignmentId, partnerId]
+        );
+      } else if (status === "decline") {
+        // Update the declined candidate status
+        await db.execute(
+          "UPDATE delivery_candidates SET status = 'declined', responded_at = CURRENT_TIMESTAMP WHERE assignment_id = ? AND delivery_partner_id = ?",
+          [assignmentId, partnerId]
+        );
+      }
+
+      // Get the seller id of the assignment to send to websocket
+      const [sellerIdRows] = await db.execute(
+        `SELECT o.seller_id FROM delivery_assignments da JOIN orders o ON da.order_id = o.id  WHERE da.id = ? LIMIT 1`,
+        [assignmentId]
+      );
+
+      const sellerId = sellerIdRows[0].seller_id;
+      const sellers = req.app.get("sellers");
+
+      const refreshNotification = {
+        type: "REFRESH_SELLER_ORDERS",
+        message: "Updated order's status",
+      };
+
+      const sellerSocket = sellers.get(sellerId);
+
+      if (sellerSocket && sellerSocket.socket.readyState === 1) {
+        sellerSocket.socket.send(JSON.stringify(refreshNotification));
+        console.log(`Sent refresh notification to seller id: ${sellerId}`);
+      }
+
+      const successMessage =
+        status === "accept"
+          ? "Delivery assignment accepted successfully"
+          : "Delivery assignment declined successfully";
+
+      return res.status(200).json({
+        message: successMessage,
+        success: true,
+      });
+    }
 
     // Check if assignment belongs to this delivery partner
     const [assignments] = await db.execute(
