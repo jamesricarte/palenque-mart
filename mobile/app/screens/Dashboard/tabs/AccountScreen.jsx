@@ -137,7 +137,7 @@ const AccountScreen = () => {
     try {
       const response = await axios.get(`${API_URL}/api/cart/count`);
       if (response.data.success) {
-        setCartCount(response.data.data.totalItems);
+        setCartCount(response.data.data.uniqueItems);
       }
     } catch (error) {
       console.error("Error fetching cart count:", error);

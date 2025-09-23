@@ -22,6 +22,7 @@ import {
   useRoute,
 } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 import ReviewItem from "../../components/ReviewItem"; // Import ReviewItem component
@@ -130,7 +131,7 @@ const ProductDetailsScreen = () => {
     try {
       const response = await axios.get(`${API_URL}/api/cart/count`);
       if (response.data.success) {
-        setCartCount(response.data.data.totalItems);
+        setCartCount(response.data.data.uniqueItems);
       }
     } catch (error) {
       console.error("Error fetching cart count:", error);
@@ -319,6 +320,8 @@ const ProductDetailsScreen = () => {
   };
 
   const isOwnProduct = () => {
+    if (!product && !user) return false;
+
     return user && product && product.seller_user_id === user.id;
   };
 
@@ -590,9 +593,9 @@ const ProductDetailsScreen = () => {
           </View>
           <TouchableOpacity
             onPress={() => navigation.navigate("Cart")}
-            className="relative"
+            className="relative p-1"
           >
-            <Feather name="shopping-cart" size={24} color="black" />
+            <Ionicons name="bag-outline" size={24} color="black" />
             {cartCount > 0 && (
               <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
                 <Text className="text-xs font-bold text-white">
@@ -623,9 +626,9 @@ const ProductDetailsScreen = () => {
           </View>
           <TouchableOpacity
             onPress={() => navigation.navigate("Cart")}
-            className="relative"
+            className="relative p-1"
           >
-            <Feather name="shopping-cart" size={24} color="black" />
+            <Ionicons name="bag-outline" size={24} color="black" />
             {cartCount > 0 && (
               <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
                 <Text className="text-xs font-bold text-white">
@@ -658,9 +661,9 @@ const ProductDetailsScreen = () => {
         </View>
         <TouchableOpacity
           onPress={() => navigation.navigate("Cart")}
-          className="relative"
+          className="relative p-1"
         >
-          <Feather name="shopping-cart" size={24} color="black" />
+          <Ionicons name="bag-outline" size={24} color="black" />
           {cartCount > 0 && (
             <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-2 -right-2">
               <Text className="text-xs font-bold text-white">{cartCount}</Text>
@@ -997,109 +1000,111 @@ const ProductDetailsScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
-        <View className="flex-row gap-3">
-          {product.bargaining_enabled === 1 && !isPreOrderAvailable() && (
+      {!isOwnProduct() && (
+        <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+          <View className="flex-row gap-3">
+            {product.bargaining_enabled === 1 && !isPreOrderAvailable() && (
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center p-4 border-2 border-blue-600 rounded-lg ${
+                  product.stock_quantity === 0 || checkingBargain
+                    ? "opacity-50"
+                    : ""
+                }`}
+                onPress={() => {
+                  if (!user) {
+                    Alert.alert(
+                      "Login Required",
+                      "Please login to make an offer",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Login",
+                          onPress: () => navigation.navigate("Login"),
+                        },
+                      ]
+                    );
+                    return;
+                  }
+
+                  if (ongoingBargain) {
+                    Alert.alert(
+                      "Ongoing Bargain",
+                      "You have an ongoing bargain offer for this product. Please wait for the seller's response or check your conversation.",
+                      [
+                        {
+                          text: "View Conversation",
+                          onPress: () =>
+                            navigation.navigate("ChatConversation", {
+                              conversationId: conversationId,
+                              sellerId: product.seller_id,
+                              storeName: product.store_name,
+                              storeLogo: product.store_logo_key,
+                            }),
+                        },
+                        { text: "OK" },
+                      ]
+                    );
+                  } else {
+                    setShowBargainModal(true);
+                  }
+                }}
+                disabled={product.stock_quantity === 0 || checkingBargain}
+              >
+                {checkingBargain ? (
+                  <ActivityIndicator color="#2563EB" />
+                ) : (
+                  <>
+                    <Feather name="tag" size={20} color="#2563EB" />
+                    <Text
+                      className={`mt-1 font-semibold text-blue-600 ${ongoingBargain ? "text-xs" : ""}`}
+                    >
+                      {ongoingBargain ? "Pending Offer" : "Make Offer"}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
+            {!isPreOrderAvailable() && (
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center p-4 border-2 border-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
+                onPress={handleAddToCart}
+                disabled={product.stock_quantity === 0 || addingToCart}
+              >
+                {addingToCart ? (
+                  <ActivityIndicator color="#EA580C" />
+                ) : (
+                  <>
+                    <Feather name="shopping-cart" size={20} color="#EA580C" />
+                    <Text className="mt-1 font-semibold text-orange-600">
+                      Add to Cart
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
-              className={`flex-1 items-center justify-center p-4 border-2 border-blue-600 rounded-lg ${
-                product.stock_quantity === 0 || checkingBargain
+              className={`flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg ${
+                product.stock_quantity === 0 && !isPreOrderAvailable()
                   ? "opacity-50"
                   : ""
               }`}
-              onPress={() => {
-                if (!user) {
-                  Alert.alert(
-                    "Login Required",
-                    "Please login to make an offer",
-                    [
-                      { text: "Cancel", style: "cancel" },
-                      {
-                        text: "Login",
-                        onPress: () => navigation.navigate("Login"),
-                      },
-                    ]
-                  );
-                  return;
-                }
-
-                if (ongoingBargain) {
-                  Alert.alert(
-                    "Ongoing Bargain",
-                    "You have an ongoing bargain offer for this product. Please wait for the seller's response or check your conversation.",
-                    [
-                      {
-                        text: "View Conversation",
-                        onPress: () =>
-                          navigation.navigate("ChatConversation", {
-                            conversationId: conversationId,
-                            sellerId: product.seller_id,
-                            storeName: product.store_name,
-                            storeLogo: product.store_logo_key,
-                          }),
-                      },
-                      { text: "OK" },
-                    ]
-                  );
-                } else {
-                  setShowBargainModal(true);
-                }
-              }}
-              disabled={product.stock_quantity === 0 || checkingBargain}
+              onPress={isPreOrderAvailable() ? handlePreOrder : handleBuyNow}
+              disabled={product.stock_quantity === 0 && !isPreOrderAvailable()}
             >
-              {checkingBargain ? (
-                <ActivityIndicator color="#2563EB" />
-              ) : (
-                <>
-                  <Feather name="tag" size={20} color="#2563EB" />
-                  <Text
-                    className={`mt-1 font-semibold text-blue-600 ${ongoingBargain ? "text-xs" : ""}`}
-                  >
-                    {ongoingBargain ? "Pending Offer" : "Make Offer"}
-                  </Text>
-                </>
-              )}
+              <Feather
+                name={isPreOrderAvailable() ? "clock" : "zap"}
+                size={20}
+                color="white"
+              />
+              <Text className="mt-1 font-semibold text-white">
+                {isPreOrderAvailable() ? "Pre Order" : "Buy Now"}
+              </Text>
             </TouchableOpacity>
-          )}
-
-          {!isPreOrderAvailable() && (
-            <TouchableOpacity
-              className={`flex-1 items-center justify-center p-4 border-2 border-orange-600 rounded-lg ${product.stock_quantity === 0 ? "opacity-50" : ""}`}
-              onPress={handleAddToCart}
-              disabled={product.stock_quantity === 0 || addingToCart}
-            >
-              {addingToCart ? (
-                <ActivityIndicator color="#EA580C" />
-              ) : (
-                <>
-                  <Feather name="shopping-cart" size={20} color="#EA580C" />
-                  <Text className="mt-1 font-semibold text-orange-600">
-                    Add to Cart
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            className={`flex-1 items-center justify-center p-4 bg-orange-600 rounded-lg ${
-              product.stock_quantity === 0 && !isPreOrderAvailable()
-                ? "opacity-50"
-                : ""
-            }`}
-            onPress={isPreOrderAvailable() ? handlePreOrder : handleBuyNow}
-            disabled={product.stock_quantity === 0 && !isPreOrderAvailable()}
-          >
-            <Feather
-              name={isPreOrderAvailable() ? "clock" : "zap"}
-              size={20}
-              color="white"
-            />
-            <Text className="mt-1 font-semibold text-white">
-              {isPreOrderAvailable() ? "Pre Order" : "Buy Now"}
-            </Text>
-          </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       <Modal
         visible={showBargainModal}

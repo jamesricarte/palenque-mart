@@ -12,18 +12,21 @@ import {
   Dimensions,
   ActivityIndicator,
   Platform,
+  Alert,
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "axios";
 
+import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../config/apiConfig";
 import FilterModal from "./components/FilterModal";
 
 const { height: screenHeight } = Dimensions.get("window");
 
 const SearchOverlayScreen = ({ navigation, route }) => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchSuggestions, setSearchSuggestions] = useState([]);
@@ -36,6 +39,13 @@ const SearchOverlayScreen = ({ navigation, route }) => {
     sortBy: "relevance",
     rating: "All",
   });
+
+  const [cartCount, setCartCount] = useState(0);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [showPreferenceModal, setShowPreferenceModal] = useState(false);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [selectedPreparations, setSelectedPreparations] = useState({});
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const elevation = useRef(new Animated.Value(1)).current;
@@ -165,6 +175,59 @@ const SearchOverlayScreen = ({ navigation, route }) => {
     }
   };
 
+  const isOwnProduct = (product) => {
+    return user && product && product.seller_user_id === user.id;
+  };
+
+  const handleAddToCart = async (product) => {
+    if (!user) {
+      Alert.alert("Login Required", "Please login to add items to cart", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () => navigation.navigate("Login") },
+      ]);
+      return;
+    }
+
+    if (isOwnProduct(product)) {
+      Alert.alert(
+        "Cannot Add to Cart",
+        "You cannot add your own product to cart"
+      );
+      return;
+    }
+
+    setShowPreferenceModal(true);
+  };
+
+  const handleConfirmAction = async () => {
+    setAddingToCart(true);
+    setShowPreferenceModal(false);
+
+    try {
+      const response = await axios.post(`${API_URL}/api/cart/add`, {
+        productId: selectedProduct.id,
+        quantity: selectedQuantity,
+      });
+
+      if (response.data.success) {
+        Alert.alert("Success", response.data.message, [
+          { text: "View Cart", onPress: () => navigation.navigate("Cart") },
+          { text: "Ok", style: "default" },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to add to cart";
+      Alert.alert("Error", errorMessage);
+    } finally {
+      setAddingToCart(false);
+      // Reset preferences
+      setSelectedQuantity(1);
+      setSelectedPreparations({});
+    }
+  };
+
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
       if (!showResults) fetchSearchSuggestions(searchQuery);
@@ -273,9 +336,18 @@ const SearchOverlayScreen = ({ navigation, route }) => {
               {formatUnitType(product.unit_type)}
             </Text>
 
-            <View className="p-1 bg-orange-600 rounded-full min-w-5 min-h-5 opacity-70">
-              <Ionicons name="bag-outline" size={12} color="white" />
-            </View>
+            {!isOwnProduct(product) && (
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedProduct(product);
+                  handleAddToCart(product);
+                }}
+              >
+                <View className="p-1 bg-orange-600 rounded-full min-w-5 min-h-5 opacity-70">
+                  <Ionicons name="bag-outline" size={15} color="white" />
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View className="flex-row flex-wrap items-center justify-between">
@@ -434,6 +506,195 @@ const SearchOverlayScreen = ({ navigation, route }) => {
         setFilters={setFilters}
         handleFilterApply={handleFilterApply}
       />
+
+      {/* Preference Modal */}
+      <Modal
+        transparent
+        visible={showPreferenceModal}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowPreferenceModal(false);
+          setSelectedQuantity(1);
+        }}
+      >
+        <View
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="justify-end flex-1">
+            <View className="p-6 bg-white rounded-t-3xl">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-semibold">
+                  Select Preferences
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowPreferenceModal(false);
+                    setSelectedQuantity(1);
+                  }}
+                >
+                  <Feather name="x" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Product Info */}
+              <View className="items-center justify-center">
+                <View className="flex-row items-center justify-center w-3/4 p-4 rounded-lg">
+                  <View className="flex-1 ml-3">
+                    <Text className="text-lg font-semibold" numberOfLines={2}>
+                      {selectedProduct?.name}
+                    </Text>
+
+                    <View className="flex-row items-center mb-2">
+                      {selectedProduct?.store_logo_key ? (
+                        <Image
+                          source={{ uri: selectedProduct?.store_logo_key }}
+                          className="w-5 h-5 mr-1 rounded-full"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View className="flex items-center justify-center w-5 h-5 mr-1 bg-gray-200 rounded-full">
+                          <Feather name="image" size={9} color="#9CA3AF" />
+                        </View>
+                      )}
+                      <Text
+                        className="flex-1 text-xs text-gray-600"
+                        numberOfLines={1}
+                      >
+                        {selectedProduct?.store_name}
+                      </Text>
+                    </View>
+
+                    <Text className="font-bold text-orange-600">
+                      ₱{Number.parseFloat(selectedProduct?.price).toFixed(2)}/
+                      {formatUnitType(selectedProduct?.unit_type)}
+                    </Text>
+                  </View>
+
+                  <Image
+                    source={{ uri: selectedProduct?.image_keys }}
+                    className="w-24 h-24 rounded-lg"
+                    resizeMode="cover"
+                  />
+                </View>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Quantity Selection */}
+                <View className="mb-4">
+                  <Text className="mb-2 text-lg font-medium">Quantity</Text>
+                  <View className="flex-row items-center justify-between p-3 bg-gray-100 rounded-lg">
+                    <TouchableOpacity
+                      className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                      onPress={() =>
+                        setSelectedQuantity(Math.max(1, selectedQuantity - 1))
+                      }
+                    >
+                      <Feather name="minus" size={20} color="black" />
+                    </TouchableOpacity>
+                    <Text className="text-xl font-semibold">
+                      {selectedQuantity}
+                    </Text>
+                    <TouchableOpacity
+                      className="items-center justify-center w-10 h-10 bg-white rounded-full"
+                      onPress={() =>
+                        setSelectedQuantity(
+                          Math.min(
+                            selectedProduct?.stock_quantity,
+                            selectedQuantity + 1
+                          )
+                        )
+                      }
+                    >
+                      <Feather name="plus" size={20} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                  <Text className="mt-1 text-sm text-gray-500">
+                    Max: {selectedProduct?.stock_quantity} available
+                  </Text>
+                </View>
+
+                {/* Preparation Options */}
+                {selectedProduct?.preparation_options &&
+                  Object.keys(product.preparation_options).length > 0 && (
+                    <View className="mb-4">
+                      <Text className="mb-2 text-lg font-medium">
+                        Preparation Options
+                      </Text>
+                      {Object.entries(product.preparation_options).map(
+                        ([option, available]) =>
+                          available && (
+                            <TouchableOpacity
+                              key={option}
+                              className={`flex-row items-center p-3 mb-2 rounded-lg border ${
+                                selectedPreparations[option]
+                                  ? "bg-orange-50 border-orange-600"
+                                  : "bg-gray-50 border-gray-200"
+                              }`}
+                              onPress={() =>
+                                setSelectedPreparations((prev) => ({
+                                  ...prev,
+                                  [option]: !prev[option],
+                                }))
+                              }
+                            >
+                              <View
+                                className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
+                                  selectedPreparations[option]
+                                    ? "bg-orange-600 border-orange-600"
+                                    : "border-gray-300"
+                                }`}
+                              >
+                                {selectedPreparations[option] && (
+                                  <Feather
+                                    name="check"
+                                    size={12}
+                                    color="white"
+                                  />
+                                )}
+                              </View>
+                              <Text className="flex-1 capitalize">
+                                {option.replace("_", " ")}
+                              </Text>
+                            </TouchableOpacity>
+                          )
+                      )}
+                    </View>
+                  )}
+
+                {/* Total Price */}
+                <View className="p-4 mb-4 bg-gray-100 rounded-lg">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-lg font-medium">Total Price:</Text>
+                    <Text className="text-2xl font-bold text-orange-600">
+                      ₱
+                      {(
+                        Number.parseFloat(selectedProduct?.price) *
+                        selectedQuantity
+                      ).toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              </ScrollView>
+
+              {/* Action Button */}
+              <TouchableOpacity
+                className="items-center p-4 bg-orange-600 rounded-lg"
+                onPress={handleConfirmAction}
+                disabled={addingToCart}
+              >
+                {addingToCart ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-lg font-semibold text-white">
+                    Add to Cart
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
