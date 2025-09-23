@@ -34,7 +34,8 @@ import CheckoutScreen from "../screens/Checkout/CheckoutScreen";
 
 // Dashboard
 import DashboardScreen from "../screens/Dashboard/DashboardScreen";
-import CategoryProductsScreen from "../screens/Dashboard/CategoryProductsScreen";
+import ProductListingScreen from "../screens/Dashboard/ProductListingScreen";
+import SearchOverlayScreen from "../screens/Dashboard/SearchOverlayScreen";
 
 // Delivery Partner Dashboard
 import DeliveryPartnerChatConversationScreen from "../screens/DeliveryPartnerDashboard/DeliveryPartnerChatConversationScreen";
@@ -100,9 +101,7 @@ const MainStackNavigator = () => {
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName}
-      screenOptions={{
-        headerShown: false,
-      }}
+      screenOptions={{ headerShown: false }}
     >
       {/* Address Management */}
       <Stack.Screen
@@ -161,11 +160,17 @@ const MainStackNavigator = () => {
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
 
       {/* Dashboard */}
-      <Stack.Screen
-        name="CategoryProducts"
-        component={CategoryProductsScreen}
-      />
+      <Stack.Screen name="ProductListing" component={ProductListingScreen} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen
+        name="SearchOverlay"
+        component={SearchOverlayScreen}
+        options={{
+          presentation: "card",
+          animation: "fade_from_bottom",
+          animationDuration: 300,
+        }}
+      />
 
       {/* DeliveryPartnerDashboard */}
       <Stack.Screen

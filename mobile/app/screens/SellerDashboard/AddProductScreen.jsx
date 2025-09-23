@@ -44,13 +44,13 @@ const AddProductScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const categories = [
-    "Fish",
     "Meat",
+    "Seafood",
     "Poultry",
     "Vegetables",
     "Fruits",
-    "Spices",
     "Grains",
+    "Others",
   ];
 
   const subcategoriesByCategory = {

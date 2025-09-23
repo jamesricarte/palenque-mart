@@ -4,71 +4,72 @@ import {
   View,
   Text,
   TouchableOpacity,
-  TextInput,
   ScrollView,
   Image,
   RefreshControl,
-  FlatList,
+  Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 
 import { useAuth } from "../../../context/AuthContext";
 import { API_URL } from "../../../config/apiConfig";
-import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
+
+import MeatCategory from "../../../assets/images/homescreen/categories/meat_category.jpg";
+import SeafoodCategory from "../../../assets/images/homescreen/categories/seafood_category.jpg";
+import PoultryCategory from "../../../assets/images/homescreen/categories/poultry_category.jpg";
+import VegetablesCategory from "../../../assets/images/homescreen/categories/vegetables_category.jpg";
+import FruitsCategory from "../../../assets/images/homescreen/categories/fruits_category.jpg";
+import GrainsCategory from "../../../assets/images/homescreen/categories/grains_category.avif";
+
+import VoucherImage from "../../../assets/images/homescreen/voucher_image.png";
+import LiveSteamingImage from "../../../assets/images/homescreen/livestreaming_image.png";
+
+import TopVendorCover01 from "../../../assets/images/homescreen/top-market-vendors_image_01.png";
+import TopVendorCover02 from "../../../assets/images/homescreen/top-market-vendors_image_02.png";
+
+const { height: screenHeight } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const { user } = useAuth();
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [homeData, setHomeData] = useState({
+    recommendedProducts: [],
+    suggestedProducts: [],
+    topVendors: [],
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("newest");
   const [cartCount, setCartCount] = useState(0);
 
-  const fetchCategories = async () => {
+  const categories = [
+    {
+      name: "Meat",
+      image: MeatCategory,
+    },
+    { name: "Seafood", image: SeafoodCategory },
+    { name: "Poultry", image: PoultryCategory },
+    {
+      name: "Vegetables",
+      image: VegetablesCategory,
+    },
+    { name: "Fruits", image: FruitsCategory },
+    { name: "Grains", image: GrainsCategory },
+  ];
+
+  const vendorImages = [TopVendorCover01, TopVendorCover02];
+
+  const fetchHomeData = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/products/categories`);
+      const response = await axios.get(`${API_URL}/api/products/home-data`);
       if (response.data.success) {
-        setCategories(["All", ...response.data.data.categories]);
+        setHomeData(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
-      // Fallback categories if API fails
-      setCategories(["All", "Fish", "Poultry", "Vegetables", "Meat"]);
-    }
-  };
-
-  const fetchProducts = async (category = null, sort = "newest") => {
-    try {
-      let url = `${API_URL}/api/products/all`;
-      const params = new URLSearchParams();
-
-      if (category && category !== "All") {
-        params.append("category", category);
-      }
-
-      if (sort) {
-        params.append("sortBy", sort);
-      }
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await axios.get(url);
-
-      if (response.data.success) {
-        setProducts(response.data.data.products);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error.response?.data || error);
+      console.error("Error fetching home data:", error);
     } finally {
       setLoading(false);
     }
@@ -88,23 +89,17 @@ const HomeScreen = ({ navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProducts(
-      selectedFilter === "All" ? null : selectedFilter,
-      sortBy
-    );
+    await fetchHomeData();
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    fetchCategories();
-    fetchProducts();
-  }, [user]);
+  const handleSearchPress = () => {
+    navigation.navigate("SearchOverlay");
+  };
 
   useEffect(() => {
-    if (selectedFilter) {
-      fetchProducts(selectedFilter === "All" ? null : selectedFilter, sortBy);
-    }
-  }, [selectedFilter, sortBy]);
+    fetchHomeData();
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -114,61 +109,59 @@ const HomeScreen = ({ navigation }) => {
     }, [])
   );
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.store_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.category &&
-        product.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.description &&
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  // Helper function to format address
-  const formatAddress = (product) => {
-    const addressParts = [];
-    if (product.city) addressParts.push(product.city);
-    if (product.province) addressParts.push(product.province);
-    return addressParts.join(", ");
+  const formatUnitType = (unitType) => {
+    const unitMap = {
+      per_kilo: "kg",
+      per_250g: "250g",
+      per_500g: "500g",
+      per_piece: "piece",
+      per_bundle: "bundle",
+      per_pack: "pack",
+      per_liter: "liter",
+      per_dozen: "dozen",
+    };
+    return unitMap[unitType] || unitType;
   };
 
-  const CategoryCard = ({ category, isSelected, onPress }) => (
+  const formatCardAddress = (city, province) => {
+    let formmatedCardAddress = "";
+
+    if (city) {
+      formmatedCardAddress = city;
+
+      if (province)
+        formmatedCardAddress = formmatedCardAddress + ", " + province;
+    }
+
+    return formmatedCardAddress;
+  };
+
+  const CategoryCard = ({ category }) => (
     <TouchableOpacity
-      className={`px-4 py-2 mx-2 rounded-full border ${
-        isSelected
-          ? "bg-orange-500 border-orange-500"
-          : "bg-white border-gray-300"
-      }`}
-      onPress={onPress}
+      className="items-center mx-3"
+      onPress={() =>
+        navigation.navigate("ProductListing", {
+          category: category.name,
+          isViewAll: false,
+        })
+      }
     >
-      <Text
-        className={`font-medium ${isSelected ? "text-white" : "text-gray-700"}`}
-      >
-        {category}
+      <View className="w-16 h-16 mb-2 bg-gray-200 border border-green-600 rounded-full ">
+        <Image
+          source={category.image}
+          className="w-full h-full rounded-full"
+          resizeMode="cover"
+        />
+      </View>
+      <Text className="text-xs font-medium text-center text-gray-700">
+        {category.name}
       </Text>
     </TouchableOpacity>
   );
 
-  const SortButton = ({ sortOption, label, isSelected, onPress }) => (
+  const ProductCard = ({ product, showRating = false }) => (
     <TouchableOpacity
-      className={`px-3 py-2 mx-1 rounded-lg border ${
-        isSelected
-          ? "bg-orange-500 border-orange-500"
-          : "bg-white border-gray-300"
-      }`}
-      onPress={onPress}
-    >
-      <Text
-        className={`text-sm font-medium ${isSelected ? "text-white" : "text-gray-700"}`}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const ProductCard = ({ product }) => (
-    <TouchableOpacity
-      className="flex-1 mx-2 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm"
+      className="w-40 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm"
       onPress={() =>
         navigation.navigate("ProductDetails", { productId: product.id })
       }
@@ -177,100 +170,73 @@ const HomeScreen = ({ navigation }) => {
         {product.image_keys ? (
           <Image
             source={{ uri: product.image_keys }}
-            className="w-full h-40 rounded-t-lg"
+            className="w-full h-32 rounded-t-lg"
             resizeMode="cover"
           />
         ) : (
-          <View className="flex items-center justify-center w-full h-40 bg-gray-200 rounded-t-lg">
-            <Feather name="image" size={32} color="#9CA3AF" />
+          <View className="flex items-center justify-center w-full h-32 bg-gray-200 rounded-t-lg">
+            <Feather name="image" size={24} color="#9CA3AF" />
           </View>
         )}
-        {product.stock_quantity === 0 && (
-          <View className="absolute px-2 py-1 bg-red-500 rounded top-2 right-2">
-            <Text className="text-xs font-medium text-white">Out of Stock</Text>
-          </View>
-        )}
-        {product.stock_quantity > 0 && product.stock_quantity <= 10 && (
-          <View className="absolute px-2 py-1 bg-orange-500 rounded top-2 right-2">
+        {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
+          <View className="absolute px-2 py-1 bg-orange-500 rounded top-2 left-2">
             <Text className="text-xs font-medium text-white">Low Stock</Text>
           </View>
         )}
       </View>
 
       <View className="p-3">
-        <Text
-          className="mb-1 text-lg font-semibold text-gray-900"
-          numberOfLines={2}
-        >
-          {product.name}
-        </Text>
+        <View className="flex-row items-center justify-between">
+          <Text
+            className="mb-1 text-sm font-semibold text-gray-900"
+            numberOfLines={2}
+          >
+            {product.name}
+          </Text>
+
+          {showRating && (
+            <View className="flex-row items-center">
+              <Ionicons name="star" size={12} color="#FCD34D" />
+              <Text className="ml-1 text-xs text-gray-500">
+                {product.average_rating || "0.00"}
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View className="flex-row items-center mb-2">
           {product.store_logo_key ? (
             <Image
-              source={{
-                uri: product.store_logo_key,
-              }}
-              className="w-4 h-4 mr-2 rounded-full"
+              source={{ uri: product.store_logo_key }}
+              className="w-5 h-5 mr-1 rounded-full"
               resizeMode="cover"
             />
           ) : (
-            <View className="flex items-center justify-center w-4 h-4 mr-2 bg-gray-300 rounded-full">
-              <MaterialCommunityIcons
-                name="storefront-outline"
-                size={8}
-                color="#6B7280"
-              />
+            <View className="flex items-center justify-center w-5 h-5 mr-1 bg-gray-200 rounded-full">
+              <Feather name="image" size={9} color="#9CA3AF" />
             </View>
           )}
-          <Text className="flex-1 text-sm text-gray-600" numberOfLines={1}>
-            by {product.store_name}
+          <Text className="flex-1 text-xs text-gray-600" numberOfLines={1}>
+            {product.store_name}
           </Text>
         </View>
-
-        {(product.city || product.province) && (
-          <View className="flex-row items-center mb-2">
-            <Feather name="map-pin" size={12} color="#6B7280" />
-            <Text className="ml-1 text-xs text-gray-500" numberOfLines={1}>
-              {formatAddress(product)}
-            </Text>
-          </View>
-        )}
-
-        {product.description && (
-          <Text className="mb-2 text-sm text-gray-700" numberOfLines={2}>
-            {product.description}
-          </Text>
-        )}
-
-        <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-xl font-bold text-orange-600">
-            ₱{Number.parseFloat(product.price).toFixed(2)}
-          </Text>
-          <Text className="text-sm text-gray-500">
-            Stock: {product.stock_quantity}
-          </Text>
-        </View>
-
-        {product.category && (
-          <View className="mb-2">
-            <Text className="self-start px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded">
-              {product.category}
-            </Text>
-          </View>
-        )}
 
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <MaterialCommunityIcons
-              name="storefront-outline"
-              size={12}
-              color="#6B7280"
-            />
-            <Text className="ml-1 text-xs text-gray-500 capitalize">
-              {product.account_type}
-            </Text>
+          <Text className="text-sm font-bold text-orange-600">
+            ₱{Number.parseFloat(product.price).toFixed(2)}/
+            {formatUnitType(product.unit_type)}
+          </Text>
+
+          <View className="p-1 bg-orange-600 rounded-full min-w-5 min-h-5 opacity-70">
+            <Ionicons name="bag-outline" size={12} color="white" />
           </View>
+        </View>
+
+        <View className="flex-row flex-wrap items-center justify-between">
+          <Text className="mt-1 text-xs text-gray-400">
+            {formatCardAddress(product.city, product.province)}
+          </Text>
+
           <Text className="text-xs text-gray-400">
             {new Date(product.created_at).toLocaleDateString()}
           </Text>
@@ -279,16 +245,66 @@ const HomeScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const VendorCard = ({ vendor }) => (
+    <TouchableOpacity className="w-48 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm">
+      <View className="relative h-24 bg-gray-300 rounded-t-lg">
+        <Image
+          source={vendor.image}
+          className="w-full h-full rounded-t-lg"
+          resizeMode="cover"
+        />
+      </View>
+
+      <View className="p-3">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-medium text-center text-black rounded">
+            {vendor.store_name}
+          </Text>
+
+          <View className="flex-row items-center">
+            <Ionicons name="star" size={14} color="#FCD34D" />
+            <Text className="ml-1 text-sm font-medium">
+              {vendor.average_rating || "5.0"}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center justify-between">
+          <Text className="mt-1 text-xs text-gray-500">
+            {vendor.city || "Legazpi City, Albay"}
+          </Text>
+
+          <View className="px-2 py-1 bg-green-100 rounded">
+            <Text className="text-xs font-medium text-green-600">Open</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
   if (loading) {
     return (
       <View className="flex-1 bg-white">
-        <View className="flex gap-4 px-4 pt-16 pb-6 bg-white border-b border-gray-200">
-          <View className="flex flex-row items-center justify-between">
-            <Image
-              source={require("../../../assets/images/Palenque-Logo-v1.png")}
-              className="h-16 w-52"
-              resizeMode="cover"
-            />
+        <View className="items-center justify-center flex-1">
+          <Text className="mt-1 text-gray-600">Loading...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-gray-50">
+      <View className="px-4 pt-16 pb-4 bg-white border-b border-gray-100">
+        <View className="flex-row items-center justify-between mb-4">
+          <Image
+            source={require("../../../assets/images/Palenque-Logo-v1.png")}
+            className="h-16 w-52"
+            resizeMode="cover"
+          />
+          <View className="flex-row items-center">
+            <TouchableOpacity className="p-2 mr-2">
+              <Ionicons name="heart-outline" size={24} color="black" />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigation.push("Cart")}
               className="relative p-2"
@@ -303,223 +319,150 @@ const HomeScreen = ({ navigation }) => {
               )}
             </TouchableOpacity>
           </View>
-          <View className="flex flex-row items-center">
-            <View className="relative flex-1">
-              <TextInput
-                className="p-3 pr-10 text-base border border-gray-200 bg-gray-50 rounded-xl"
-                placeholder="Search products, stores..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              <Ionicons
-                name="search"
-                size={20}
-                color="#6B7280"
-                style={{ position: "absolute", right: 12, top: 12 }}
-              />
-            </View>
-          </View>
         </View>
 
-        <View className="items-center justify-center flex-1">
-          <PersonalizedLoadingAnimation />
-          <Text className="mt-4 text-gray-600">Loading products...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View className="flex-1 bg-gray-50">
-      <View className="flex gap-4 px-4 pt-16 pb-6 bg-white border-b border-gray-200">
-        <View className="flex flex-row items-center justify-between">
-          <Image
-            source={require("../../../assets/images/Palenque-Logo-v1.png")}
-            className="h-16 w-52"
-            resizeMode="cover"
-          />
-          <TouchableOpacity
-            onPress={() => navigation.push("Cart")}
-            className="relative p-2"
-          >
-            <Ionicons name="bag-outline" size={24} color="black" />
-            {cartCount > 0 && (
-              <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
-                <Text className="text-xs font-bold text-white">
-                  {cartCount}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-        <View className="flex flex-row items-center">
-          <View className="relative flex-1">
-            <TextInput
-              className="p-3 pr-10 text-base border border-gray-200 bg-gray-50 rounded-xl"
-              placeholder="Search products, stores..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            <Ionicons
-              name="search"
-              size={20}
-              color="#6B7280"
-              style={{ position: "absolute", right: 12, top: 12 }}
-            />
-          </View>
-        </View>
+        <TouchableOpacity
+          onPress={handleSearchPress}
+          className="flex-row items-center px-4 py-3 bg-gray-100 rounded-lg"
+        >
+          <Ionicons name="search" size={20} color="#6B7280" />
+          <Text className="flex-1 ml-3 text-gray-500">Search product</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-white"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View className="py-4 bg-white border-b border-gray-200">
-          <View className="flex-row items-center justify-between px-4 mb-3">
-            <Text className="text-lg font-semibold text-gray-900">
-              Categories
-            </Text>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("CategoryProducts", {
-                  category: selectedFilter === "All" ? null : selectedFilter,
-                })
-              }
-            >
-              <Text className="font-medium text-orange-500">View All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={categories}
+        <View className="py-4 bg-white">
+          <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item}
-            contentContainerStyle={{ paddingHorizontal: 8 }}
-            renderItem={({ item }) => (
-              <CategoryCard
-                category={item}
-                isSelected={selectedFilter === item}
-                onPress={() => {
-                  if (item === selectedFilter) {
-                    // If clicking on selected category, navigate to category screen
-                    navigation.navigate("CategoryProducts", {
-                      category: item === "All" ? null : item,
-                    });
-                  } else {
-                    // Otherwise, just filter the current view
-                    setSelectedFilter(item);
-                  }
-                }}
-              />
-            )}
-          />
-        </View>
-
-        {/* Header Section */}
-        <View className="px-4 py-6 bg-white border-b border-gray-200">
-          <Text className="mb-2 text-xl font-semibold text-gray-900">
-            Fresh Products from Local Sellers
-          </Text>
-          <Text className="text-gray-600">
-            Discover quality products from trusted sellers in your area
-          </Text>
-        </View>
-
-        <View className="px-4 py-4 bg-white border-b border-gray-200">
-          <Text className="mb-3 text-lg font-semibold text-gray-900">
-            Sort by
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row">
-              <SortButton
-                sortOption="newest"
-                label="Newest"
-                isSelected={sortBy === "newest"}
-                onPress={() => setSortBy("newest")}
-              />
-              <SortButton
-                sortOption="oldest"
-                label="Oldest"
-                isSelected={sortBy === "oldest"}
-                onPress={() => setSortBy("oldest")}
-              />
-              <SortButton
-                sortOption="price_low"
-                label="Price: Low to High"
-                isSelected={sortBy === "price_low"}
-                onPress={() => setSortBy("price_low")}
-              />
-              <SortButton
-                sortOption="price_high"
-                label="Price: High to Low"
-                isSelected={sortBy === "price_high"}
-                onPress={() => setSortBy("price_high")}
-              />
-              <SortButton
-                sortOption="name_asc"
-                label="Name: A-Z"
-                isSelected={sortBy === "name_asc"}
-                onPress={() => setSortBy("name_asc")}
-              />
-              <SortButton
-                sortOption="name_desc"
-                label="Name: Z-A"
-                isSelected={sortBy === "name_desc"}
-                onPress={() => setSortBy("name_desc")}
-              />
-            </View>
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+          >
+            {categories.map((category, index) => (
+              <CategoryCard key={index} category={category} />
+            ))}
           </ScrollView>
         </View>
 
-        {/* Products Section */}
-        <View className="px-2 py-4">
-          {filteredProducts.length > 0 ? (
-            <>
-              <View className="flex-row items-center justify-between px-2 mb-4">
-                <Text className="text-lg font-semibold text-gray-900">
-                  {searchQuery
-                    ? `Search Results (${filteredProducts.length})`
-                    : selectedFilter === "All"
-                      ? `All Products (${filteredProducts.length})`
-                      : `${selectedFilter} (${filteredProducts.length})`}
-                </Text>
-              </View>
+        <View className="px-4 py-4">
+          <View className="flex-row">
+            <View className="flex-1 mr-2">
+              <View className="items-center justify-center h-32">
+                <Image
+                  source={VoucherImage}
+                  className="w-full h-full rounded-lg"
+                  resizeMode="cover"
+                />
 
-              <View className="flex-row flex-wrap">
-                {filteredProducts.map((product) => (
-                  <View key={product.id} className="w-1/2">
-                    <ProductCard product={product} />
-                  </View>
-                ))}
+                <View className="absolute items-center">
+                  <Text className="text-xl font-bold text-white">
+                    Get ₱100 Off
+                  </Text>
+                  <Text className="text-sm text-white">sa unang bili mo!</Text>
+                </View>
               </View>
-            </>
-          ) : (
-            <View className="items-center justify-center flex-1 py-20">
-              <Feather name="package" size={64} color="#9CA3AF" />
-              <Text className="mt-4 mb-2 text-xl font-semibold text-gray-600">
-                {searchQuery ? "No products found" : "No products available"}
-              </Text>
-              <Text className="px-8 text-center text-gray-500">
-                {searchQuery
-                  ? "Try adjusting your search terms"
-                  : "Check back later for new products from our sellers"}
-              </Text>
-              {searchQuery && (
-                <TouchableOpacity
-                  className="px-6 py-2 mt-4 bg-orange-500 rounded-lg"
-                  onPress={() => setSearchQuery("")}
-                >
-                  <Text className="font-medium text-white">Clear Search</Text>
-                </TouchableOpacity>
-              )}
             </View>
-          )}
+
+            <View className="flex-1 ml-2">
+              <View className="h-32 overflow-hidden bg-gray-300 rounded-lg">
+                <Image
+                  source={LiveSteamingImage}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+                <View className="absolute bottom-2 left-2">
+                  <Text
+                    className="px-2 py-1 text-xs font-light text-white rounded"
+                    style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+                  >
+                    BoyBanat Store
+                  </Text>
+                </View>
+
+                <View className="absolute flex-row items-center gap-1 px-1 py-0.5 bg-green-600 rounded-sm top-2 right-2">
+                  <View className="w-2 h-2 bg-white rounded-full" />
+                  <Text className="text-xs text-white">Live</Text>
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
 
-        {/* Bottom spacing for auth buttons */}
+        <View className="py-4 bg-white">
+          <View className="flex-row items-center justify-between px-4 mb-3">
+            <Text className="text-lg font-bold text-gray-900">
+              Recommended for you
+            </Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+          >
+            {homeData.recommendedProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                showRating={true}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        <View className="py-4 mt-2 bg-white">
+          <View className="flex-row items-center justify-between px-4 mb-3">
+            <Text className="text-lg font-bold text-gray-900">
+              Products you might like
+            </Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ProductListing", {
+                  category: "All",
+                  isViewAll: true,
+                })
+              }
+            >
+              <Text className="font-medium text-orange-500">View all</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+          >
+            {homeData.suggestedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </ScrollView>
+        </View>
+
+        <View className="py-4 mt-2 bg-white">
+          <View className="flex-row items-center justify-between px-4 mb-3">
+            <Text className="text-lg font-bold text-gray-900">
+              Top market vendors
+            </Text>
+            <TouchableOpacity>
+              <Text className="font-medium text-orange-500">View all</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+          >
+            {homeData.topVendors.map((vendor, index) => {
+              if (index < 2) {
+                vendor.image = vendorImages[index];
+              } else vendor.image = vendorImages[0];
+              return <VendorCard key={vendor.id} vendor={vendor} />;
+            })}
+          </ScrollView>
+        </View>
+
         <View className="h-32" />
       </ScrollView>
 
