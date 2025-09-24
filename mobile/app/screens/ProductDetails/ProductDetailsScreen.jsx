@@ -35,7 +35,7 @@ const ProductDetailsScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { user } = useAuth();
-  const { productId } = route.params;
+  const { productId, fromSellerStore = false } = route.params;
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -251,11 +251,13 @@ const ProductDetailsScreen = () => {
     }, [productId, fetchedConversationId, reviewFilter, reviewSort])
   );
 
-  useEffect(() => {
-    if (product?.seller_id) {
-      fetchConversationId();
-    }
-  }, [product]);
+  useFocusEffect(
+    useCallback(() => {
+      if (product?.seller_id) {
+        fetchConversationId();
+      }
+    }, [product])
+  );
 
   useEffect(() => {
     if (product) {
@@ -519,6 +521,8 @@ const ProductDetailsScreen = () => {
         sellerId: product.seller_id,
         storeName: product.store_name,
         storeLogo: product.store_logo_key,
+        fromSellerStore: fromSellerStore,
+        fromProductDetails: true,
       });
     } catch (error) {
       console.error("Error starting chat:", error);
@@ -747,33 +751,45 @@ const ProductDetailsScreen = () => {
             Store Information
           </Text>
 
-          <View className="flex-row items-center mb-2">
-            {product.store_logo_key ? (
-              <Image
-                source={{
-                  uri: product.store_logo_key,
-                }}
-                className="w-12 h-12 mr-3 rounded-full"
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-300 rounded-full">
-                <MaterialCommunityIcons
-                  name="storefront-outline"
-                  size={24}
-                  color="#6B7280"
+          <TouchableOpacity
+            onPress={() => {
+              if (!fromSellerStore) {
+                navigation.navigate("SellerStore", {
+                  sellerId: product.seller_id,
+                });
+              } else {
+                navigation.goBack();
+              }
+            }}
+          >
+            <View className="flex-row items-center mb-2">
+              {product.store_logo_key ? (
+                <Image
+                  source={{
+                    uri: product.store_logo_key,
+                  }}
+                  className="w-12 h-12 mr-3 rounded-full"
+                  resizeMode="cover"
                 />
+              ) : (
+                <View className="flex items-center justify-center w-12 h-12 mr-3 bg-gray-300 rounded-full">
+                  <MaterialCommunityIcons
+                    name="storefront-outline"
+                    size={24}
+                    color="#6B7280"
+                  />
+                </View>
+              )}
+              <View className="flex-1">
+                <Text className="text-lg font-semibold text-gray-900">
+                  {product.store_name}
+                </Text>
+                <Text className="text-sm text-gray-600 capitalize">
+                  {product.account_type} seller
+                </Text>
               </View>
-            )}
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-900">
-                {product.store_name}
-              </Text>
-              <Text className="text-sm text-gray-600 capitalize">
-                {product.account_type} seller
-              </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {product.store_description && (
             <Text className="text-gray-700">{product.store_description}</Text>

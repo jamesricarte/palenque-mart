@@ -28,6 +28,12 @@ const getSellerStats = require("../controllers/sellerControllers/getSellerStats"
 const getSellerTransactions = require("../controllers/sellerControllers/getSellerTransactions");
 const getSellerAnalytics = require("../controllers/sellerControllers/getSellerAnalytics");
 
+// Seller store
+const getSellerStoreDetails = require("../controllers/sellerControllers/getSellerStoreDetails");
+
+// get all vendors
+const getAllVendors = require("../controllers/sellerControllers/getAllVendors");
+
 // Routes
 router.post(
   "/submit-application",
@@ -89,5 +95,11 @@ router.get("/transactions", authenticateToken, getSellerTransactions);
 
 // Route to get seller analytics
 router.get("/analytics", authenticateToken, getSellerAnalytics);
+
+// Route to get seller store details (public route - no auth required)
+router.get("/store/:sellerId", getSellerStoreDetails);
+
+// Route to get all vendos
+router.get("/all-vendors", getAllVendors);
 
 module.exports = router;

@@ -26,8 +26,15 @@ import { API_URL } from "../../config/apiConfig";
 import { useFocusEffect } from "@react-navigation/native";
 
 const ChatConversationScreen = ({ route, navigation }) => {
-  const { conversationId, sellerId, storeName, storeLogo, productId } =
-    route.params;
+  const {
+    conversationId,
+    sellerId,
+    storeName,
+    storeLogo,
+    productId,
+    fromSellerStore = false,
+    fromProductDetails = false,
+  } = route.params;
   const { user, socketMessage } = useAuth();
 
   const [messages, setMessages] = useState([]);
@@ -722,6 +729,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
           >
             <Ionicons name="arrow-back" size={24} color="#374151" />
           </TouchableOpacity>
+
           <View className="flex-row items-center flex-1">
             {storeLogo ? (
               <Image
@@ -762,24 +770,40 @@ const ChatConversationScreen = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
           <Ionicons name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
-        <View className="flex-row items-center flex-1">
-          {storeLogo ? (
-            <Image
-              source={{ uri: storeLogo }}
-              className="w-10 h-10 mr-3 rounded-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="flex items-center justify-center w-10 h-10 mr-3 bg-gray-200 rounded-full">
-              <MaterialCommunityIcons
-                name="storefront-outline"
-                size={20}
-                color="#6B7280"
+
+        <TouchableOpacity
+          onPress={() => {
+            if (fromSellerStore && fromProductDetails) {
+              navigation.pop(2);
+            } else if (fromSellerStore) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("SellerStore", {
+                sellerId: sellerId,
+                fromChatConversation: true,
+              });
+            }
+          }}
+        >
+          <View className="flex-row items-center flex-1">
+            {storeLogo ? (
+              <Image
+                source={{ uri: storeLogo }}
+                className="w-10 h-10 mr-3 rounded-full"
+                resizeMode="cover"
               />
-            </View>
-          )}
-          <Text className="text-xl font-semibold">{storeName}</Text>
-        </View>
+            ) : (
+              <View className="flex items-center justify-center w-10 h-10 mr-3 bg-gray-200 rounded-full">
+                <MaterialCommunityIcons
+                  name="storefront-outline"
+                  size={20}
+                  color="#6B7280"
+                />
+              </View>
+            )}
+            <Text className="text-xl font-semibold">{storeName}</Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* Messages */}

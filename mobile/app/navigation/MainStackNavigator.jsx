@@ -33,6 +33,7 @@ import UserDeliveryPartnerChatScreen from "../screens/Chat/UserDeliveryPartnerCh
 import CheckoutScreen from "../screens/Checkout/CheckoutScreen";
 
 // Dashboard
+import AllVendorsScreen from "../screens/Dashboard/AllVendorsScreen";
 import DashboardScreen from "../screens/Dashboard/DashboardScreen";
 import ProductListingScreen from "../screens/Dashboard/ProductListingScreen";
 import SearchOverlayScreen from "../screens/Dashboard/SearchOverlayScreen";
@@ -85,6 +86,9 @@ import SellerChatConversationScreen from "../screens/SellerDashboard/SellerChatC
 import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
 import SellerDeliveryPartnerChatScreen from "../screens/SellerDashboard/SellerDeliveryPartnerChatScreen";
 import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
+
+// Seller Store
+import SellerStoreScreen from "../screens/SellerStore/SellerStoreScreen";
 
 // Settings
 import SettingsScreen from "../screens/Settings/SettingsScreen";
@@ -160,8 +164,13 @@ const MainStackNavigator = () => {
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
 
       {/* Dashboard */}
-      <Stack.Screen name="ProductListing" component={ProductListingScreen} />
+      <Stack.Screen
+        name="AllVendors"
+        component={AllVendorsScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="ProductListing" component={ProductListingScreen} />
       <Stack.Screen
         name="SearchOverlay"
         component={SearchOverlayScreen}
@@ -291,6 +300,9 @@ const MainStackNavigator = () => {
         name="SellerOrderDetails"
         component={SellerOrderDetailsScreen}
       />
+
+      {/* Seller Store */}
+      <Stack.Screen name="SellerStore" component={SellerStoreScreen} />
 
       {/* Settings */}
       <Stack.Screen name="Settings" component={SettingsScreen} />

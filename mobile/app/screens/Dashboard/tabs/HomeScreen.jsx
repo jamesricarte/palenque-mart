@@ -31,9 +31,6 @@ import GrainsCategory from "../../../assets/images/homescreen/categories/grains_
 import VoucherImage from "../../../assets/images/homescreen/voucher_image.png";
 import LiveSteamingImage from "../../../assets/images/homescreen/livestreaming_image.png";
 
-import TopVendorCover01 from "../../../assets/images/homescreen/top-market-vendors_image_01.png";
-import TopVendorCover02 from "../../../assets/images/homescreen/top-market-vendors_image_02.png";
-
 const { height: screenHeight } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
@@ -67,8 +64,6 @@ const HomeScreen = ({ navigation }) => {
     { name: "Fruits", image: FruitsCategory },
     { name: "Grains", image: GrainsCategory },
   ];
-
-  const vendorImages = [TopVendorCover01, TopVendorCover02];
 
   const fetchHomeData = async () => {
     try {
@@ -314,10 +309,15 @@ const HomeScreen = ({ navigation }) => {
   );
 
   const VendorCard = ({ vendor }) => (
-    <TouchableOpacity className="w-48 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm">
-      <View className="relative h-24 bg-gray-300 rounded-t-lg">
+    <TouchableOpacity
+      className="w-48 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm"
+      onPress={() =>
+        navigation.navigate("SellerStore", { sellerId: vendor.id })
+      }
+    >
+      <View className="relative bg-gray-300 rounded-t-lg h-36">
         <Image
-          source={vendor.image}
+          source={{ uri: vendor.store_logo_key }}
           className="w-full h-full rounded-t-lg"
           resizeMode="cover"
         />
@@ -339,7 +339,7 @@ const HomeScreen = ({ navigation }) => {
 
         <View className="flex-row items-center justify-between">
           <Text className="mt-1 text-xs text-gray-500">
-            {vendor.city || "Legazpi City, Albay"}
+            {formatCardAddress(vendor.city, vendor.province)}
           </Text>
 
           <View className="px-2 py-1 bg-green-100 rounded">
@@ -513,7 +513,7 @@ const HomeScreen = ({ navigation }) => {
             <Text className="text-lg font-bold text-gray-900">
               Top market vendors
             </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("AllVendors")}>
               <Text className="font-medium text-orange-500">View all</Text>
             </TouchableOpacity>
           </View>
@@ -522,12 +522,9 @@ const HomeScreen = ({ navigation }) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 16 }}
           >
-            {homeData.topVendors.map((vendor, index) => {
-              if (index < 2) {
-                vendor.image = vendorImages[index];
-              } else vendor.image = vendorImages[0];
-              return <VendorCard key={vendor.id} vendor={vendor} />;
-            })}
+            {homeData.topVendors.map((vendor) => (
+              <VendorCard key={vendor.id} vendor={vendor} />
+            ))}
           </ScrollView>
         </View>
 
