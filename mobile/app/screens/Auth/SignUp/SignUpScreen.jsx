@@ -10,7 +10,9 @@ import {
   Pressable,
   Keyboard,
   Image,
+  ImageBackground,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -19,6 +21,8 @@ import axios from "axios";
 import GoogleIcon from "../../../assets/images/Google.png";
 import FacebookIcon from "../../../assets/images/Facebook.png";
 import PhilIcon from "../../../assets/images/PhilFlag.png";
+import BackgroundImage from "../../../assets/images/background.jpg";
+import LogoImage from "../../../assets/images/logo.png";
 
 import { API_URL } from "../../../config/apiConfig";
 import PersonalizedLoadingAnimation from "../../../components/PersonalizedLoadingAnimation";
@@ -119,143 +123,166 @@ const SignUpScreen = ({ navigation }) => {
   }, [email, mobileNumber, signUpOption]);
 
   return (
-    <View className="relative flex-1 px-6 py-16 bg-white">
-      <View className="mb-10">
-        <TouchableOpacity
-          className="self-start p-2 rounded-full bg-grey"
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#9E9E9E" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="mb-10">
-        <Text className="text-3xl font-semibold text-black">
-          Create your account
-        </Text>
-        <Text className="text-lg font-normal text-primary">
-          Be part of something fresh.
-        </Text>
-      </View>
-
-      {signUpOption === "email" ? (
-        <TextInput
-          key="email"
-          className={`w-full p-4 text-lg bg-grey rounded-md text-black ${
-            message && !message?.success ? "border border-red-500" : ""
-          }`}
-          placeholder="Email Address"
-          placeholderTextColor="#9E9E9E"
-          keyboardType="email-address"
-          includeFontPadding={false}
-          value={email}
-          onChangeText={setEmail}
+    <View className="relative flex-1 bg-white">
+      <ImageBackground source={BackgroundImage} className="h-[210px] px-6 pb-4">
+        <LinearGradient
+          colors={["rgba(232, 90, 79, 0.8)", "rgba(210, 105, 30, 0.8)"]}
+          className="absolute inset-0"
         />
-      ) : (
-        <View className="flex-row gap-2">
-          <View
-            className={`flex-row items-center gap-1 px-2 text-lg rounded-md bg-grey ${message && !message?.success ? "border border-red-500" : ""}`}
-          >
-            <Image source={PhilIcon} style={{ width: 20, height: 20 }} />
-            <TextInput
-              key="country-code"
-              className="text-black"
-              keyboardType="default"
-              includeFontPadding={false}
-              value={countryCode}
-              editable={false}
-            />
-          </View>
 
-          <TextInput
-            key="mobile"
-            className={`flex-1 p-4 text-lg bg-grey rounded-md text-black ${
-              message && !message?.success ? "border border-red-500" : ""
-            }`}
-            placeholder="Mobile Number"
-            placeholderTextColor="#9E9E9E"
-            keyboardType="phone-pad"
-            includeFontPadding={false}
-            value={mobileNumber}
-            onChangeText={setMobileNumber}
+        <View className="absolute top-24 left-4">
+          <TouchableOpacity
+            className="self-start p-2 rounded-full bg-white/20"
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-1 items-center justify-center">
+          <Image
+            source={LogoImage}
+            style={{ width: 300, height: 180 }}
+            resizeMode="contain"
           />
         </View>
-      )}
+      </ImageBackground>
 
-      {message && !message?.success && (
-        <Text className="mt-3 text-red-500">{message?.message}</Text>
-      )}
-
-      <View className="items-end mt-2">
-        <Pressable
-          onPress={() =>
-            signUpOption === "email"
-              ? setSignUpOption("mobileNumber")
-              : setSignUpOption("email")
-          }
-        >
-          <Text className="text-primary">
-            {signUpOption === "email" ? "Use mobile number?" : "Use email?"}
-          </Text>
-        </Pressable>
-      </View>
-
-      <TouchableOpacity
-        className="flex items-center justify-center w-full p-4 mt-6 rounded-md bg-primary"
-        onPress={signUp}
+      <View
+        className="flex-[2] px-8 pt-8 -mt-8 bg-white rounded-t-3xl"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 6,
+          elevation: 6,
+        }}
       >
-        <Text className="text-lg font-semibold text-white">Sign up</Text>
-      </TouchableOpacity>
-
-      <View className="flex-row items-center w-full my-10">
-        <View className="flex-1 h-0.5 bg-grey" />
-        <Text className="mx-4 text-darkgrey">Or signup with</Text>
-        <View className="flex-1 h-0.5 bg-grey" />
-      </View>
-
-      <View className="flex w-full gap-4">
-        <TouchableOpacity
-          className="items-center justify-center p-4 border rounded-md border-primary"
-          onPress={() => {}}
-        >
-          <Image
-            className="absolute left-4"
-            source={GoogleIcon}
-            style={{ width: 20, height: 20 }}
-          />
-          <Text className="text-lg text-center text-primary">
-            Continue with Google
+        <View className="mb-8">
+          <Text className="text-3xl font-semibold text-black">
+            Create your account
           </Text>
+          <Text className="text-lg font-normal text-[#E85A4F] mt-1">
+            Be part of something fresh.
+          </Text>
+        </View>
+
+        {signUpOption === "email" ? (
+          <TextInput
+            key="email"
+            className={`w-full p-4 text-lg border rounded-md border-gray-300 bg-white text-black ${
+              message && !message?.success ? "border border-red-500" : ""
+            }`}
+            placeholder="Email Address"
+            placeholderTextColor="#9E9E9E"
+            keyboardType="email-address"
+            includeFontPadding={false}
+            value={email}
+            onChangeText={setEmail}
+          />
+        ) : (
+          <View className="flex-row gap-2">
+            <View
+              className={`flex-row items-center gap-1 px-2 text-lg rounded-md bg-gray-100 ${message && !message?.success ? "border border-red-500" : ""}`}
+            >
+              <Image source={PhilIcon} style={{ width: 20, height: 20 }} />
+              <TextInput
+                key="country-code"
+                className="text-black"
+                keyboardType="default"
+                includeFontPadding={false}
+                value={countryCode}
+                editable={false}
+              />
+            </View>
+
+            <TextInput
+              key="mobile"
+              className={`flex-1 p-4 text-lg border rounded-md border-gray-300 bg-white text-black ${
+                message && !message?.success ? "border border-red-500" : ""
+              }`}
+              placeholder="Mobile Number"
+              placeholderTextColor="#9E9E9E"
+              keyboardType="phone-pad"
+              includeFontPadding={false}
+              value={mobileNumber}
+              onChangeText={setMobileNumber}
+            />
+          </View>
+        )}
+
+        {message && !message?.success && (
+          <Text className="mt-3 text-red-500">{message?.message}</Text>
+        )}
+
+        <View className="items-end mt-2">
+          <Pressable
+            onPress={() =>
+              signUpOption === "email"
+                ? setSignUpOption("mobileNumber")
+                : setSignUpOption("email")
+            }
+          >
+            <Text className="text-[#4CAF50] font-medium">
+              {signUpOption === "email"
+                ? "Use mobile number?"
+                : "Use email address?"}
+            </Text>
+          </Pressable>
+        </View>
+
+        <TouchableOpacity
+          className="flex items-center justify-center w-full p-4 mt-6 rounded-md"
+          style={{ backgroundColor: "#F16B44" }}
+          onPress={signUp}
+        >
+          <Text className="text-lg font-semibold text-white">Register</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          className="items-center justify-center p-4 border rounded-md border-primary"
-          onPress={() => {}}
-        >
-          <Image
-            className="absolute left-4"
-            source={FacebookIcon}
-            style={{ width: 21, height: 21 }}
-          />
-          <Text className="text-lg text-center text-primary">
-            Continue with Facebook
-          </Text>
-        </TouchableOpacity>
-      </View>
+        <View className="flex-row items-center w-full my-8">
+          <View className="flex-1 h-0.5 bg-gray-200" />
+          <Text className="mx-4 text-gray-300">Or register with</Text>
+          <View className="flex-1 h-0.5 bg-gray-200" />
+        </View>
 
-      <View className="flex items-center gap-4 mt-auto">
-        <Text className="text-sm text-center text-gray-600">
-          By signing up, you agree to Palenque Mart{" "}
-          <Text className="font-medium text-primary">Terms of Service</Text> &{" "}
-          <Text className="font-medium text-primary">Privacy Policy</Text>
-        </Text>
-
-        <View className="flex flex-row gap-1">
-          <Text className="text-lg text-black">Already have an account?</Text>
-
-          <TouchableOpacity onPress={() => navigation.replace("Login")}>
-            <Text className="text-lg text-primary">Login</Text>
+        <View className="flex w-full gap-4">
+          <TouchableOpacity
+            className="items-center justify-center p-4 border rounded-md border-gray-300 bg-white"
+            onPress={() => {}}
+          >
+            <Image
+              className="absolute left-4"
+              source={GoogleIcon}
+              style={{ width: 20, height: 20 }}
+            />
+            <Text className="text-lg text-center text-black">
+              Continue with Google
+            </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            className="items-center justify-center p-4 border rounded-md border-gray-300 bg-white"
+            onPress={() => {}}
+          >
+            <Image
+              className="absolute left-4"
+              source={FacebookIcon}
+              style={{ width: 21, height: 21 }}
+            />
+            <Text className="text-lg text-center text-black">
+              Continue with Facebook
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex items-center gap-4 mt-auto mb-6">
+          <View className="flex flex-row gap-1">
+            <Text className="text-lg text-black">Already have an account?</Text>
+
+            <TouchableOpacity onPress={() => navigation.replace("Login")}>
+              <Text className="text-lg font-medium">Login</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
