@@ -533,23 +533,23 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Authentication Buttons - Fixed at bottom */}
       {!user && (
-        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300">
+        <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44]">
           <View className="flex flex-row justify-center gap-4 px-6 py-6">
             <TouchableOpacity
-              className="flex-1 px-6 py-3 border-2 border-black rounded-xl max-w-32"
+              className="flex-1 px-6 py-4 border-2 border-white rounded-lg max-w-48"
               onPress={() => navigation.push("Login")}
             >
-              <Text className="text-lg font-semibold text-center text-black">
+              <Text className="text-xl font-medium text-center text-white">
                 Login
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 px-6 py-3 bg-black rounded-xl max-w-32"
+              className="flex-1 px-6 py-4 bg-white rounded-lg max-w-48"
               onPress={() => navigation.push("SignUp")}
             >
-              <Text className="text-lg font-semibold text-center text-white">
-                Sign up
+              <Text className="text-xl font-medium text-center text-[#F16B44]">
+                Register
               </Text>
             </TouchableOpacity>
           </View>
