@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   useFocusEffect,
   useNavigation,
@@ -42,8 +42,9 @@ const CheckoutScreen = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [voucherLoading, setVoucherLoading] = useState(false);
-
-  const deliveryFee = 50.0;
+  const [deliveryFees, setDeliveryFees] = useState({});
+  const [calculatingFees, setCalculatingFees] = useState(false);
+  const [feesCalculated, setFeesCalculated] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,6 +62,12 @@ const CheckoutScreen = () => {
       fetchUserAddresses();
     }, [])
   );
+
+  useEffect(() => {
+    if (selectedAddress && items.length > 0) {
+      calculateDeliveryFeesForAddress(selectedAddress.id);
+    }
+  }, [selectedAddress, items]);
 
   const fetchUserAddresses = async () => {
     try {
@@ -80,6 +87,53 @@ const CheckoutScreen = () => {
     } catch (error) {
       console.error("Error fetching addresses:", error);
     }
+  };
+
+  const calculateDeliveryFeesForAddress = async (addressId) => {
+    if (!items || items.length === 0) return;
+
+    setCalculatingFees(true);
+
+    try {
+      // Get unique seller IDs from items
+      const sellerIds = [...new Set(items.map((item) => item.seller_id))];
+
+      const response = await axios.post(
+        `${API_URL}/api/orders/calculate-delivery-fees`,
+        {
+          deliveryAddressId: addressId,
+          sellerIds: sellerIds,
+        }
+      );
+
+      if (response.data.success) {
+        const calculatedFees = {};
+        Object.values(response.data.data.deliveryFees).forEach((feeData) => {
+          calculatedFees[feeData.sellerId] = feeData.deliveryFee;
+        });
+        setDeliveryFees(calculatedFees);
+        setFeesCalculated(true);
+      }
+    } catch (error) {
+      console.error("Error calculating delivery fees:", error);
+      // Fallback to default fee of 50 for each seller
+      const defaultFees = {};
+      const sellerIds = [...new Set(items.map((item) => item.seller_id))];
+      sellerIds.forEach((sellerId) => {
+        defaultFees[sellerId] = 50.0;
+      });
+      setDeliveryFees(defaultFees);
+      setFeesCalculated(true);
+    } finally {
+      setCalculatingFees(false);
+    }
+  };
+
+  const handleAddressChange = async (address) => {
+    setSelectedAddress(address);
+    setShowAddressModal(false);
+    // Recalculate delivery fees for new address
+    await calculateDeliveryFeesForAddress(address.id);
   };
 
   // Group items by store
@@ -103,12 +157,14 @@ const CheckoutScreen = () => {
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const discount = appliedVoucher ? appliedVoucher.calculated_discount : 0;
-    const totalDeliveryFee = Object.keys(groupedItems).length * deliveryFee; // Delivery fee per store
+    const totalDeliveryFee = getTotalDeliveryFee();
     return subtotal + totalDeliveryFee - discount;
   };
 
   const getTotalDeliveryFee = () => {
-    return Object.keys(groupedItems).length * deliveryFee;
+    return Object.keys(groupedItems).reduce((total, sellerId) => {
+      return total + (deliveryFees[sellerId] || 50.0);
+    }, 0);
   };
 
   const validateVoucher = async () => {
@@ -190,6 +246,7 @@ const CheckoutScreen = () => {
         voucherCode: appliedVoucher?.code || null,
         paymentMethod: "cash_on_delivery",
         clearCart: fromCart,
+        deliveryFees: deliveryFees,
       });
 
       if (response.data.success) {
@@ -226,7 +283,7 @@ const CheckoutScreen = () => {
     return items.some((item) => item.is_preorder);
   };
 
-  if (loading) {
+  if (loading || !feesCalculated) {
     return (
       <View className="flex-1 bg-white">
         <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
@@ -239,7 +296,10 @@ const CheckoutScreen = () => {
         </View>
 
         <View className="items-center justify-center flex-1">
-          <Text className="mt-4 text-gray-600">Loading checkout...</Text>
+          <ActivityIndicator size="large" color="#EA580C" />
+          <Text className="mt-4 text-gray-600">
+            {loading ? "Loading checkout..." : "Calculating delivery fees..."}
+          </Text>
         </View>
       </View>
     );
@@ -320,6 +380,7 @@ const CheckoutScreen = () => {
         {/* Order Items Grouped by Store */}
         {Object.entries(groupedItems).map(([sellerId, storeItems]) => {
           const firstItem = storeItems[0];
+          const storeDeliveryFee = deliveryFees[sellerId] || 50.0;
           return (
             <View key={sellerId} className="p-4 mb-4 bg-white">
               {/* Store Header */}
@@ -339,9 +400,14 @@ const CheckoutScreen = () => {
                     />
                   </View>
                 )}
-                <Text className="text-lg font-semibold text-gray-900">
-                  {firstItem.store_name}
-                </Text>
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-gray-900">
+                    {firstItem.store_name}
+                  </Text>
+                  <Text className="text-sm text-gray-600">
+                    Delivery Fee: ₱{storeDeliveryFee.toFixed(2)}
+                  </Text>
+                </View>
               </View>
 
               {/* Store Items */}
@@ -606,10 +672,7 @@ const CheckoutScreen = () => {
                         ? "border-orange-600 bg-orange-50"
                         : "border-gray-200"
                     }`}
-                    onPress={() => {
-                      setSelectedAddress(address);
-                      setShowAddressModal(false);
-                    }}
+                    onPress={() => handleAddressChange(address)}
                   >
                     <View className="flex-row items-center justify-between mb-2">
                       <Text className="font-medium text-gray-900">
@@ -667,6 +730,20 @@ const CheckoutScreen = () => {
                 )}
               </ScrollView>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal transparent visible={calculatingFees} animationType="fade">
+        <View
+          className="items-center justify-center flex-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <View className="items-center p-6 bg-white rounded-lg">
+            <ActivityIndicator size="large" color="#EA580C" />
+            <Text className="mt-4 text-base font-medium text-gray-900">
+              Calculating delivery fees...
+            </Text>
           </View>
         </View>
       </Modal>

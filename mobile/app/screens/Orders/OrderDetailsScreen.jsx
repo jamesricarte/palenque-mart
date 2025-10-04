@@ -23,7 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useFocusEffect } from "@react-navigation/native";
 
 const OrderDetailsScreen = ({ route, navigation }) => {
-  const { user } = useAuth();
+  const { user, socketMessage } = useAuth();
   const { orderId, showReviewForm } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,12 +55,6 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (deliveryPartner && order) {
-      fetchConversationId();
-    }
-  }, [deliveryPartner, order]);
-
-  useEffect(() => {
     if (showReviewForm && initialShowReviewForm && order && canReview()) {
       openReviewModal();
     }
@@ -70,9 +64,16 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     useCallback(() => {
       if (deliveryPartner && order) {
         fetchDeliveryPartnerUnreadCount();
+        fetchConversationId();
       }
     }, [deliveryPartner, order])
   );
+
+  useEffect(() => {
+    if (socketMessage && socketMessage.data.orderId === Number(orderId)) {
+      fetchDeliveryPartnerUnreadCount();
+    }
+  }, [socketMessage, orderId]);
 
   const fetchOrderDetails = async () => {
     try {
@@ -105,10 +106,11 @@ const OrderDetailsScreen = ({ route, navigation }) => {
         setConversationId(response.data.data.conversationId);
       }
     } catch (error) {
-      console.error(
+      console.log(
         "Error getting conversation ID:",
         error.response.data.message || error
       );
+      setConversationId(null);
     }
   };
 

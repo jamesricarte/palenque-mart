@@ -63,6 +63,7 @@ const HomeScreen = ({ navigation }) => {
     },
     { name: "Fruits", image: FruitsCategory },
     { name: "Grains", image: GrainsCategory },
+    { name: "Others", image: null },
   ];
 
   const fetchHomeData = async () => {

@@ -16,7 +16,7 @@ import SellerProductsScreen from "./tabs/SellerProductsScreen";
 import SellerOrdersScreen from "./tabs/SellerOrdersScreen";
 import SellerStoreAccountScreen from "./tabs/SellerStoreAccountScreen";
 import SellerChatScreen from "./tabs/SellerChatScreen";
-import CreateLivestreamScreen from "./tabs/CreateLivestreamScreen";
+import SellerLivestreamScreen from "./tabs/SellerLivestreamScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -154,8 +154,8 @@ const SellerDashboard = ({ navigation }) => {
         }}
       />
       <Tab.Screen
-        name="CreateLivestream"
-        component={CreateLivestreamScreen}
+        name="SellerLivestream"
+        component={SellerLivestreamScreen}
         options={{
           title: "Live",
           tabBarIcon: ({ color, size }) => (

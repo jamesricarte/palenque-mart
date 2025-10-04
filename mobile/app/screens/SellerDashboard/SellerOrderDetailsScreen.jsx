@@ -30,7 +30,9 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
     deliveryPartnerLocation,
     refreshOrdersData,
     sellerId,
+    socketMessage,
   } = useSeller();
+
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusModalVisible, setStatusModalVisible] = useState(false);
@@ -148,6 +150,12 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       }
     }, [order])
   );
+
+  useEffect(() => {
+    if (socketMessage && socketMessage.data.orderId === Number(orderId)) {
+      fetchDeliveryPartnerUnreadCount();
+    }
+  }, [socketMessage, orderId]);
 
   useEffect(() => {
     // Simulate delivery progress

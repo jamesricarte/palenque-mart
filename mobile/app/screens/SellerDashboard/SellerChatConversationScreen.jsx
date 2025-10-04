@@ -51,7 +51,7 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
       if (response.data.success) {
         setMessages(response.data.data.messages);
         // Mark messages as read
-        markMessagesAsRead();
+        if (!markReadInProgress) markMessagesAsRead();
       }
     } catch (error) {
       console.error("Error fetching messages:", error);

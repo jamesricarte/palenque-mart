@@ -21,7 +21,8 @@ import { useFocusEffect } from "@react-navigation/native";
 
 const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
   const { token, user } = useAuth();
-  const { currentLocation, deliveryPartnerId } = useDeliveryPartner();
+  const { currentLocation, deliveryPartnerId, socketMessage } =
+    useDeliveryPartner();
   const { assignmentId } = route.params;
   const [deliveryDetails, setDeliveryDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,6 +95,15 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
       }
     }, [deliveryDetails])
   );
+
+  useEffect(() => {
+    if (
+      socketMessage &&
+      socketMessage.data.orderId === Number(deliveryDetails?.order_id)
+    ) {
+      fetchUnreadCounts();
+    }
+  }, [socketMessage, deliveryDetails]);
 
   const handleChatWithSeller = async () => {
     try {

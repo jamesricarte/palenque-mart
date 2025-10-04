@@ -59,25 +59,10 @@ const getDeliveryPartnerConversationId = async (req, res) => {
       });
     }
 
-    let insertQuery;
-    let insertParams;
-
-    if (chatType === "seller") {
-      insertQuery = `INSERT INTO conversations (delivery_partner_id, seller_id, order_id, conversation_type, is_active, created_at, updated_at) 
-                     VALUES (?, ?, ?, 'order_chat', 1, NOW(), NOW())`;
-      insertParams = [deliveryPartnerId, sellerId, orderId];
-    } else {
-      insertQuery = `INSERT INTO conversations (delivery_partner_id, user_id, order_id, conversation_type, is_active, created_at, updated_at) 
-                     VALUES (?, ?, ?, 'order_chat', 1, NOW(), NOW())`;
-      insertParams = [deliveryPartnerId, sellerId, orderId]; // sellerId is actually user_id here
-    }
-
-    const [newConversation] = await db.execute(insertQuery, insertParams);
-
     res.json({
       success: true,
       data: {
-        conversationId: newConversation.insertId,
+        conversationId: null,
         exists: false,
       },
     });

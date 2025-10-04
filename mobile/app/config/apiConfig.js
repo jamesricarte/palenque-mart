@@ -1,4 +1,4 @@
-import Contants from "expo-constants";
+import Constants from "expo-constants";
 
 let API_URL;
 let WEBSOCKET_URL;
@@ -6,7 +6,7 @@ const port = 3000;
 
 if (__DEV__) {
   // Check if we're in Expo Go or native build
-  const hostUri = Contants.expoConfig?.hostUri;
+  const hostUri = Constants.expoConfig?.hostUri;
 
   if (hostUri) {
     // Expo Go environment

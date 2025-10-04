@@ -20,11 +20,11 @@ const sendDeliveryPartnerMessage = async (req, res) => {
 
     deliveryPartnerId = deliveryPartnerIds[0].id;
 
-    if (!conversationId || !messageText?.trim() || !orderId || !chatType) {
+    if (!messageText?.trim() || !orderId || !chatType || !deliveryPartnerId) {
       return res.status(400).json({
         success: false,
         message:
-          "Missing required fields: conversationId, messageText, orderId, and chatType are required",
+          "Missing required fields: messageText, orderId, chatType, and deliveryPartnerId are required",
       });
     }
 
@@ -42,40 +42,10 @@ const sendDeliveryPartnerMessage = async (req, res) => {
       });
     }
 
+    let finalConversationId = conversationId;
+
     try {
-      let conversation;
-      if (conversationId) {
-        let conversationQuery;
-        let conversationParams;
-
-        if (chatType === "seller") {
-          conversationQuery = `SELECT * FROM conversations 
-                              WHERE id = ? AND delivery_partner_id = ? AND seller_id = ? AND order_id = ?`;
-          conversationParams = [
-            conversationId,
-            deliveryPartnerId,
-            sellerId,
-            orderId,
-          ];
-        } else {
-          conversationQuery = `SELECT * FROM conversations 
-                              WHERE id = ? AND delivery_partner_id = ? AND user_id = ? AND order_id = ?`;
-          conversationParams = [
-            conversationId,
-            deliveryPartnerId,
-            consumerId,
-            orderId,
-          ];
-        }
-
-        const [existingConversation] = await db.execute(
-          conversationQuery,
-          conversationParams
-        );
-        conversation = existingConversation[0];
-      }
-
-      if (!conversation) {
+      if (!conversationId) {
         let insertQuery;
         let insertParams;
 
@@ -90,14 +60,14 @@ const sendDeliveryPartnerMessage = async (req, res) => {
         }
 
         const [newConversation] = await db.execute(insertQuery, insertParams);
-        conversation = { id: newConversation.insertId };
+        finalConversationId = newConversation.insertId;
       }
 
       const [messageResult] = await db.execute(
         `INSERT INTO messages (conversation_id, sender_id, sender_type, message_text, message_type, order_id, created_at, updated_at) 
          VALUES (?, ?, 'delivery_partner', ?, ?, ?, NOW(), NOW())`,
         [
-          conversation.id,
+          finalConversationId,
           deliveryPartnerId,
           messageText.trim(),
           messageType,
@@ -122,7 +92,10 @@ const sendDeliveryPartnerMessage = async (req, res) => {
                        WHERE id = ?`;
       }
 
-      await db.execute(updateQuery, [messageResult.insertId, conversation.id]);
+      await db.execute(updateQuery, [
+        messageResult.insertId,
+        finalConversationId,
+      ]);
 
       // Get the created message with sender info
       const [newMessage] = await db.execute(
@@ -133,11 +106,40 @@ const sendDeliveryPartnerMessage = async (req, res) => {
         [messageResult.insertId]
       );
 
+      const receiver = chatType;
+
+      const refreshChat = {
+        type:
+          receiver === "seller"
+            ? "REFRESH_SELLER_CONVERSATIONS"
+            : "REFRESH_USER_CONVERSATIONS",
+        message: `Sent message to ${receiver}`,
+        data: {
+          newMessage: newMessage[0],
+          conversationId: finalConversationId,
+          orderId: Number.parseInt(orderId),
+        },
+      };
+
+      const receiverSockets =
+        receiver === "seller" ? req.app.get("sellers") : req.app.get("users");
+      const receiverId = receiver === "seller" ? sellerId : consumerId;
+      const receiverSocket = receiverSockets.get(receiverId);
+
+      if (
+        receiverSocket &&
+        receiverSocket.socket &&
+        receiverSocket.socket.readyState === 1
+      ) {
+        receiverSocket.socket.send(JSON.stringify(refreshChat));
+        console.log(`Sent refresh chat to ${receiver} id: ${receiverId}`);
+      }
+
       res.json({
         success: true,
         data: {
           message: newMessage[0],
-          conversationId: conversation.id,
+          conversationId: finalConversationId,
           orderId: Number.parseInt(orderId),
           chatType,
         },

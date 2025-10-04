@@ -14,6 +14,7 @@ const createOrder = async (req, res) => {
       voucherCode = null,
       paymentMethod = "cash_on_delivery",
       clearCart = false,
+      deliveryFees = {},
     } = req.body;
 
     // Validate required fields
@@ -131,7 +132,6 @@ const createOrder = async (req, res) => {
       appliedVoucher = voucherRows[0];
     }
 
-    const deliveryFee = 50.0;
     const createdOrders = [];
     let totalOrderAmount = 0;
 
@@ -176,6 +176,7 @@ const createOrder = async (req, res) => {
         }
       }
 
+      const deliveryFee = deliveryFees[sellerId] || 50.0;
       const totalAmount = subtotal + deliveryFee - voucherDiscount;
       totalOrderAmount += totalAmount;
 

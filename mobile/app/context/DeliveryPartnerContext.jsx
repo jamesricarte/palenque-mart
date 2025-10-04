@@ -24,6 +24,7 @@ export const DeliveryPartnerProvider = ({ children }) => {
   const appStateRef = useRef(AppState.currentState);
   const [deliveryPartnerId, setDeliveryPartnerId] = useState(null);
   const [refreshOrderData, setRefreshOrderData] = useState(false);
+  const [socketMessage, setSocketMessage] = useState(null);
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
@@ -72,6 +73,10 @@ export const DeliveryPartnerProvider = ({ children }) => {
                 setRefreshOrderData(false);
               }, 2000);
             }
+          }
+
+          if (data.type === "REFRESH_DELIVERY_PARTNER_CONVERSATIONS") {
+            setSocketMessage(data);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -223,6 +228,8 @@ export const DeliveryPartnerProvider = ({ children }) => {
     deliveryPartnerId,
     setDeliveryPartnerId,
     refreshOrderData,
+    socketMessage,
+    setSocketMessage,
   };
 
   return (

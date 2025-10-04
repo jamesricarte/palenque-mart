@@ -71,7 +71,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
       if (response.data.success) {
         setMessages(response.data.data.messages);
         // Mark messages as read
-        markMessagesAsRead();
+        if (!markReadInProgress) markMessagesAsRead();
       }
     } catch (error) {
       console.log("Error fetching messages:", error.response.data);
@@ -83,6 +83,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
   const markMessagesAsRead = async () => {
     if (markReadInProgress) return; // prevent overlap
     markReadInProgress = true;
+
     try {
       await axios.put(
         `${API_URL}/api/chat/conversations/${conversationId}/mark-read`

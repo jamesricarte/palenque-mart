@@ -220,6 +220,7 @@ export const SellerProvider = ({ children }) => {
     stopTrackingDeliveryPartner,
     deliveryPartnerLocation,
     socketMessage,
+    setSocketMessage,
     refreshTransactionData,
     setRefreshTransactionData,
     refreshAnalyticsData,

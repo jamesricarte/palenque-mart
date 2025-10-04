@@ -19,10 +19,12 @@ import axios from "axios";
 import { StatusBar } from "expo-status-bar";
 
 import { useAuth } from "../../context/AuthContext";
+import { useSeller } from "../../context/SellerContext";
 import { API_URL } from "../../config/apiConfig";
 
 const SellerDeliveryPartnerChatScreen = ({ navigation, route }) => {
-  const { user, token, socketMessage } = useAuth();
+  const { user, token } = useAuth();
+  const { socketMessage, setSocketMessage } = useSeller();
   const {
     conversationId,
     deliveryPartnerId,
@@ -37,14 +39,19 @@ const SellerDeliveryPartnerChatScreen = ({ navigation, route }) => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [finalConversationId, setFinalConversationId] =
+    useState(conversationId);
+
   const scrollViewRef = useRef(null);
 
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
+  let markReadInProgress = false;
+
   const fetchMessages = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}/api/chat/seller/conversations/${conversationId}/messages?orderId=${orderId}`,
+        `${API_URL}/api/chat/seller/conversations/${finalConversationId}/messages?orderId=${orderId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -55,19 +62,22 @@ const SellerDeliveryPartnerChatScreen = ({ navigation, route }) => {
       if (response.data.success) {
         setMessages(response.data.data.messages);
         // Mark messages as read
-        markMessagesAsRead();
+        if (!markReadInProgress) markMessagesAsRead();
       }
     } catch (error) {
-      console.error("Error fetching messages:", error.response?.data || error);
+      console.log("Error fetching messages:", error.response?.data || error);
     } finally {
       setLoading(false);
     }
   };
 
   const markMessagesAsRead = async () => {
+    if (markReadInProgress) return;
+    markReadInProgress = true;
+
     try {
       await axios.put(
-        `${API_URL}/api/chat/seller/delivery-partner/conversations/${conversationId}/mark-read`,
+        `${API_URL}/api/chat/seller/delivery-partner/conversations/${finalConversationId}/mark-read`,
         {},
         {
           headers: {
@@ -94,7 +104,7 @@ const SellerDeliveryPartnerChatScreen = ({ navigation, route }) => {
       const response = await axios.post(
         `${API_URL}/api/chat/seller/delivery-partner/send-message`,
         {
-          conversationId,
+          conversationId: finalConversationId,
           deliveryPartnerId,
           messageText,
           messageType: "text",
@@ -108,7 +118,9 @@ const SellerDeliveryPartnerChatScreen = ({ navigation, route }) => {
       );
 
       if (response.data.success) {
-        fetchMessages();
+        setFinalConversationId(response.data.data.conversationId);
+        setMessages((prev) => [...prev, response.data.data.message]);
+        if (!markReadInProgress && finalConversationId) markMessagesAsRead();
       } else {
         Alert.alert("Error", "Failed to send message");
         setNewMessage(messageText);
@@ -125,14 +137,46 @@ const SellerDeliveryPartnerChatScreen = ({ navigation, route }) => {
   useFocusEffect(
     useCallback(() => {
       fetchMessages();
-    }, [conversationId])
+    }, [])
   );
 
   useEffect(() => {
-    if (socketMessage && socketMessage.conversationId === conversationId) {
-      fetchMessages();
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId !== finalConversationId
+    ) {
+      (async () => {
+        try {
+          const response = await axios.get(
+            `${API_URL}/api/chat/seller/conversation-id/${deliveryPartnerId}}?orderId=${orderId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.data.success) {
+            setFinalConversationId(response.data.data.conversationId);
+          }
+        } catch (error) {
+          console.log(
+            "Error getting conversation ID:",
+            error.response?.data || error
+          );
+        }
+      })();
     }
-  }, [socketMessage, conversationId]);
+
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId === finalConversationId
+    ) {
+      setMessages((prev) => [...prev, socketMessage.data.newMessage]);
+      setSocketMessage(null);
+      if (!markReadInProgress) markMessagesAsRead();
+    }
+  }, [socketMessage, finalConversationId]);
 
   useEffect(() => {
     if (messages.length > 0) {

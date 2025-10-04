@@ -12,6 +12,10 @@ buildscript {
   }
 }
 
+ext {
+  ffmpegKitPackage = "full-gpl" // options: min, full, full-gpl, audio, video
+}
+
 allprojects {
   repositories {
     google()

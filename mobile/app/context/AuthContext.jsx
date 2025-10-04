@@ -124,6 +124,7 @@ export const AuthProvider = ({ children }) => {
         approvalStatusUpdated,
         resetApprovalStatus,
         socketMessage,
+        setSocketMessage,
       }}
     >
       {children}
