@@ -550,10 +550,10 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Authentication Buttons - Fixed at bottom */}
       {!user && (
-        <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44] px-4 pt-1 pb-2">
+        <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44] px-4 pt-4 pb-6">
           <View className="flex flex-row justify-between py-6">
             <TouchableOpacity
-              className="flex-1 py-5 border-2 border-white rounded-lg mr-2"
+              className="flex-1 px-4 py-4 border-2 border-white rounded-lg mr-2"
               onPress={() => navigation.push("Login")}
             >
               <Text className="text-xl font-medium text-center text-white">
@@ -562,7 +562,7 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 py-5 bg-white rounded-lg ml-2"
+              className="flex-1 px-4 py-4 bg-white rounded-lg ml-2"
               onPress={() => navigation.push("SignUp")}
             >
               <Text className="text-xl font-medium text-center text-[#F16B44]">
