@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  Pressable,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
@@ -208,15 +209,15 @@ const HomeScreen = ({ navigation }) => {
           resizeMode="cover"
         />
       </View>
-      <Text className="text-xs font-medium text-center text-gray-700">
+      <Text className="text-base font-medium text-center text-gray-700">
         {category.name}
       </Text>
     </TouchableOpacity>
   );
 
   const ProductCard = ({ product, showRating = false }) => (
-    <TouchableOpacity
-      className="w-40 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm"
+    <Pressable
+      className="w-64 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm"
       onPress={() =>
         navigation.navigate("ProductDetails", { productId: product.id })
       }
@@ -234,32 +235,29 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
         {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <View className="absolute px-2 py-1 bg-orange-500 rounded top-2 left-2">
-            <Text className="text-xs font-medium text-white">Low Stock</Text>
+          <View className="absolute px-2 py-1 bg-green-500 rounded top-2 right-2">
+            <Text className="text-xs font-normal text-white">Low Stock</Text>
           </View>
         )}
       </View>
 
       <View className="p-3">
         <View className="flex-row items-center justify-between">
-          <Text
-            className="mb-1 text-sm font-semibold text-gray-900"
-            numberOfLines={2}
-          >
+          <Text className="text-lg font-medium text-gray-900" numberOfLines={2}>
             {product.name}
           </Text>
 
           {showRating && (
             <View className="flex-row items-center">
               <Ionicons name="star" size={12} color="#FCD34D" />
-              <Text className="ml-1 text-xs text-gray-500">
+              <Text className="ml-1 text-base font-medium">
                 {product.average_rating || "0.00"}
               </Text>
             </View>
           )}
         </View>
 
-        <View className="flex-row items-center mb-2">
+        <View className="flex-row items-center">
           {product.store_logo_key ? (
             <Image
               source={{ uri: product.store_logo_key }}
@@ -271,13 +269,17 @@ const HomeScreen = ({ navigation }) => {
               <Feather name="image" size={9} color="#9CA3AF" />
             </View>
           )}
-          <Text className="flex-1 text-xs text-gray-600" numberOfLines={1}>
+          <Text className="flex-1 text-base text-[#94A3B8]" numberOfLines={1}>
             {product.store_name}
           </Text>
         </View>
-
+        <View className="flex-row flex-wrap gap-1 mb-4 mt-2">
+          <View className="px-2 py-0.5 bg-[#42A5F5] rounded">
+            <Text className="text-xs font-medium text-white">Fish</Text>
+          </View>
+        </View>
         <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-bold text-orange-600">
+          <Text className="text-base font-medium text-orange-600">
             ₱{Number.parseFloat(product.price).toFixed(2)}/
             {formatUnitType(product.unit_type)}
           </Text>
@@ -290,13 +292,13 @@ const HomeScreen = ({ navigation }) => {
               }}
             >
               <View className="p-1 bg-orange-600 rounded-full min-w-5 min-h-5 opacity-70">
-                <Ionicons name="bag-outline" size={15} color="white" />
+                <Ionicons name="bag-outline" size={18} color="white" />
               </View>
             </TouchableOpacity>
           )}
         </View>
 
-        <View className="flex-row flex-wrap items-center justify-between">
+        <View className="flex-row flex-wrap items-center justify-between mt-2">
           <Text className="mt-1 text-xs text-gray-400">
             {formatCardAddress(product.city, product.province)}
           </Text>
@@ -306,17 +308,24 @@ const HomeScreen = ({ navigation }) => {
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   const VendorCard = ({ vendor }) => (
     <TouchableOpacity
-      className="w-48 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm"
+      className="w-96 mr-3 bg-white rounded-lg shadow-sm overflow-hidden"
+      style={{
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+      }}
       onPress={() =>
         navigation.navigate("SellerStore", { sellerId: vendor.id })
       }
     >
-      <View className="relative bg-gray-300 rounded-t-lg h-36">
+      <View className="relative bg-gray-300 rounded-t-lg h-32">
         <Image
           source={{ uri: vendor.store_logo_key }}
           className="w-full h-full rounded-t-lg"
@@ -326,25 +335,34 @@ const HomeScreen = ({ navigation }) => {
 
       <View className="p-3">
         <View className="flex-row items-center justify-between">
-          <Text className="font-medium text-center text-black rounded">
+          <Text className="font-medium text-lg text-center text-black rounded">
             {vendor.store_name}
           </Text>
 
           <View className="flex-row items-center">
             <Ionicons name="star" size={14} color="#FCD34D" />
-            <Text className="ml-1 text-sm font-medium">
+            <Text className="ml-1 text-base font-medium">
               {vendor.average_rating || "5.0"}
             </Text>
           </View>
         </View>
 
-        <View className="flex-row items-center justify-between">
-          <Text className="mt-1 text-xs text-gray-500">
+        <View className="flex-row items-center mb-2 mt-1">
+          <Ionicons name="location-outline" size={12} color="#9CA3AF" />
+          <Text className="ml-1 text-base text-gray-500" numberOfLines={1}>
             {formatCardAddress(vendor.city, vendor.province)}
           </Text>
+        </View>
 
-          <View className="px-2 py-1 bg-green-100 rounded">
-            <Text className="text-xs font-medium text-green-600">Open</Text>
+        <View className="flex-row flex-wrap gap-1">
+          <View className="px-2 py-0.5 bg-[#EF5350] rounded">
+            <Text className="text-base font-normal text-white">Meat</Text>
+          </View>
+          <View className="px-2 py-0.5 bg-[#42A5F5] rounded">
+            <Text className="text-base font-normal text-white">Fish</Text>
+          </View>
+          <View className="px-2 py-0.5 bg-[#66BB6A] rounded">
+            <Text className="text-base font-normal text-white">Vegetables</Text>
           </View>
         </View>
       </View>
@@ -392,10 +410,12 @@ const HomeScreen = ({ navigation }) => {
 
         <TouchableOpacity
           onPress={handleSearchPress}
-          className="flex-row items-center px-4 py-3 bg-gray-100 rounded-lg"
+          className="flex-row items-center px-4 py-4 border rounded-md border-gray-300"
         >
           <Ionicons name="search" size={20} color="#6B7280" />
-          <Text className="flex-1 ml-3 text-gray-500">Search product</Text>
+          <Text className="flex-1 ml-3 text-lg text-gray-500">
+            Search product
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -420,7 +440,7 @@ const HomeScreen = ({ navigation }) => {
         <View className="px-4 py-4">
           <View className="flex-row">
             <View className="flex-1 mr-2">
-              <View className="items-center justify-center h-32">
+              <View className="items-center justify-center h-44">
                 <Image
                   source={VoucherImage}
                   className="w-full h-full rounded-lg"
@@ -437,7 +457,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View className="flex-1 ml-2">
-              <View className="h-32 overflow-hidden bg-gray-300 rounded-lg">
+              <View className="h-44 overflow-hidden bg-gray-300 rounded-lg">
                 <Image
                   source={LiveSteamingImage}
                   className="w-full h-full"
@@ -445,16 +465,16 @@ const HomeScreen = ({ navigation }) => {
                 />
                 <View className="absolute bottom-2 left-2">
                   <Text
-                    className="px-2 py-1 text-xs font-light text-white rounded"
+                    className="px-2 py-1 text-base font-light text-white rounded"
                     style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
                   >
                     BoyBanat Store
                   </Text>
                 </View>
 
-                <View className="absolute flex-row items-center gap-1 px-1 py-0.5 bg-green-600 rounded-sm top-2 right-2">
+                <View className="absolute flex-row items-center gap-1 px-1 py-0.5 bg-green-500 rounded-md top-2 right-2">
                   <View className="w-2 h-2 bg-white rounded-full" />
-                  <Text className="text-xs text-white">Live</Text>
+                  <Text className="text-base text-white">LIVE</Text>
                 </View>
               </View>
             </View>
@@ -504,7 +524,11 @@ const HomeScreen = ({ navigation }) => {
             contentContainerStyle={{ paddingHorizontal: 16 }}
           >
             {homeData.suggestedProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                showRating={true}
+              />
             ))}
           </ScrollView>
         </View>
@@ -534,10 +558,10 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Authentication Buttons - Fixed at bottom */}
       {!user && (
-        <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44]">
-          <View className="flex flex-row justify-center gap-4 px-6 py-6">
+        <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44] px-4 pt-1 pb-2">
+          <View className="flex flex-row justify-between py-6">
             <TouchableOpacity
-              className="flex-1 px-6 py-4 border-2 border-white rounded-lg max-w-48"
+              className="flex-1 py-4 border-2 border-white rounded-lg mr-2"
               onPress={() => navigation.push("Login")}
             >
               <Text className="text-xl font-medium text-center text-white">
@@ -546,7 +570,7 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 px-6 py-4 bg-white rounded-lg max-w-48"
+              className="flex-1 py-4 bg-white rounded-lg ml-2"
               onPress={() => navigation.push("SignUp")}
             >
               <Text className="text-xl font-medium text-center text-[#F16B44]">

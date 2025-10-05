@@ -20,17 +20,19 @@ const DashboardScreen = () => {
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#F16B44",
-        tabBarInactiveTintColor: "#8f8f8f",
+        tabBarActiveTintColor: "#fff",
+        tabBarInactiveTintColor: "#fff",
         tabBarStyle: !user
           ? { display: "none" }
           : {
-              backgroundColor: "#ffffff",
-              borderTopColor: "#e5e7eb",
+              backgroundColor: "#F16B44",
+              borderTopColor: "#F16B44",
               borderTopWidth: 1,
+              height: 100, // 👈 increase this value to make the tab bar taller
+              paddingTop: 15,
             },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 13,
         },
       })}
     >
@@ -41,20 +43,20 @@ const DashboardScreen = () => {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
-              size={size}
+              size={30}
               color={color}
             />
           ),
         }}
       />
       <Tab.Screen
-        name="Live Streams"
+        name="Live Selling"
         component={LiveStreamingScreen}
         options={{
           tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons
-              name={focused ? "videocam" : "videocam"}
-              size={size}
+            <Ionicons
+              name={focused ? "videocam" : "videocam-outline"}
+              size={31}
               color={color}
             />
           ),
@@ -67,20 +69,20 @@ const DashboardScreen = () => {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "chatbubbles" : "chatbubbles-outline"}
-              size={size}
+              size={30}
               color={color}
             />
           ),
         }}
       />
       <Tab.Screen
-        name="Notifications"
+        name="Notification"
         component={NotificationsScreen}
         options={{
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "notifications" : "notifications-outline"}
-              size={size}
+              size={30}
               color={color}
             />
           ),
@@ -93,7 +95,7 @@ const DashboardScreen = () => {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}
-              size={size}
+              size={30}
               color={color}
             />
           ),
