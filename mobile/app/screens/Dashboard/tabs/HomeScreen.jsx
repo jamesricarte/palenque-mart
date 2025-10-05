@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  Pressable,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
@@ -214,7 +215,7 @@ const HomeScreen = ({ navigation }) => {
   );
 
   const ProductCard = ({ product, showRating = false }) => (
-    <TouchableOpacity
+    <Pressable
       className="w-64 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm"
       onPress={() =>
         navigation.navigate("ProductDetails", { productId: product.id })
@@ -233,7 +234,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
         {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <View className="absolute px-2 py-1 bg-orange-500 rounded top-2 left-2">
+          <View className="absolute px-2 py-1 bg-green-500 rounded top-2 right-2">
             <Text className="text-xs font-normal text-white">Low Stock</Text>
           </View>
         )}
@@ -290,7 +291,7 @@ const HomeScreen = ({ navigation }) => {
               }}
             >
               <View className="p-1 bg-orange-600 rounded-full min-w-5 min-h-5 opacity-70">
-                <Ionicons name="bag-outline" size={15} color="white" />
+                <Ionicons name="bag-outline" size={18} color="white" />
               </View>
             </TouchableOpacity>
           )}
@@ -306,7 +307,7 @@ const HomeScreen = ({ navigation }) => {
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   const VendorCard = ({ vendor }) => (
@@ -408,10 +409,12 @@ const HomeScreen = ({ navigation }) => {
 
         <TouchableOpacity
           onPress={handleSearchPress}
-          className="flex-row items-center px-4 py-3 border rounded-md border-gray-300"
+          className="flex-row items-center px-4 py-4 border rounded-md border-gray-300"
         >
           <Ionicons name="search" size={20} color="#6B7280" />
-          <Text className="flex-1 ml-3 text-gray-500">Search product</Text>
+          <Text className="flex-1 ml-3 text-lg text-gray-500">
+            Search product
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -468,7 +471,7 @@ const HomeScreen = ({ navigation }) => {
                   </Text>
                 </View>
 
-                <View className="absolute flex-row items-center gap-1 px-1 py-0.5 bg-green-600 rounded-md top-2 right-2">
+                <View className="absolute flex-row items-center gap-1 px-1 py-0.5 bg-green-500 rounded-md top-2 right-2">
                   <View className="w-2 h-2 bg-white rounded-full" />
                   <Text className="text-base text-white">LIVE</Text>
                 </View>
@@ -520,7 +523,11 @@ const HomeScreen = ({ navigation }) => {
             contentContainerStyle={{ paddingHorizontal: 16 }}
           >
             {homeData.suggestedProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                showRating={true}
+              />
             ))}
           </ScrollView>
         </View>
@@ -553,7 +560,7 @@ const HomeScreen = ({ navigation }) => {
         <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44] px-4 pt-1 pb-2">
           <View className="flex flex-row justify-between py-6">
             <TouchableOpacity
-              className="flex-1 py-5 border-2 border-white rounded-lg mr-2"
+              className="flex-1 py-4 border-2 border-white rounded-lg mr-2"
               onPress={() => navigation.push("Login")}
             >
               <Text className="text-xl font-medium text-center text-white">
@@ -562,7 +569,7 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 py-5 bg-white rounded-lg ml-2"
+              className="flex-1 py-4 bg-white rounded-lg ml-2"
               onPress={() => navigation.push("SignUp")}
             >
               <Text className="text-xl font-medium text-center text-[#F16B44]">
