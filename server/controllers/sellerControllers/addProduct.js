@@ -77,14 +77,15 @@ const addProduct = async (req, res) => {
     // 3. Insert product data into the database with file path only
     const [result] = await pool.query(
       `INSERT INTO products (
-        seller_id, name, description, price, stock_quantity, category, subcategory,
+        seller_id, name, description, original_price, price, stock_quantity, category, subcategory,
         unit_type, freshness_indicator, harvest_date, source_origin,
         preparation_options, image_keys
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         sellerId,
         name,
         description,
+        price,
         price,
         stock_quantity,
         category,

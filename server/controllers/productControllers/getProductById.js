@@ -18,6 +18,7 @@ const getProductById = async (req, res) => {
         p.seller_id,
         p.name,
         p.description,
+        p.original_price,
         p.price,
         p.stock_quantity,
         p.category,

@@ -627,7 +627,7 @@ const CheckoutScreen = () => {
       </ScrollView>
 
       {/* Place Order Button */}
-      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+      <View className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-white border-t border-gray-200">
         <TouchableOpacity
           className="items-center p-4 bg-orange-600 rounded-lg"
           onPress={handlePlaceOrder}

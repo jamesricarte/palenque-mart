@@ -719,9 +719,23 @@ const ProductDetailsScreen = () => {
           </Text>
 
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-3xl font-bold text-orange-600">
-              ₱{Number.parseFloat(product.price).toFixed(2)}
-            </Text>
+            {/* Price Display with Original vs Discounted */}
+            {product.original_price &&
+            parseFloat(product.price) < parseFloat(product.original_price) ? (
+              <View className="flex-row items-center gap-1">
+                <Text className="text-lg text-gray-500 line-through">
+                  ₱{parseFloat(product.original_price).toFixed(2)}
+                </Text>
+                <Text className="text-2xl font-bold text-orange-600">
+                  ₱{parseFloat(product.price).toFixed(2)}
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-3xl font-bold text-orange-600">
+                ₱{parseFloat(product.price).toFixed(2)}
+              </Text>
+            )}
+
             <Text className="text-lg text-gray-600">
               {formatUnitType(product.unit_type)}
             </Text>
@@ -1017,7 +1031,7 @@ const ProductDetailsScreen = () => {
 
       {/* Action Buttons */}
       {!isOwnProduct() && (
-        <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+        <View className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-white border-t border-gray-200">
           <View className="flex-row gap-3">
             {product.bargaining_enabled === 1 && !isPreOrderAvailable() && (
               <TouchableOpacity

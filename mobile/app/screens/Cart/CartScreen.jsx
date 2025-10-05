@@ -281,10 +281,10 @@ const CartScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold">My Cart</Text>
-        <View className="px-2 py-1 bg-orange-100 rounded-full">
-          <Text className="text-sm font-medium text-orange-600">
+        <View className="px-2 py-1 bg-white rounded-full">
+          {/* <Text className="text-sm font-medium text-orange-600">
             {getTotalItems()}
-          </Text>
+          </Text> */}
         </View>
       </View>
 
@@ -580,7 +580,7 @@ const CartScreen = ({ navigation }) => {
           </ScrollView>
 
           {/* Checkout Section */}
-          <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+          <View className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-white border-t border-gray-200">
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-lg font-semibold text-gray-900">
                 Selected ({getSelectedItemsCount()} items)
