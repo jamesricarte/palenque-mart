@@ -43,6 +43,7 @@ const getSellerOrders = async (req, res) => {
         o.status,
         o.payment_method,
         o.payment_status,
+        o.delivery_fee,
         o.total_amount,
         o.delivery_recipient_name,
         o.delivery_phone_number,

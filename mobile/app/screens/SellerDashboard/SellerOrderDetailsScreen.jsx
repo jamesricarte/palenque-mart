@@ -273,7 +273,10 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
       if (response.data.success) {
         if (newStatus === "ready_for_pickup") {
           try {
-            await createDeliveryAssignment(orderId);
+            await createDeliveryAssignment(
+              orderId,
+              parseFloat(order.delivery_fee)
+            );
             console.log("Delivery assignment created successfully");
           } catch (error) {
             console.error("Error creating delivery assignment:", error);

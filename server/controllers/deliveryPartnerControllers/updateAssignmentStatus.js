@@ -1,4 +1,5 @@
 const db = require("../../config/db");
+const supabase = require("../../config/supabase");
 
 const updateAssignmentStatus = async (req, res) => {
   try {
@@ -30,9 +31,23 @@ const updateAssignmentStatus = async (req, res) => {
       });
     }
 
+    if (status === "delivered") {
+      if (
+        !req.files ||
+        !req.files.proof_of_delivery ||
+        !req.files.proof_of_delivery[0]
+      ) {
+        return res.status(400).json({
+          message: "Proof of delivery photo is required",
+          success: false,
+          error: { code: "PROOF_OF_DELIVERY_REQUIRED" },
+        });
+      }
+    }
+
     // Get delivery partner ID
     const [deliveryPartners] = await db.execute(
-      "SELECT id FROM delivery_partners WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1",
+      "SELECT id, partner_id FROM delivery_partners WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1",
       [userId]
     );
 
@@ -159,6 +174,48 @@ const updateAssignmentStatus = async (req, res) => {
 
     const assignment = assignments[0];
 
+    let proofOfDeliveryPath = null;
+    if (
+      status === "delivered" &&
+      req.files &&
+      req.files.proof_of_delivery &&
+      req.files.proof_of_delivery[0]
+    ) {
+      const file = req.files.proof_of_delivery[0];
+      const fileExtension = file.originalname.split(".").pop();
+      const fileName = `proof_of_delivery_${Date.now()}.${fileExtension}`;
+      const filePath = `delivery-partners/${deliveryPartners[0].partner_id}/proof_of_delivery_images/${fileName}`;
+
+      try {
+        // Upload to Supabase
+        const { data, error } = await supabase.storage
+          .from("delivery-partner-assets")
+          .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false,
+          });
+
+        if (error) {
+          console.error("Error uploading proof of delivery:", error);
+          return res.status(500).json({
+            message: "Failed to upload proof of delivery image",
+            success: false,
+            error: { code: "UPLOAD_ERROR" },
+          });
+        }
+
+        proofOfDeliveryPath = filePath;
+        console.log(`Proof of delivery uploaded successfully: ${filePath}`);
+      } catch (uploadError) {
+        console.error("Error uploading proof of delivery:", uploadError);
+        return res.status(500).json({
+          message: "Failed to upload proof of delivery image",
+          success: false,
+          error: { code: "UPLOAD_ERROR" },
+        });
+      }
+    }
+
     // Update assignment status
     const updateFields = ["status = ?"];
     const updateValues = [status];
@@ -167,6 +224,10 @@ const updateAssignmentStatus = async (req, res) => {
       updateFields.push("pickup_time = CURRENT_TIMESTAMP");
     } else if (status === "delivered") {
       updateFields.push("delivery_time = CURRENT_TIMESTAMP");
+      if (proofOfDeliveryPath) {
+        updateFields.push("proof_of_delivery_image = ?");
+        updateValues.push(proofOfDeliveryPath);
+      }
     }
 
     updateFields.push("updated_at = CURRENT_TIMESTAMP");

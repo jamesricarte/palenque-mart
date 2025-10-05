@@ -15,6 +15,7 @@ import { useDeliveryPartner } from "../../../context/DeliveryPartnerContext";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { API_URL } from "../../../config/apiConfig";
+import * as ImagePicker from "expo-image-picker";
 
 const DeliveryPartnerDeliveriesScreen = () => {
   const { token } = useAuth();
@@ -62,6 +63,37 @@ const DeliveryPartnerDeliveriesScreen = () => {
     setRefreshing(false);
   };
 
+  const takeProofOfDeliveryPhoto = async () => {
+    try {
+      // Request camera permissions
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Camera permission is required to take proof of delivery photo."
+        );
+        return null;
+      }
+
+      // Launch camera
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (result.canceled) {
+        return null;
+      }
+
+      return result.assets[0];
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      return null;
+    }
+  };
+
   const handleUpdateStatus = (assignmentId, newStatus, statusText) => {
     Alert.alert(
       "Update Status",
@@ -83,13 +115,49 @@ const DeliveryPartnerDeliveriesScreen = () => {
     try {
       setUpdatingStatus((prev) => ({ ...prev, [assignmentId]: true }));
 
+      let proofOfDeliveryPhoto = null;
+      if (status === "delivered") {
+        proofOfDeliveryPhoto = await takeProofOfDeliveryPhoto();
+
+        if (!proofOfDeliveryPhoto) {
+          Alert.alert(
+            "Photo Required",
+            "Proof of delivery photo is required to mark the delivery as completed."
+          );
+          setUpdatingStatus((prev) => ({ ...prev, [assignmentId]: false }));
+          return;
+        }
+      }
+
+      let requestData;
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      if (status === "delivered" && proofOfDeliveryPhoto) {
+        const formData = new FormData();
+        formData.append("assignmentId", assignmentId);
+        formData.append("status", status);
+
+        // Append the photo
+        formData.append("proof_of_delivery", {
+          uri: proofOfDeliveryPhoto.uri,
+          type: "image/jpeg",
+          name: `proof_of_delivery_${Date.now()}.jpg`,
+        });
+
+        requestData = formData;
+        headers["Content-Type"] = "multipart/form-data";
+      } else {
+        requestData = { assignmentId, status };
+        headers["Content-Type"] = "application/json";
+      }
+
       const response = await axios.put(
         `${API_URL}/api/delivery-partner/update-assignment-status`,
-        { assignmentId, status },
+        requestData,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
         }
       );
 

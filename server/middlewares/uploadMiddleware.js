@@ -44,6 +44,7 @@ const upload = multer({
   { name: "background_check", maxCount: 1 },
   { name: "profile_photo", maxCount: 1 },
   { name: "reviewMedia", maxCount: 10 },
+  { name: "proof_of_delivery", maxCount: 1 },
 ]);
 
 // Error handling middleware

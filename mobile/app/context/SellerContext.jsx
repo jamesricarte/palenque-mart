@@ -159,7 +159,7 @@ export const SellerProvider = ({ children }) => {
     return () => clearTimeout(timer);
   }, [refreshAnalyticsData]);
 
-  const createDeliveryAssignment = async (orderId) => {
+  const createDeliveryAssignment = async (orderId, deliveryFee) => {
     if (!token) return null;
 
     try {
@@ -167,6 +167,7 @@ export const SellerProvider = ({ children }) => {
         `${API_URL}/api/seller/create-delivery-assignment`,
         {
           orderId,
+          deliveryFee,
         },
         {
           headers: {

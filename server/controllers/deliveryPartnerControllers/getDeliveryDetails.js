@@ -40,6 +40,7 @@ const getDeliveryDetails = async (req, res) => {
         da.assigned_at,
         da.pickup_time,
         da.delivery_time,
+        da.proof_of_delivery_image,
         da.estimated_delivery_time,
         da.delivery_fee,
         da.pickup_address,
@@ -194,6 +195,19 @@ const getDeliveryDetails = async (req, res) => {
       }
     }
 
+    // Get signed URL for proof of delivery image
+    let proofOfDeliveryUrl = null;
+    if (assignment.proof_of_delivery_image) {
+      try {
+        const { data } = supabase.storage
+          .from("delivery-partner-assets")
+          .getPublicUrl(assignment.proof_of_delivery_image);
+        proofOfDeliveryUrl = data.publicUrl;
+      } catch (error) {
+        console.error("Error getting proof of delivery image URL:", error);
+      }
+    }
+
     // Check if this delivery partner can interact with this assignment
     const canInteract =
       assignment.candidate_status === "pending" ||
@@ -204,6 +218,7 @@ const getDeliveryDetails = async (req, res) => {
       ...assignment,
       store_logo_url: storeLogoUrl,
       order_items: itemsWithImages,
+      proof_of_delivery_url: proofOfDeliveryUrl,
       can_interact: canInteract,
       total_items: orderItems.length,
       pickup_coordinates: pickupCoordinates, // Added field

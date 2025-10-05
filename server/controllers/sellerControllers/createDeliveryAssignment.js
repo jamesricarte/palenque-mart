@@ -20,7 +20,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 const createDeliveryAssignment = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { orderId } = req.body;
+    const { orderId, deliveryFee = 30 } = req.body;
 
     if (!orderId) {
       return res.status(400).json({
@@ -116,8 +116,8 @@ const createDeliveryAssignment = async (req, res) => {
     // Create delivery assignment
     const [assignmentResult] = await db.execute(
       `INSERT INTO delivery_assignments (order_id, status, delivery_fee, pickup_address, delivery_address, created_at)
-       VALUES (?, 'looking_for_rider', 50.00, ?, ?, CURRENT_TIMESTAMP)`,
-      [orderId, pickupAddressString, deliveryAddress]
+       VALUES (?, 'looking_for_rider', ?, ?, ?, CURRENT_TIMESTAMP)`,
+      [orderId, deliveryFee, pickupAddressString, deliveryAddress]
     );
 
     const assignmentId = assignmentResult.insertId;

@@ -18,6 +18,7 @@ import MapView, { Marker } from "react-native-maps";
 import { useDeliveryPartner } from "../../context/DeliveryPartnerContext";
 import { StatusBar } from "expo-status-bar";
 import { useFocusEffect } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 
 const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
   const { token, user } = useAuth();
@@ -28,6 +29,8 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showFullScreenMap, setShowFullScreenMap] = useState(false);
+  const [showProofOfDeliveryModal, setShowProofOfDeliveryModal] =
+    useState(false);
 
   const [sellerUnreadCount, setSellerUnreadCount] = useState(0);
   const [consumerUnreadCount, setConsumerUnreadCount] = useState(0);
@@ -168,6 +171,37 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
     }
   };
 
+  const takeProofOfDeliveryPhoto = async () => {
+    try {
+      // Request camera permissions
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "Camera permission is required to take proof of delivery photo."
+        );
+        return null;
+      }
+
+      // Launch camera
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (result.canceled) {
+        return null;
+      }
+
+      return result.assets[0];
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      return null;
+    }
+  };
+
   const handleUpdateStatus = (newStatus, confirmMessage) => {
     Alert.alert("Update Status", confirmMessage, [
       {
@@ -184,13 +218,49 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
   const updateDeliveryStatus = async (status) => {
     setUpdating(true);
     try {
+      let proofOfDeliveryPhoto = null;
+      if (status === "delivered") {
+        proofOfDeliveryPhoto = await takeProofOfDeliveryPhoto();
+
+        if (!proofOfDeliveryPhoto) {
+          Alert.alert(
+            "Photo Required",
+            "Proof of delivery photo is required to mark the delivery as completed."
+          );
+          setUpdating(false);
+          return;
+        }
+      }
+
+      let requestData;
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      if (status === "delivered" && proofOfDeliveryPhoto) {
+        const formData = new FormData();
+        formData.append("assignmentId", assignmentId);
+        formData.append("status", status);
+
+        // Append the photo
+        formData.append("proof_of_delivery", {
+          uri: proofOfDeliveryPhoto.uri,
+          type: "image/jpeg",
+          name: `proof_of_delivery_${Date.now()}.jpg`,
+        });
+
+        requestData = formData;
+        headers["Content-Type"] = "multipart/form-data";
+      } else {
+        requestData = { assignmentId, status };
+        headers["Content-Type"] = "application/json";
+      }
+
       const response = await axios.put(
         `${API_URL}/api/delivery-partner/update-assignment-status`,
-        { assignmentId, status },
+        requestData,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
         }
       );
 
@@ -548,6 +618,45 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
     );
   };
 
+  const renderProofOfDeliveryModal = () => {
+    if (!deliveryDetails || !deliveryDetails.proof_of_delivery_url) {
+      return null;
+    }
+
+    return (
+      <Modal
+        visible={showProofOfDeliveryModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowProofOfDeliveryModal(false)}
+      >
+        <View className="flex-1 bg-black">
+          {/* Header */}
+          <View className="flex flex-row items-center justify-between p-4 pt-12 bg-black/80">
+            <Text className="text-lg font-semibold text-white">
+              Proof of Delivery
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowProofOfDeliveryModal(false)}
+              className="p-2 rounded-full bg-white/20"
+            >
+              <MaterialIcons name="close" size={24} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Full Screen Image */}
+          <View className="items-center justify-center flex-1">
+            <Image
+              source={{ uri: deliveryDetails.proof_of_delivery_url }}
+              className="w-full h-full"
+              resizeMode="contain"
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   if (loading) {
     return (
       <View className="items-center justify-center flex-1 bg-gray-50">
@@ -725,6 +834,33 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
               )}
             </View>
           </View>
+
+          {deliveryDetails.delivery_status === "delivered" &&
+            deliveryDetails.proof_of_delivery_url && (
+              <View className="p-4 mb-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <Text className="mb-3 text-lg font-semibold text-gray-900">
+                  Proof of Delivery
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowProofOfDeliveryModal(true)}
+                  className="overflow-hidden rounded-lg"
+                >
+                  <Image
+                    source={{ uri: deliveryDetails.proof_of_delivery_url }}
+                    className="w-full h-48"
+                    resizeMode="cover"
+                  />
+                  <View className="absolute inset-0 items-center justify-center bg-black/20">
+                    <View className="p-3 bg-white rounded-full">
+                      <MaterialIcons name="zoom-in" size={32} color="#374151" />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+                <Text className="mt-2 text-sm text-center text-gray-600">
+                  Tap to view full size
+                </Text>
+              </View>
+            )}
 
           {/* Pickup Address */}
           {deliveryDetails.pickup_address && (
@@ -940,6 +1076,8 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
 
       {/* Full Screen Map Modal */}
       {renderFullScreenMap()}
+
+      {renderProofOfDeliveryModal()}
 
       {/* Action Buttons at Bottom */}
       {deliveryDetails && renderActionButtons() && (

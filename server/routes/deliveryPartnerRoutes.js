@@ -56,6 +56,8 @@ router.put("/update-location", authenticateToken, updateLocation);
 router.put(
   "/update-assignment-status",
   authenticateToken,
+  upload,
+  handleUploadError,
   updateAssignmentStatus
 );
 

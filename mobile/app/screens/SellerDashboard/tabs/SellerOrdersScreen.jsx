@@ -182,7 +182,12 @@ const SellerOrdersScreen = ({ navigation }) => {
     if (refreshOrdersData) fetchOrdersCallback();
   }, [refreshOrdersData]);
 
-  const handleQuickAction = async (orderId, newStatus, actionData) => {
+  const handleQuickAction = async (
+    orderId,
+    newStatus,
+    actionData,
+    deliveryFee
+  ) => {
     setUpdatingStatus(true);
     try {
       const response = await axios.put(
@@ -196,7 +201,7 @@ const SellerOrdersScreen = ({ navigation }) => {
       if (response.data.success) {
         if (newStatus === "ready_for_pickup") {
           try {
-            await createDeliveryAssignment(orderId);
+            await createDeliveryAssignment(orderId, parseFloat(deliveryFee));
             console.log("Delivery assignment created successfully");
           } catch (error) {
             console.error("Error creating delivery assignment:", error);
@@ -751,7 +756,8 @@ const SellerOrdersScreen = ({ navigation }) => {
                         handleQuickAction(
                           selectedOrder.id,
                           action.value,
-                          action
+                          action,
+                          selectedOrder.delivery_fee
                         )
                       }
                       disabled={updatingStatus}
