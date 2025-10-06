@@ -55,17 +55,29 @@ const HomeScreen = ({ navigation }) => {
     {
       name: "Meat",
       image: MeatCategory,
+      color: "#EF5350",
     },
-    { name: "Seafood", image: SeafoodCategory },
-    { name: "Poultry", image: PoultryCategory },
+    { name: "Seafood", image: SeafoodCategory, color: "#42A5F5" },
+    { name: "Poultry", image: PoultryCategory, color: "#BCAAA4" },
     {
       name: "Vegetables",
       image: VegetablesCategory,
+      color: "#66BB6A",
     },
-    { name: "Fruits", image: FruitsCategory },
-    { name: "Grains", image: GrainsCategory },
+    { name: "Fruits", image: FruitsCategory, color: "#FFCA28" },
+    { name: "Grains", image: GrainsCategory, color: "#CFD8DC" },
     { name: "Others", image: null },
   ];
+
+  const categoriesColor = {
+    Meat: "#EF5350",
+    Seafood: "#42A5F5",
+    Poultry: "#BCAAA4",
+    Vegetables: "#66BB6A",
+    Fruits: "#FFCA28",
+    Grains: "#CFD8DC",
+    Others: null,
+  };
 
   const fetchHomeData = async () => {
     try {
@@ -170,7 +182,7 @@ const HomeScreen = ({ navigation }) => {
       per_kilo: "kg",
       per_250g: "250g",
       per_500g: "500g",
-      per_piece: "piece",
+      per_piece: "pcs",
       per_bundle: "bundle",
       per_pack: "pack",
       per_liter: "liter",
@@ -203,11 +215,21 @@ const HomeScreen = ({ navigation }) => {
       }
     >
       <View className="w-16 h-16 mb-2 bg-gray-200 border border-green-600 rounded-full ">
-        <Image
-          source={category.image}
-          className="w-full h-full rounded-full"
-          resizeMode="cover"
-        />
+        {category.name !== "Others" ? (
+          <Image
+            source={category.image}
+            className="w-full h-full rounded-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="bg-[#F69C82] w-full h-full rounded-full relative justify-center items-center">
+            <View className="flex-row gap-1">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <View className="w-2 h-2 bg-white rounded-full"></View>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
       <Text className="text-base font-medium text-center text-gray-700">
         {category.name}
@@ -273,11 +295,19 @@ const HomeScreen = ({ navigation }) => {
             {product.store_name}
           </Text>
         </View>
-        <View className="flex-row flex-wrap gap-1 mb-4 mt-2">
-          <View className="px-2 py-0.5 bg-[#42A5F5] rounded">
-            <Text className="text-xs font-medium text-white">Fish</Text>
+
+        {/* Category label */}
+        <View className="flex-row flex-wrap gap-1 mt-2 mb-4">
+          <View
+            style={{ backgroundColor: categoriesColor[product.category] }}
+            className={`px-2 py-0.5 rounded`}
+          >
+            <Text className="text-xs font-medium text-white">
+              {product.category}
+            </Text>
           </View>
         </View>
+
         <View className="flex-row items-center justify-between">
           <Text className="text-base font-medium text-orange-600">
             ₱{Number.parseFloat(product.price).toFixed(2)}/
@@ -313,7 +343,7 @@ const HomeScreen = ({ navigation }) => {
 
   const VendorCard = ({ vendor }) => (
     <TouchableOpacity
-      className="w-96 mr-3 bg-white rounded-lg shadow-sm overflow-hidden"
+      className="mr-3 overflow-hidden bg-white rounded-lg shadow-sm w-96"
       style={{
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
@@ -325,7 +355,7 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate("SellerStore", { sellerId: vendor.id })
       }
     >
-      <View className="relative bg-gray-300 rounded-t-lg h-32">
+      <View className="relative h-32 bg-gray-300 rounded-t-lg">
         <Image
           source={{ uri: vendor.store_logo_key }}
           className="w-full h-full rounded-t-lg"
@@ -335,7 +365,7 @@ const HomeScreen = ({ navigation }) => {
 
       <View className="p-3">
         <View className="flex-row items-center justify-between">
-          <Text className="font-medium text-lg text-center text-black rounded">
+          <Text className="text-lg font-medium text-center text-black rounded">
             {vendor.store_name}
           </Text>
 
@@ -347,23 +377,32 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View className="flex-row items-center mb-2 mt-1">
+        <View className="flex-row items-center mt-1 mb-2">
           <Ionicons name="location-outline" size={12} color="#9CA3AF" />
           <Text className="ml-1 text-base text-gray-500" numberOfLines={1}>
             {formatCardAddress(vendor.city, vendor.province)}
           </Text>
         </View>
 
-        <View className="flex-row flex-wrap gap-1">
-          <View className="px-2 py-0.5 bg-[#EF5350] rounded">
-            <Text className="text-base font-normal text-white">Meat</Text>
-          </View>
-          <View className="px-2 py-0.5 bg-[#42A5F5] rounded">
-            <Text className="text-base font-normal text-white">Fish</Text>
-          </View>
-          <View className="px-2 py-0.5 bg-[#66BB6A] rounded">
-            <Text className="text-base font-normal text-white">Vegetables</Text>
-          </View>
+        {/* Category labels */}
+        <View className="flex-row flex-wrap gap-1 w-[70%]">
+          {vendor.categories && vendor.categories.length > 0 ? (
+            vendor.categories.map((category, index) => (
+              <View
+                key={index}
+                style={{
+                  backgroundColor: categoriesColor[category] || "#9CA3AF",
+                }}
+                className="px-2 py-0.5 rounded"
+              >
+                <Text className="text-xs font-medium text-white">
+                  {category}
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text className="text-sm text-gray-400">No categories</Text>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -410,7 +449,7 @@ const HomeScreen = ({ navigation }) => {
 
         <TouchableOpacity
           onPress={handleSearchPress}
-          className="flex-row items-center px-4 py-4 border rounded-md border-gray-300"
+          className="flex-row items-center px-4 py-4 border border-gray-300 rounded-md"
         >
           <Ionicons name="search" size={20} color="#6B7280" />
           <Text className="flex-1 ml-3 text-lg text-gray-500">
@@ -457,7 +496,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View className="flex-1 ml-2">
-              <View className="h-44 overflow-hidden bg-gray-300 rounded-lg">
+              <View className="overflow-hidden bg-gray-300 rounded-lg h-44">
                 <Image
                   source={LiveSteamingImage}
                   className="w-full h-full"
@@ -561,7 +600,7 @@ const HomeScreen = ({ navigation }) => {
         <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44] px-4 pt-1 pb-2">
           <View className="flex flex-row justify-between py-6">
             <TouchableOpacity
-              className="flex-1 py-4 border-2 border-white rounded-lg mr-2"
+              className="flex-1 py-4 mr-2 border-2 border-white rounded-lg"
               onPress={() => navigation.push("Login")}
             >
               <Text className="text-xl font-medium text-center text-white">
@@ -570,7 +609,7 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 py-4 bg-white rounded-lg ml-2"
+              className="flex-1 py-4 ml-2 bg-white rounded-lg"
               onPress={() => navigation.push("SignUp")}
             >
               <Text className="text-xl font-medium text-center text-[#F16B44]">

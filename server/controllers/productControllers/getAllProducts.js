@@ -200,20 +200,23 @@ const getHomeData = async (req, res) => {
 
     // Get top vendors (highest rated sellers)
     const vendorsQuery = `
-      SELECT 
-        s.id,
-        s.store_name,
-        s.store_logo_key,
-        s.store_description,
-        s.average_rating,
-        sa.city,
-        sa.province
-      FROM sellers s
-      JOIN seller_addresses sa ON s.application_id = sa.application_id
-      WHERE s.is_active = 1 AND sa.type = 'store'
-      ORDER BY s.average_rating DESC, s.created_at DESC
-      LIMIT 8
-    `;
+    SELECT 
+      s.id,
+      s.store_name,
+      s.store_logo_key,
+      s.store_description,
+      s.average_rating,
+      sa.city,
+      sa.province,
+      GROUP_CONCAT(DISTINCT p.category) as categories
+    FROM sellers s
+    JOIN seller_addresses sa ON s.application_id = sa.application_id
+    LEFT JOIN products p ON s.id = p.seller_id AND p.is_active = 1
+    WHERE s.is_active = 1 AND sa.type = 'store'
+    GROUP BY s.id, s.store_name, s.store_logo_key, s.store_description, s.average_rating, sa.city, sa.province
+    ORDER BY s.average_rating DESC, s.created_at DESC
+    LIMIT 8
+  `;
 
     const [recommendedResults] = await db.execute(recommendedQuery);
     const [suggestedResults] = await db.execute(suggestedQuery);
@@ -249,7 +252,22 @@ const getHomeData = async (req, res) => {
 
     const recommendedProducts = processProductImages(recommendedResults);
     const suggestedProducts = processProductImages(suggestedResults);
-    const vendorsResultsWithUrl = processProductImages(vendorsResults);
+    const vendorsResultsWithUrl = vendorsResults.map((vendor) => {
+      let storeLogoUrl = null;
+
+      if (vendor.store_logo_key) {
+        const { data } = supabase.storage
+          .from("vendor-assets")
+          .getPublicUrl(vendor.store_logo_key);
+        storeLogoUrl = data?.publicUrl || null;
+      }
+
+      return {
+        ...vendor,
+        store_logo_key: storeLogoUrl,
+        categories: vendor.categories ? vendor.categories.split(",") : [],
+      };
+    });
 
     res.status(200).json({
       success: true,
