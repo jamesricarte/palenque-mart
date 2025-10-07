@@ -4,8 +4,8 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -43,41 +43,7 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
         "Registered tricycle",
         "Safety equipment",
       ],
-      color: "bg-green-500",
-    },
-    {
-      id: "car",
-      title: "Car",
-      subtitle: "Comfortable for larger orders",
-      icon: "car-sport",
-      benefits: [
-        "Weather protection",
-        "Larger cargo capacity",
-        "Professional appearance",
-      ],
-      requirements: [
-        "Valid driver's license",
-        "Registered vehicle",
-        "Vehicle insurance",
-      ],
-      color: "bg-purple-500",
-    },
-    {
-      id: "truck",
-      title: "Truck/Van",
-      subtitle: "Perfect for bulk deliveries",
-      icon: "car",
-      benefits: [
-        "Maximum cargo space",
-        "Bulk delivery capability",
-        "Higher earning potential",
-      ],
-      requirements: [
-        "Commercial driver's license",
-        "Registered commercial vehicle",
-        "Loading equipment",
-      ],
-      color: "bg-orange-500",
+      color: "bg-secondary",
     },
   ];
 
@@ -104,6 +70,30 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
     }
   };
 
+  const requirements = [
+    "Must be 18 years old or above",
+    "Valid government-issued ID",
+    "Smartphone with GPS capability",
+    "Clean background check",
+  ];
+
+  const process = [
+    {
+      icon: "users",
+      title: "Complete Registration",
+      description: "Fill out your details and upload required documents",
+    },
+    {
+      icon: "shield",
+      title: "Get Verified",
+      description: "Our team will review and verify your application",
+    },
+    {
+      icon: "truck",
+      title: "Start Delivering",
+      description: "Accept orders and start earning immediately",
+    },
+  ];
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -117,12 +107,12 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
 
       <ScrollView className="flex-1">
         {/* Welcome Section */}
-        <View className="px-6 py-8 bg-gradient-to-br from-green-50 to-blue-50">
-          <View className="items-center mb-6">
+        <View className="px-6 py-8">
+          <View className="items-center">
             <View className="flex items-center justify-center w-20 h-20 mb-4 bg-green-500 rounded-full">
               <Feather name="truck" size={40} color="white" />
             </View>
-            <Text className="mb-2 text-3xl font-bold text-center">
+            <Text className="mb-1 text-3xl font-bold text-center">
               Start Earning Today!
             </Text>
             <Text className="text-lg text-center text-gray-600">
@@ -130,39 +120,25 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
               schedule
             </Text>
           </View>
-
-          {/* Key Benefits */}
-          <View className="space-y-3">
-            <View className="flex flex-row items-center">
-              <View className="flex items-center justify-center w-8 h-8 mr-3 bg-green-100 rounded-full">
-                <AntDesign name="clockcircle" size={16} color="#10b981" />
-              </View>
-              <Text className="text-gray-700">
-                Flexible working hours - work when you want
-              </Text>
-            </View>
-            <View className="flex flex-row items-center">
-              <View className="flex items-center justify-center w-8 h-8 mr-3 bg-green-100 rounded-full">
-                <MaterialIcons name="attach-money" size={16} color="#10b981" />
-              </View>
-              <Text className="text-gray-700">
-                Competitive rates with weekly payments
-              </Text>
-            </View>
-            <View className="flex flex-row items-center">
-              <View className="flex items-center justify-center w-8 h-8 mr-3 bg-green-100 rounded-full">
-                <AntDesign name="Safety" size={16} color="#10b981" />
-              </View>
-              <Text className="text-gray-700">
-                Insurance coverage and safety support
-              </Text>
-            </View>
-          </View>
         </View>
 
+        <View className="mx-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+          {/* Requirements Section */}
+          <View className="px-6 py-4 bg-white">
+            <Text className="mb-4 text-xl font-semibold">
+              General Requirements
+            </Text>
+            {requirements.map((requirement, index) => (
+              <View key={index} className="flex flex-row items-center mb-3">
+                <Feather name="check" size={16} color="#10b981" />
+                <Text className="ml-3 text-gray-700">{requirement}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
         {/* Vehicle Selection */}
-        <View className="px-6 py-6">
-          <Text className="mb-2 text-2xl font-bold">
+        <View className="px-6 py-4">
+          <Text className="mb-1 text-2xl font-bold">
             Choose Your Vehicle Type
           </Text>
           <Text className="mb-6 text-gray-600">
@@ -196,7 +172,11 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
                     </Text>
                   </View>
                   {selectedVehicle === vehicle.id && (
-                    <AntDesign name="checkcircle" size={24} color="#10b981" />
+                    <FontAwesome
+                      name="check-circle"
+                      size={16}
+                      color="#10b981"
+                    />
                   )}
                 </View>
 
@@ -241,96 +221,43 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* How it Works */}
-        <View className="px-6 py-6 bg-gray-50">
-          <Text className="mb-4 text-xl font-semibold">How It Works</Text>
-          <View className="space-y-4">
-            <View className="flex flex-row items-start">
-              <View className="flex items-center justify-center w-8 h-8 mr-4 bg-green-500 rounded-full">
-                <Text className="font-bold text-white">1</Text>
+        <View className="mx-6 mb-4 bg-white border border-gray-200 shadow-sm rounded-xl">
+          {/* Process Section */}
+          <View className="px-6 py-4">
+            <Text className="mb-4 text-xl font-semibold">How It Works:</Text>
+            {process.map((process, index) => (
+              <View key={index} className="flex flex-row items-start mb-4">
+                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-green-100 rounded-lg">
+                  <Feather name={process.icon} size={20} color="#39B54A" />
+                </View>
+                <View className="flex-1">
+                  <Text className="mb-1 font-semibold">{process.title}</Text>
+                  <Text className="text-sm text-gray-600">
+                    {process.description}
+                  </Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="font-semibold">Complete Registration</Text>
-                <Text className="text-sm text-gray-600">
-                  Fill out your details and upload required documents
-                </Text>
-              </View>
-            </View>
-            <View className="flex flex-row items-start">
-              <View className="flex items-center justify-center w-8 h-8 mr-4 bg-green-500 rounded-full">
-                <Text className="font-bold text-white">2</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="font-semibold">Get Verified</Text>
-                <Text className="text-sm text-gray-600">
-                  Our team will review and verify your application
-                </Text>
-              </View>
-            </View>
-            <View className="flex flex-row items-start">
-              <View className="flex items-center justify-center w-8 h-8 mr-4 bg-green-500 rounded-full">
-                <Text className="font-bold text-white">3</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="font-semibold">Start Delivering</Text>
-                <Text className="text-sm text-gray-600">
-                  Accept orders and start earning immediately
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Requirements Overview */}
-        <View className="px-6 py-6">
-          <Text className="mb-4 text-xl font-semibold">
-            General Requirements
-          </Text>
-          <View className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-            <View className="space-y-2">
-              <View className="flex flex-row items-center">
-                <Feather name="check" size={16} color="#f59e0b" />
-                <Text className="ml-2 text-sm text-yellow-800">
-                  Must be 18 years old or above
-                </Text>
-              </View>
-              <View className="flex flex-row items-center">
-                <Feather name="check" size={16} color="#f59e0b" />
-                <Text className="ml-2 text-sm text-yellow-800">
-                  Valid government-issued ID
-                </Text>
-              </View>
-              <View className="flex flex-row items-center">
-                <Feather name="check" size={16} color="#f59e0b" />
-                <Text className="ml-2 text-sm text-yellow-800">
-                  Smartphone with GPS capability
-                </Text>
-              </View>
-              <View className="flex flex-row items-center">
-                <Feather name="check" size={16} color="#f59e0b" />
-                <Text className="ml-2 text-sm text-yellow-800">
-                  Clean background check
-                </Text>
-              </View>
-            </View>
+            ))}
           </View>
         </View>
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View className="px-6 py-4 bg-white border-t border-gray-200">
+      <View className="px-6 py-6 bg-secondary">
         <TouchableOpacity
-          className={`w-full py-4 rounded-lg ${selectedVehicle ? "bg-green-500" : "bg-gray-300"}`}
+          className={`w-full py-6 rounded-lg ${selectedVehicle ? "bg-white" : "bg-gray-200"}`}
           onPress={handleContinue}
           disabled={!selectedVehicle}
         >
-          <Text className="text-lg font-semibold text-center text-white">
+          <Text
+            className={`text-lg font-semibold text-center ${selectedVehicle ? "text-secondary" : "text-gray-400"}`}
+          >
             Continue Registration
           </Text>
         </TouchableOpacity>
 
         {!selectedVehicle && (
-          <Text className="mt-2 text-sm text-center text-gray-500">
+          <Text className="mt-1 text-base text-center text-white">
             Please select a vehicle type to continue
           </Text>
         )}

@@ -247,14 +247,14 @@ const PartnershipOptionsScreen = ({ navigation }) => {
         <View className="w-6" />
       </View>
 
-      <ScrollView className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1 bg-white">
         <View className="p-4">
           {/* Approved Seller Dashboard Access */}
           {isApprovedSeller && (
             <View className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
               <View className="p-6">
                 <View className="flex flex-row items-center mb-4">
-                  <View className="flex items-center justify-center w-16 h-16 mr-4 bg-blue-500 rounded-lg">
+                  <View className="flex items-center justify-center w-16 h-16 mr-4 bg-primary rounded-lg">
                     <FontAwesome6 name="store" size={40} color="white" />
                   </View>
                   <View className="flex-1">
@@ -282,7 +282,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                 </View>
 
                 <TouchableOpacity
-                  className="w-full py-3 bg-blue-600 rounded-lg"
+                  className="w-full py-3 bg-primary rounded-lg"
                   onPress={handleGoToSellerDashboard}
                 >
                   <Text className="font-semibold text-center text-white">

@@ -3,10 +3,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 const LiveStreamingScreen = () => {
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-2xl font-semibold">Live Streams</Text>
+        <Text className="text-2xl font-semibold">Live Selling</Text>
       </View>
 
       <View className="items-center justify-center flex-1 p-8">
@@ -15,7 +15,7 @@ const LiveStreamingScreen = () => {
         </View>
 
         <Text className="mb-2 text-xl font-semibold text-center text-gray-900">
-          Live Streaming
+          Live Selling
         </Text>
 
         <Text className="mb-8 text-lg text-center text-gray-600">

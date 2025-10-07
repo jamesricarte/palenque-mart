@@ -61,18 +61,18 @@ const SellerProductsScreen = ({ navigation }) => {
   };
 
   const ProductCard = ({ product }) => (
-    <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg">
+    <View className="p-4 mb-4 bg-white border border-gray-200 rounded-md">
       <View className="flex-row">
         {/* Product Image */}
-        <View className="w-20 h-20 mr-4 bg-gray-100 rounded-lg">
+        <View className="w-20 h-20 mr-4 bg-gray-100 rounded-md">
           {product.image_keys ? (
             <Image
               source={{ uri: product.image_keys }}
-              className="w-full h-full rounded-lg"
+              className="w-full h-full rounded-md"
               resizeMode="cover"
             />
           ) : (
-            <View className="items-center justify-center w-full h-full bg-gray-200 rounded-lg">
+            <View className="items-center justify-center w-full h-full bg-gray-200 rounded-md">
               <Feather name="image" size={24} color="#9ca3af" />
             </View>
           )}
@@ -114,7 +114,7 @@ const SellerProductsScreen = ({ navigation }) => {
           )}
 
           <View className="flex-row items-center justify-between mt-2">
-            <Text className="text-lg font-bold text-blue-600">
+            <Text className="text-lg font-bold text-primary">
               {formatPrice(product.price)}
             </Text>
             <Text className="text-sm text-gray-500">
@@ -133,7 +133,7 @@ const SellerProductsScreen = ({ navigation }) => {
           {product.is_preorder_enabled === 1 &&
             product.expected_availability_date && (
               <View className="mt-1">
-                <Text className="text-xs text-blue-600">
+                <Text className="text-xs text-primary">
                   Available: {formatDate(product.expected_availability_date)}
                 </Text>
               </View>
@@ -148,15 +148,15 @@ const SellerProductsScreen = ({ navigation }) => {
       {/* Action Buttons */}
       <View className="flex-row gap-2 pt-3 mt-3 border-t border-gray-100">
         <TouchableOpacity
-          className="flex-1 py-2 border border-gray-300 rounded-lg"
+          className="flex-1 py-2 bg-primary rounded-md"
           onPress={() =>
             navigation.navigate("EditProduct", { productId: product.id })
           }
         >
-          <Text className="font-medium text-center text-gray-700">Edit</Text>
+          <Text className="font-medium text-center text-white">Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="flex-1 py-2 bg-blue-600 rounded-lg">
-          <Text className="font-medium text-center text-white">
+        <TouchableOpacity className="flex-1 py-2 bg-white border border-primary rounded-md">
+          <Text className="font-medium text-center text-primary">
             View Details
           </Text>
         </TouchableOpacity>
@@ -165,12 +165,15 @@ const SellerProductsScreen = ({ navigation }) => {
   );
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-xl font-semibold">My Products</Text>
+      <View className="flex-row items-center justify-between px-4 pt-16 pb-4 bg-white border-b border-gray-200">
+        <Text className="text-2xl font-semibold">
+          My Products ({products.length})
+        </Text>
+
         <TouchableOpacity
-          className="flex-row items-center px-3 py-2 bg-blue-600 rounded-lg"
+          className="flex-row items-center px-3 py-2 bg-secondary rounded-md"
           onPress={() => navigation.navigate("AddProduct")}
         >
           <Feather name="plus" size={16} color="white" />
@@ -185,7 +188,7 @@ const SellerProductsScreen = ({ navigation }) => {
             <Text className="mt-2 text-gray-500">Loading products...</Text>
           </View>
         ) : products.length === 0 ? (
-          <View className="items-center justify-center py-20 mt-10 bg-white border border-gray-200 rounded-lg">
+          <View className="items-center justify-center py-20 mt-10 bg-white border border-gray-200 rounded-md">
             <Feather name="package" size={48} color="#d1d5db" />
             <Text className="mt-4 text-lg font-medium">No Products Yet</Text>
             <Text className="mt-1 text-gray-500">
@@ -194,9 +197,6 @@ const SellerProductsScreen = ({ navigation }) => {
           </View>
         ) : (
           <View>
-            <Text className="mb-4 text-sm text-gray-600">
-              {products.length} product{products.length !== 1 ? "s" : ""} found
-            </Text>
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

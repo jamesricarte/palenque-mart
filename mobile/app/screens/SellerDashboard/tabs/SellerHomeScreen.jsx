@@ -4,6 +4,7 @@ import {
   View,
   Text,
   ScrollView,
+  Image,
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
@@ -40,6 +41,7 @@ const SellerOverviewScreen = ({ navigation }) => {
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [filterLoading, setFilterLoading] = useState(false);
+  const [orderCount, setOrderCount] = useState(0);
 
   const periods = [
     { value: "7days", label: "Last 7 Days" },
@@ -104,6 +106,17 @@ const SellerOverviewScreen = ({ navigation }) => {
     }
   };
 
+  const fetchOrderCount = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/seller/count`);
+      if (response.data.success) {
+        setOrderCount(response.data.data.totalOrders);
+      }
+    } catch (error) {
+      console.error("Error fetching order count:", error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
@@ -147,6 +160,7 @@ const SellerOverviewScreen = ({ navigation }) => {
     useCallback(() => {
       fetchAnalytics();
       fetchTransactions(1, selectedFilter, true);
+      fetchOrderCount();
     }, [])
   );
 
@@ -247,10 +261,31 @@ const SellerOverviewScreen = ({ navigation }) => {
   );
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-xl font-semibold">Home</Text>
+      <View className="px-4 pt-16">
+        <View className="flex-row items-center justify-between mb-4">
+          <Image
+            source={require("../../../assets/images/Palenque-Logo-v1.png")}
+            className="h-16 w-52"
+            resizeMode="cover"
+          />
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              onPress={() => navigation.push("SellerOrders")}
+              className="relative p-2"
+            >
+              <Feather name="shopping-bag" size={24} color="black" />
+              {orderCount > 0 && (
+                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
+                  <Text className="text-xs font-bold text-white">
+                    {orderCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <ScrollView
@@ -259,8 +294,8 @@ const SellerOverviewScreen = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View className="p-4">
-          <View className="p-6 mb-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <View className="px-4 py-1">
+          <View className="p-6 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
             <View className="flex-row items-center justify-between">
               <View className="flex-1">
                 <Text className="text-2xl font-bold text-gray-900">
@@ -269,12 +304,6 @@ const SellerOverviewScreen = ({ navigation }) => {
                 <Text className="mt-1 text-gray-600">
                   Here's how your store is performing today
                 </Text>
-                <View className="flex-row items-center mt-2">
-                  <View className="w-2 h-2 mr-2 bg-green-500 rounded-full" />
-                  <Text className="text-sm font-medium text-green-600">
-                    Store Active
-                  </Text>
-                </View>
               </View>
               <View className="items-center justify-center w-12 h-12 bg-orange-100 rounded-full">
                 <MaterialIcons name="store" size={24} color="#ea580c" />
@@ -341,10 +370,10 @@ const SellerOverviewScreen = ({ navigation }) => {
 
               {/* Revenue Overview */}
               <View className="mb-4">
-                <Text className="mb-3 text-lg font-semibold text-gray-900">
-                  Revenue Overview
-                </Text>
-                <View className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <View className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <Text className="mb-2 text-lg font-semibold text-gray-900">
+                    Revenue Overview
+                  </Text>
                   {analytics.revenueOverTime.length > 0 ? (
                     <>
                       <View className="flex-row items-center justify-between mb-4">
@@ -403,53 +432,17 @@ const SellerOverviewScreen = ({ navigation }) => {
                 </View>
               </View>
 
-              {/* Payment Methods */}
-              {analytics.paymentMethodBreakdown.length > 0 && (
-                <View className="mb-4">
-                  <Text className="mb-3 text-lg font-semibold text-gray-900">
-                    Payment Methods
-                  </Text>
-                  <View className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                    {analytics.paymentMethodBreakdown.map((method, index) => (
-                      <View
-                        key={index}
-                        className="flex-row items-center p-3 mb-3 border border-gray-200 rounded-lg last:mb-0"
-                      >
-                        <View className="items-center justify-center w-10 h-10 mr-3 bg-blue-100 rounded-lg">
-                          <MaterialCommunityIcons
-                            name="credit-card-outline"
-                            size={20}
-                            color="#3b82f6"
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="font-medium text-gray-900 capitalize">
-                            {method.method.replace(/_/g, " ")}
-                          </Text>
-                          <Text className="text-sm text-gray-600">
-                            {method.orderCount} orders
-                          </Text>
-                        </View>
-                        <Text className="text-lg font-bold text-green-600">
-                          {formatCurrency(method.totalAmount)}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
               {/* Order Status Breakdown */}
               {analytics.orderStatusBreakdown.length > 0 && (
                 <View className="mb-4">
-                  <Text className="mb-3 text-lg font-semibold text-gray-900">
-                    Order Status
-                  </Text>
-                  <View className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <View className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <Text className="mb-4 text-lg font-semibold text-gray-900">
+                      Order Status
+                    </Text>
                     {analytics.orderStatusBreakdown.map((status, index) => (
                       <View
                         key={index}
-                        className="flex-row items-center p-3 mb-3 border border-gray-200 rounded-lg last:mb-0"
+                        className="flex flex-row items-start mb-4"
                       >
                         <View className="items-center justify-center w-10 h-10 mr-3 bg-orange-100 rounded-lg">
                           <MaterialIcons
@@ -478,7 +471,7 @@ const SellerOverviewScreen = ({ navigation }) => {
               )}
 
               {/* Transaction History */}
-              <View className="mb-4">
+              <View className="mb-4 mt-4">
                 <View className="flex-row items-center justify-between mb-4">
                   <Text className="text-lg font-semibold text-gray-900">
                     Transaction History
@@ -507,7 +500,7 @@ const SellerOverviewScreen = ({ navigation }) => {
                         key={filter.value}
                         className={`px-4 py-2 rounded-full border ${
                           selectedFilter === filter.value
-                            ? "bg-blue-600 border-blue-600"
+                            ? "bg-primary border-primary"
                             : "bg-white border-gray-200"
                         }`}
                         onPress={() => handleFilterChange(filter.value)}
@@ -546,9 +539,9 @@ const SellerOverviewScreen = ({ navigation }) => {
                         <Feather
                           name="chevron-down"
                           size={16}
-                          color="#3b82f6"
+                          color="#F16B44"
                         />
-                        <Text className="ml-2 font-medium text-blue-600">
+                        <Text className="ml-2 font-medium text-primary">
                           Load More Transactions
                         </Text>
                       </TouchableOpacity>

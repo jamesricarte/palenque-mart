@@ -188,13 +188,10 @@ const ChatScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <Text className="text-2xl font-semibold">Messages</Text>
-        <Text className="text-sm text-gray-600">
-          Chat with your favorite sellers
-        </Text>
       </View>
 
       {conversations.length === 0 ? (

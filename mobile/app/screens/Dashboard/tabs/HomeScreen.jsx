@@ -182,7 +182,7 @@ const HomeScreen = ({ navigation }) => {
       per_kilo: "kg",
       per_250g: "250g",
       per_500g: "500g",
-      per_piece: "pcs",
+      per_piece: "piece",
       per_bundle: "bundle",
       per_pack: "pack",
       per_liter: "liter",
@@ -206,7 +206,7 @@ const HomeScreen = ({ navigation }) => {
 
   const CategoryCard = ({ category }) => (
     <TouchableOpacity
-      className="items-center mx-3"
+      className="items-center justify-between mr-4"
       onPress={() =>
         navigation.navigate("ProductListing", {
           category: category.name,
@@ -214,7 +214,7 @@ const HomeScreen = ({ navigation }) => {
         })
       }
     >
-      <View className="w-16 h-16 mb-2 bg-gray-200 border border-green-600 rounded-full ">
+      <View className="w-20 h-20 mb-2 bg-gray-200 border border-secondary rounded-full ">
         {category.name !== "Others" ? (
           <Image
             source={category.image}
@@ -225,7 +225,10 @@ const HomeScreen = ({ navigation }) => {
           <View className="bg-[#F69C82] w-full h-full rounded-full relative justify-center items-center">
             <View className="flex-row gap-1">
               {Array.from({ length: 3 }).map((_, index) => (
-                <View className="w-2 h-2 bg-white rounded-full"></View>
+                <View
+                  key={index}
+                  className="w-2 h-2 bg-white rounded-full"
+                ></View>
               ))}
             </View>
           </View>
@@ -239,7 +242,7 @@ const HomeScreen = ({ navigation }) => {
 
   const ProductCard = ({ product, showRating = false }) => (
     <Pressable
-      className="w-64 mr-3 bg-white border border-gray-100 rounded-lg shadow-sm"
+      className="w-64 mr-3 bg-white border border-gray-200 rounded-lg shadow-sm"
       onPress={() =>
         navigation.navigate("ProductDetails", { productId: product.id })
       }
@@ -257,8 +260,8 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
         {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <View className="absolute px-2 py-1 bg-green-500 rounded top-2 right-2">
-            <Text className="text-xs font-normal text-white">Low Stock</Text>
+          <View className="absolute px-2 py-1 bg-secondary rounded top-2 right-2">
+            <Text className="text-sm font-normal text-white">Low Stock</Text>
           </View>
         )}
       </View>
@@ -309,7 +312,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <View className="flex-row items-center justify-between">
-          <Text className="text-base font-medium text-orange-600">
+          <Text className="text-base font-medium text-primary">
             ₱{Number.parseFloat(product.price).toFixed(2)}/
             {formatUnitType(product.unit_type)}
           </Text>
@@ -321,12 +324,14 @@ const HomeScreen = ({ navigation }) => {
                 handleAddToCart(product);
               }}
             >
-              <View className="p-1 bg-orange-600 rounded-full min-w-5 min-h-5 opacity-70">
+              <View className="p-1 bg-accent rounded-full min-w-5 min-h-5">
                 <Ionicons name="bag-outline" size={18} color="white" />
               </View>
             </TouchableOpacity>
           )}
         </View>
+
+        <View className="border-t border-gray-100 mt-1.5" />
 
         <View className="flex-row flex-wrap items-center justify-between mt-2">
           <Text className="mt-1 text-xs text-gray-400">
@@ -342,20 +347,13 @@ const HomeScreen = ({ navigation }) => {
   );
 
   const VendorCard = ({ vendor }) => (
-    <TouchableOpacity
-      className="mr-3 overflow-hidden bg-white rounded-lg shadow-sm w-96"
-      style={{
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
-      }}
+    <Pressable
+      className="w-96 mr-3 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
       onPress={() =>
         navigation.navigate("SellerStore", { sellerId: vendor.id })
       }
     >
-      <View className="relative h-32 bg-gray-300 rounded-t-lg">
+      <View className="relative bg-gray-300 rounded-t-lg h-32">
         <Image
           source={{ uri: vendor.store_logo_key }}
           className="w-full h-full rounded-t-lg"
@@ -365,7 +363,7 @@ const HomeScreen = ({ navigation }) => {
 
       <View className="p-3">
         <View className="flex-row items-center justify-between">
-          <Text className="text-lg font-medium text-center text-black rounded">
+          <Text className="font-medium text-lg text-center text-black rounded">
             {vendor.store_name}
           </Text>
 
@@ -377,7 +375,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View className="flex-row items-center mt-1 mb-2">
+        <View className="flex-row items-center mb-2 mt-1">
           <Ionicons name="location-outline" size={12} color="#9CA3AF" />
           <Text className="ml-1 text-base text-gray-500" numberOfLines={1}>
             {formatCardAddress(vendor.city, vendor.province)}
@@ -385,7 +383,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         {/* Category labels */}
-        <View className="flex-row flex-wrap gap-1 w-[70%]">
+        <View className="flex-row flex-wrap gap-1">
           {vendor.categories && vendor.categories.length > 0 ? (
             vendor.categories.map((category, index) => (
               <View
@@ -405,7 +403,7 @@ const HomeScreen = ({ navigation }) => {
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   if (loading) {
@@ -419,8 +417,8 @@ const HomeScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <View className="px-4 pt-16 pb-4 bg-white border-b border-gray-100">
+    <View className="flex-1 bg-white">
+      <View className="px-4 pt-16 pb-4">
         <View className="flex-row items-center justify-between mb-4">
           <Image
             source={require("../../../assets/images/Palenque-Logo-v1.png")}
@@ -447,15 +445,15 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <TouchableOpacity
+        <Pressable
           onPress={handleSearchPress}
-          className="flex-row items-center px-4 py-4 border border-gray-300 rounded-md"
+          className="flex-row items-center px-4 py-4 border rounded-md border-gray-300"
         >
           <Ionicons name="search" size={20} color="#6B7280" />
           <Text className="flex-1 ml-3 text-lg text-gray-500">
             Search product
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <ScrollView
@@ -464,7 +462,7 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View className="py-4 bg-white">
+        <View className="py-2 bg-white">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -479,7 +477,7 @@ const HomeScreen = ({ navigation }) => {
         <View className="px-4 py-4">
           <View className="flex-row">
             <View className="flex-1 mr-2">
-              <View className="items-center justify-center h-44">
+              <View className="items-center justify-center h-48">
                 <Image
                   source={VoucherImage}
                   className="w-full h-full rounded-lg"
@@ -496,7 +494,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View className="flex-1 ml-2">
-              <View className="overflow-hidden bg-gray-300 rounded-lg h-44">
+              <View className="h-48 overflow-hidden bg-gray-300 rounded-lg">
                 <Image
                   source={LiveSteamingImage}
                   className="w-full h-full"
@@ -511,7 +509,7 @@ const HomeScreen = ({ navigation }) => {
                   </Text>
                 </View>
 
-                <View className="absolute flex-row items-center gap-1 px-1 py-0.5 bg-green-500 rounded-md top-2 right-2">
+                <View className="absolute flex-row items-center gap-1 px-1 py-0.5 bg-secondary rounded-md top-2 right-2">
                   <View className="w-2 h-2 bg-white rounded-full" />
                   <Text className="text-base text-white">LIVE</Text>
                 </View>
@@ -520,7 +518,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View className="py-4 bg-white">
+        <View className="py-2 bg-white">
           <View className="flex-row items-center justify-between px-4 mb-3">
             <Text className="text-lg font-bold text-gray-900">
               Recommended for you
@@ -541,7 +539,7 @@ const HomeScreen = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        <View className="py-4 mt-2 bg-white">
+        <View className="py-2 mt-2 bg-white">
           <View className="flex-row items-center justify-between px-4 mb-3">
             <Text className="text-lg font-bold text-gray-900">
               Products you might like
@@ -554,7 +552,7 @@ const HomeScreen = ({ navigation }) => {
                 })
               }
             >
-              <Text className="font-medium text-orange-500">View all</Text>
+              <Text className="font-medium text-primary">View all</Text>
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -572,13 +570,13 @@ const HomeScreen = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        <View className="py-4 mt-2 bg-white">
+        <View className="py-2 mt-2 bg-white">
           <View className="flex-row items-center justify-between px-4 mb-3">
             <Text className="text-lg font-bold text-gray-900">
               Top market vendors
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate("AllVendors")}>
-              <Text className="font-medium text-orange-500">View all</Text>
+              <Text className="font-medium text-primary">View all</Text>
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -592,15 +590,15 @@ const HomeScreen = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        <View className="h-32" />
+        <View className={user ? "h-4  " : "h-32"} />
       </ScrollView>
 
       {/* Authentication Buttons - Fixed at bottom */}
       {!user && (
-        <View className="absolute bottom-0 left-0 right-0 bg-[#F16B44] px-4 pt-1 pb-2">
+        <View className="absolute bottom-0 left-0 right-0 bg-primary px-4 pt-1 pb-2">
           <View className="flex flex-row justify-between py-6">
             <TouchableOpacity
-              className="flex-1 py-4 mr-2 border-2 border-white rounded-lg"
+              className="flex-1 py-4 border-2 border-white rounded-lg mr-2"
               onPress={() => navigation.push("Login")}
             >
               <Text className="text-xl font-medium text-center text-white">
@@ -609,10 +607,10 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 py-4 ml-2 bg-white rounded-lg"
+              className="flex-1 py-4 bg-white rounded-lg ml-2"
               onPress={() => navigation.push("SignUp")}
             >
-              <Text className="text-xl font-medium text-center text-[#F16B44]">
+              <Text className="text-xl font-medium text-center text-primary">
                 Register
               </Text>
             </TouchableOpacity>
@@ -678,7 +676,7 @@ const HomeScreen = ({ navigation }) => {
                       </Text>
                     </View>
 
-                    <Text className="font-bold text-orange-600">
+                    <Text className="font-bold text-primary">
                       ₱{Number.parseFloat(selectedProduct?.price).toFixed(2)}/
                       {formatUnitType(selectedProduct?.unit_type)}
                     </Text>
@@ -741,7 +739,7 @@ const HomeScreen = ({ navigation }) => {
                               key={option}
                               className={`flex-row items-center p-3 mb-2 rounded-lg border ${
                                 selectedPreparations[option]
-                                  ? "bg-orange-50 border-orange-600"
+                                  ? "bg-orange-50 border-primary"
                                   : "bg-gray-50 border-gray-200"
                               }`}
                               onPress={() =>
@@ -754,7 +752,7 @@ const HomeScreen = ({ navigation }) => {
                               <View
                                 className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
                                   selectedPreparations[option]
-                                    ? "bg-orange-600 border-orange-600"
+                                    ? "bg-primary border-primary"
                                     : "border-gray-300"
                                 }`}
                               >
@@ -779,7 +777,7 @@ const HomeScreen = ({ navigation }) => {
                 <View className="p-4 mb-4 bg-gray-100 rounded-lg">
                   <View className="flex-row items-center justify-between">
                     <Text className="text-lg font-medium">Total Price:</Text>
-                    <Text className="text-2xl font-bold text-orange-600">
+                    <Text className="text-2xl font-bold text-primary">
                       ₱
                       {(
                         Number.parseFloat(selectedProduct?.price) *
@@ -792,7 +790,7 @@ const HomeScreen = ({ navigation }) => {
 
               {/* Action Button */}
               <TouchableOpacity
-                className="items-center p-4 bg-orange-600 rounded-lg"
+                className="items-center p-4 bg-primary rounded-lg"
                 onPress={handleConfirmAction}
                 disabled={addingToCart}
               >

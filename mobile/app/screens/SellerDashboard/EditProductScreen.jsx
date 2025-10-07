@@ -304,7 +304,7 @@ const EditProductScreen = ({ navigation, route }) => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-white">
         <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -323,7 +323,7 @@ const EditProductScreen = ({ navigation, route }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
@@ -367,7 +367,7 @@ const EditProductScreen = ({ navigation, route }) => {
               )}
             </TouchableOpacity>
 
-            <View className="p-3 mt-3 border border-gray-200 rounded-lg bg-gray-50">
+            <View className="p-3 mt-3 border border-gray-200 rounded-lg bg-white">
               <Text className="text-sm font-medium text-gray-700">
                 Note: Image editing is currently disabled.
               </Text>
@@ -544,7 +544,7 @@ const EditProductScreen = ({ navigation, route }) => {
               <Text className="mb-2 text-base font-medium text-gray-900">
                 Harvest Date
               </Text>
-              <View className="p-3 border border-gray-300 rounded-lg bg-gray-50">
+              <View className="p-3 border border-gray-300 rounded-lg bg-white">
                 <Text className="text-gray-700">
                   {new Date(product.harvest_date).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -663,7 +663,7 @@ const EditProductScreen = ({ navigation, route }) => {
           )}
 
           {!formData.bargaining_enabled && (
-            <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+            <View className="p-3 border border-gray-200 rounded-lg bg-white">
               <Text className="text-sm text-gray-600">
                 Bargaining is currently disabled for this product. Enable
                 bargaining to allow customers to make offers.
@@ -752,7 +752,7 @@ const EditProductScreen = ({ navigation, route }) => {
           )}
 
           {!formData.is_preorder_enabled && (
-            <View className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+            <View className="p-3 border border-gray-200 rounded-lg bg-white">
               <Text className="text-sm text-gray-600">
                 Pre-orders are currently disabled for this product. Enable
                 pre-orders to allow customers to order this product before it's

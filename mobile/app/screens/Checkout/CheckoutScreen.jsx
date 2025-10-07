@@ -286,13 +286,12 @@ const CheckoutScreen = () => {
   if (loading || !feesCalculated) {
     return (
       <View className="flex-1 bg-white">
-        <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Feather name="arrow-left" size={24} color="black" />
-            </TouchableOpacity>
-            <Text className="ml-4 text-xl font-semibold">Checkout</Text>
-          </View>
+        <View className="flex-row items-center justify-between p-3 bg-white border-b border-gray-300 pt-14">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Feather name="arrow-left" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="text-xl font-semibold">Checkout</Text>
+          <View className="px-2 py-1 bg-white rounded-full"></View>
         </View>
 
         <View className="items-center justify-center flex-1">
@@ -308,13 +307,12 @@ const CheckoutScreen = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={24} color="black" />
-          </TouchableOpacity>
-          <Text className="ml-4 text-xl font-semibold">Checkout</Text>
-        </View>
+      <View className="flex-row items-center justify-between p-3 bg-white border-b border-gray-300 pt-14">
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Feather name="arrow-left" size={24} color="black" />
+        </TouchableOpacity>
+        <Text className="text-xl font-semibold">Checkout</Text>
+        <View className="px-2 py-1 bg-white rounded-full"></View>
       </View>
 
       <ScrollView
@@ -322,13 +320,13 @@ const CheckoutScreen = () => {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Delivery Address */}
-        <View className="p-4 mb-4 bg-white">
+        <View className="p-4 mb-2 bg-white">
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-lg font-semibold text-gray-900">
               Delivery Address
             </Text>
             <TouchableOpacity onPress={() => setShowAddressModal(true)}>
-              <Text className="font-medium text-orange-600">
+              <Text className="font-medium text-primary">
                 {selectedAddress ? "Change" : "Select"}
               </Text>
             </TouchableOpacity>
@@ -343,7 +341,7 @@ const CheckoutScreen = () => {
 
                 {selectedAddress.is_default === 1 && (
                   <View className="px-2 py-1 ml-2 bg-orange-100 rounded-full">
-                    <Text className="text-xs font-medium text-orange-600">
+                    <Text className="text-xs font-medium text-primary">
                       Default
                     </Text>
                   </View>
@@ -382,7 +380,7 @@ const CheckoutScreen = () => {
           const firstItem = storeItems[0];
           const storeDeliveryFee = deliveryFees[sellerId] || 50.0;
           return (
-            <View key={sellerId} className="p-4 mb-4 bg-white">
+            <View key={sellerId} className="p-4 mb-2 bg-white">
               {/* Store Header */}
               <View className="flex-row items-center pb-3 mb-3 border-b border-gray-200">
                 {firstItem.store_logo_key ? (
@@ -472,7 +470,7 @@ const CheckoutScreen = () => {
                           </Text>
                         </View>
                       ) : (
-                        <Text className="font-medium text-orange-600">
+                        <Text className="font-medium text-primary">
                           ₱
                           {Number.parseFloat(
                             item.total_price || item.price * item.quantity
@@ -488,8 +486,8 @@ const CheckoutScreen = () => {
         })}
 
         {/* Voucher Section */}
-        <View className="p-4 mb-4 bg-white">
-          <Text className="mb-3 text-lg font-semibold text-gray-900">
+        <View className="p-4 mb-2 bg-white">
+          <Text className="mb-2 text-lg font-semibold text-gray-900">
             Voucher
           </Text>
 
@@ -515,14 +513,14 @@ const CheckoutScreen = () => {
           ) : (
             <View className="flex-row">
               <TextInput
-                className="flex-1 p-3 mr-2 border border-gray-300 rounded-lg"
+                className="flex-1 p-3 mr-2 border text-lg border-gray-300 rounded-lg"
                 placeholder="Enter voucher code"
                 value={voucherCode}
                 onChangeText={setVoucherCode}
                 autoCapitalize="characters"
               />
               <TouchableOpacity
-                className="px-4 py-3 bg-orange-600 rounded-lg"
+                className="px-4 py-3 bg-primary rounded-lg"
                 onPress={validateVoucher}
                 disabled={voucherLoading}
               >
@@ -537,12 +535,12 @@ const CheckoutScreen = () => {
         </View>
 
         {/* Delivery Notes */}
-        <View className="p-4 mb-4 bg-white">
+        <View className="p-4 mb-2 bg-white">
           <Text className="mb-3 text-lg font-semibold text-gray-900">
             Delivery Notes (Optional)
           </Text>
           <TextInput
-            className="p-3 border border-gray-300 rounded-lg"
+            className="p-3 text-lg border border-gray-300 rounded-lg"
             placeholder="Add special instructions for delivery..."
             value={deliveryNotes}
             onChangeText={setDeliveryNotes}
@@ -553,7 +551,7 @@ const CheckoutScreen = () => {
         </View>
 
         {/* Payment Method */}
-        <View className="p-4 mb-4 bg-white">
+        <View className="p-4 mb-2 bg-white">
           <Text className="mb-3 text-lg font-semibold text-gray-900">
             Payment Method
           </Text>
@@ -581,7 +579,7 @@ const CheckoutScreen = () => {
 
         {/* Order Summary */}
         <View className="p-4 bg-white">
-          <Text className="mb-3 text-lg font-semibold text-gray-900">
+          <Text className="mb-1 text-lg font-semibold text-gray-900">
             Order Summary
           </Text>
 
@@ -593,7 +591,7 @@ const CheckoutScreen = () => {
               </Text>
             </View>
 
-            <View className="flex-row justify-between">
+            <View className="flex-row justify-between mb-1">
               <Text className="text-gray-600">
                 Delivery Fee ({Object.keys(groupedItems).length} store
                 {Object.keys(groupedItems).length > 1 ? "s" : ""})
@@ -617,7 +615,7 @@ const CheckoutScreen = () => {
                 <Text className="text-lg font-semibold text-gray-900">
                   Total
                 </Text>
-                <Text className="text-lg font-semibold text-orange-600">
+                <Text className="text-lg font-semibold text-primary">
                   ₱{calculateTotal().toFixed(2)}
                 </Text>
               </View>
@@ -627,16 +625,16 @@ const CheckoutScreen = () => {
       </ScrollView>
 
       {/* Place Order Button */}
-      <View className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-white border-t border-gray-200">
+      <View className="absolute bottom-0 left-0 right-0 p-6 pb-8 bg-primary">
         <TouchableOpacity
-          className="items-center p-4 bg-orange-600 rounded-lg"
+          className="items-center p-4 bg-white rounded-lg"
           onPress={handlePlaceOrder}
           disabled={processingOrder}
         >
           {processingOrder ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-lg font-semibold text-white">
+            <Text className="text-lg font-semibold text-primary">
               Place Order - ₱{calculateTotal().toFixed(2)}
             </Text>
           )}
@@ -669,7 +667,7 @@ const CheckoutScreen = () => {
                     key={address.id}
                     className={`p-4 mb-3 border rounded-lg ${
                       selectedAddress?.id === address.id
-                        ? "border-orange-600 bg-orange-50"
+                        ? "border-primary bg-orange-50"
                         : "border-gray-200"
                     }`}
                     onPress={() => handleAddressChange(address)}
@@ -681,7 +679,7 @@ const CheckoutScreen = () => {
 
                       {address.is_default === 1 && (
                         <View className="px-2 py-1 bg-orange-100 rounded-full">
-                          <Text className="text-xs font-medium text-orange-600">
+                          <Text className="text-xs font-medium text-primary">
                             Default
                           </Text>
                         </View>

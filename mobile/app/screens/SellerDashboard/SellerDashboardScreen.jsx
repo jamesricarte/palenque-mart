@@ -13,7 +13,6 @@ import { API_URL } from "../../config/apiConfig";
 
 import SellerOverviewScreen from "./tabs/SellerHomeScreen";
 import SellerProductsScreen from "./tabs/SellerProductsScreen";
-import SellerOrdersScreen from "./tabs/SellerOrdersScreen";
 import SellerStoreAccountScreen from "./tabs/SellerStoreAccountScreen";
 import SellerChatScreen from "./tabs/SellerChatScreen";
 import SellerLivestreamScreen from "./tabs/SellerLivestreamScreen";
@@ -46,7 +45,6 @@ const SellerDashboard = ({ navigation }) => {
   const fetchSellerData = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/seller/store-profile`);
-
       if (response.data.success) {
         setSellerId(response.data.data.id);
       }
@@ -60,7 +58,6 @@ const SellerDashboard = ({ navigation }) => {
       const response = await axios.get(`${API_URL}/api/seller/orders`, {
         params: { status: "all" },
       });
-
       if (response.data.success) {
         setTriggerWebSocket(true);
       }
@@ -72,11 +69,19 @@ const SellerDashboard = ({ navigation }) => {
     }
   };
 
+  // ✅ Updated CustomTabBar UI to match customer Dashboard style
   const CustomTabBar = ({ state, descriptors, navigation }) => {
     return (
       <View
-        className="flex-row bg-white border-t border-gray-200"
-        style={{ height: 80 }}
+        className="flex-row"
+        style={{
+          backgroundColor: "#F16B44",
+          borderTopColor: "#F16B44",
+          borderTopWidth: 1,
+          height: 100,
+          paddingTop: 15,
+          paddingBottom: 20,
+        }}
       >
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -94,7 +99,6 @@ const SellerDashboard = ({ navigation }) => {
               target: route.key,
               canPreventDefault: true,
             });
-
             if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(route.name);
             }
@@ -104,16 +108,19 @@ const SellerDashboard = ({ navigation }) => {
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
-              className="items-center justify-center flex-1 py-2"
+              className="items-center justify-center flex-1"
             >
               <View className="items-center">
                 {options.tabBarIcon &&
                   options.tabBarIcon({
-                    color: isFocused ? "#1e40af" : "#6b7280",
-                    size: 24,
+                    color: "#fff",
+                    size: 30,
+                    focused: isFocused,
                   })}
                 <Text
-                  className={`text-xs mt-1 ${isFocused ? "text-blue-600" : "text-gray-500"}`}
+                  className={`mt-1 text-[13px] ${
+                    isFocused ? "text-white font-semibold" : "text-white"
+                  }`}
                 >
                   {label}
                 </Text>
@@ -138,18 +145,12 @@ const SellerDashboard = ({ navigation }) => {
         component={SellerOverviewScreen}
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="SellerProducts"
-        component={SellerProductsScreen}
-        options={{
-          title: "Products",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="package" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={30}
+              color={color}
+            />
           ),
         }}
       />
@@ -157,30 +158,41 @@ const SellerDashboard = ({ navigation }) => {
         name="SellerLivestream"
         component={SellerLivestreamScreen}
         options={{
-          title: "Live",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="videocam-outline" size={size} color={color} />
+          title: "Live Selling",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "videocam" : "videocam-outline"}
+              size={31}
+              color={color}
+            />
           ),
         }}
       />
-      <Tab.Screen
-        name="SellerOrders"
-        component={SellerOrdersScreen}
-        options={{
-          title: "Orders",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="shopping-bag" size={size} color={color} />
-          ),
-        }}
-      />
-
       <Tab.Screen
         name="SellerChat"
         component={SellerChatScreen}
         options={{
           title: "Chat",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "chatbubbles" : "chatbubbles-outline"}
+              size={30}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Seller Products"
+        component={SellerProductsScreen}
+        options={{
+          title: "Products",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Feather
+              name={focused ? "package" : "box"}
+              size={30}
+              color={color}
+            />
           ),
         }}
       />
@@ -188,11 +200,11 @@ const SellerDashboard = ({ navigation }) => {
         name="SellerStoreAccount"
         component={SellerStoreAccountScreen}
         options={{
-          title: "Store Account",
-          tabBarIcon: ({ color, size }) => (
+          title: "Store",
+          tabBarIcon: ({ color, size, focused }) => (
             <MaterialCommunityIcons
-              name="storefront-outline"
-              size={size}
+              name={focused ? "storefront" : "storefront-outline"}
+              size={30}
               color={color}
             />
           ),
