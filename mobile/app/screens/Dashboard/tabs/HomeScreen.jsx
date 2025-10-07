@@ -13,7 +13,7 @@ import {
   Alert,
   Pressable,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -21,6 +21,7 @@ import axios from "axios";
 
 import { useAuth } from "../../../context/AuthContext";
 import { API_URL } from "../../../config/apiConfig";
+import Snackbar from "../../../components/Snackbar";
 
 import MeatCategory from "../../../assets/images/homescreen/categories/meat_category.jpg";
 import SeafoodCategory from "../../../assets/images/homescreen/categories/seafood_category.jpg";
@@ -35,7 +36,9 @@ import LiveSteamingImage from "../../../assets/images/homescreen/livestreaming_i
 const { height: screenHeight } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
-  const { user } = useAuth();
+  const { user, authProcessing } = useAuth();
+  const route = useRoute();
+
   const [homeData, setHomeData] = useState({
     recommendedProducts: [],
     suggestedProducts: [],
@@ -50,6 +53,8 @@ const HomeScreen = ({ navigation }) => {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [selectedPreparations, setSelectedPreparations] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const [snackBarVisible, setSnackBarVisible] = useState(false);
 
   const categories = [
     {
@@ -106,6 +111,21 @@ const HomeScreen = ({ navigation }) => {
 
   const isOwnProduct = (product) => {
     return user && product && product.seller_user_id === user.id;
+  };
+
+  const isWeekday = () => {
+    const day = new Date().getDay();
+    return day >= 1 && day <= 5; // Monday = 1, Friday = 5
+  };
+
+  const formatTime = (time) => {
+    if (!time) return null;
+    const [hour, minute] = time.split(":");
+    let h = parseInt(hour, 10);
+    const m = minute.padStart(2, "0");
+    const suffix = h >= 12 ? "pm" : "am";
+    h = h % 12 || 12; // convert 0 -> 12, 13 -> 1, etc.
+    return `${h}:${m} ${suffix}`;
   };
 
   const handleAddToCart = async (product) => {
@@ -165,6 +185,10 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate("SearchOverlay");
   };
 
+  const handleLikePress = () => {
+    Alert.alert("Likes Feature", "Likes feature will be implented soon!");
+  };
+
   useEffect(() => {
     fetchHomeData();
   }, [user]);
@@ -176,6 +200,12 @@ const HomeScreen = ({ navigation }) => {
       }
     }, [])
   );
+
+  useEffect(() => {
+    if (route.params?.message) {
+      setSnackBarVisible(true);
+    }
+  }, []);
 
   const formatUnitType = (unitType) => {
     const unitMap = {
@@ -225,7 +255,10 @@ const HomeScreen = ({ navigation }) => {
           <View className="bg-[#F69C82] w-full h-full rounded-full relative justify-center items-center">
             <View className="flex-row gap-1">
               {Array.from({ length: 3 }).map((_, index) => (
-                <View className="w-2 h-2 bg-white rounded-full"></View>
+                <View
+                  key={index}
+                  className="w-2 h-2 bg-white rounded-full"
+                ></View>
               ))}
             </View>
           </View>
@@ -257,7 +290,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
         {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <View className="absolute px-2 py-1 bg-green-500 rounded top-2 right-2">
+          <View className="absolute px-2 py-1 rounded bg-accent top-2 right-2">
             <Text className="text-xs font-normal text-white">Low Stock</Text>
           </View>
         )}
@@ -384,8 +417,30 @@ const HomeScreen = ({ navigation }) => {
           </Text>
         </View>
 
-        {/* Category labels */}
-        <View className="flex-row flex-wrap gap-1 w-[70%]">
+        {/* Opening/Closing Time */}
+        {(() => {
+          const isWeek = isWeekday();
+          const open = formatTime(
+            isWeek ? vendor.weekday_opening_time : vendor.weekend_opening_time
+          );
+          const close = formatTime(
+            isWeek ? vendor.weekday_closing_time : vendor.weekend_closing_time
+          );
+
+          if (!open || !close) return null; // Don't show if either time is missing
+
+          return (
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="time-outline" size={12} color="#6B7280" />
+              <Text className="ml-1 text-xs text-gray-600">
+                {open} - {close}
+              </Text>
+            </View>
+          );
+        })()}
+
+        {/* Category labels and Opening Hours */}
+        <View className="flex-row flex-wrap gap-1">
           {vendor.categories && vendor.categories.length > 0 ? (
             vendor.categories.map((category, index) => (
               <View
@@ -408,11 +463,12 @@ const HomeScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  if (loading) {
+  if (loading || authProcessing) {
     return (
       <View className="flex-1 bg-white">
         <View className="items-center justify-center flex-1">
-          <Text className="mt-1 text-gray-600">Loading...</Text>
+          <ActivityIndicator size="large" color="#EA580C" />
+          <Text className="mt-4 text-gray-600">Loading...</Text>
         </View>
       </View>
     );
@@ -428,9 +484,10 @@ const HomeScreen = ({ navigation }) => {
             resizeMode="cover"
           />
           <View className="flex-row items-center">
-            <TouchableOpacity className="p-2 mr-2">
+            <TouchableOpacity className="p-2 mr-2" onPress={handleLikePress}>
               <Ionicons name="heart-outline" size={24} color="black" />
             </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => navigation.push("Cart")}
               className="relative p-2"
@@ -808,6 +865,12 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      <Snackbar
+        visible={snackBarVisible}
+        onDismiss={setSnackBarVisible}
+        text={route.params?.message}
+      />
     </View>
   );
 };

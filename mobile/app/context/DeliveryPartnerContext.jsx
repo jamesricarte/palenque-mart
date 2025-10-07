@@ -26,6 +26,31 @@ export const DeliveryPartnerProvider = ({ children }) => {
   const [refreshOrderData, setRefreshOrderData] = useState(false);
   const [socketMessage, setSocketMessage] = useState(null);
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalData, setModalData] = useState(null);
+
+  let refreshOrderDataTimeout;
+
+  const showModal = (data) => {
+    setModalData(data);
+    setModalVisible(true);
+  };
+
+  const hideModal = () => {
+    setModalVisible(false);
+    setModalData(null);
+  };
+
+  const refreshDeliveries = () => {
+    if (!refreshOrderData) {
+      setRefreshOrderData(true);
+
+      refreshOrderDataTimeout = setTimeout(() => {
+        setRefreshOrderData(false);
+      }, 2000);
+    }
+  };
+
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
       if (isInDeliveryDashboard) {
@@ -57,8 +82,6 @@ export const DeliveryPartnerProvider = ({ children }) => {
   }, [isInDeliveryDashboard]);
 
   useEffect(() => {
-    let refreshOrderDataTimeout;
-
     if (socket) {
       socket.onmessage = (event) => {
         try {
@@ -66,13 +89,11 @@ export const DeliveryPartnerProvider = ({ children }) => {
 
           if (data.type === "REFRESH_DELIVERY_PARTNER_ORDERS") {
             console.log(data.message);
-            if (!refreshOrderData) {
-              setRefreshOrderData(true);
+            refreshDeliveries();
+          }
 
-              refreshOrderDataTimeout = setTimeout(() => {
-                setRefreshOrderData(false);
-              }, 2000);
-            }
+          if (data.type === "NEW_DELIVERY_AVAILABLE") {
+            showModal(data.data);
           }
 
           if (data.type === "REFRESH_DELIVERY_PARTNER_CONVERSATIONS") {
@@ -230,6 +251,11 @@ export const DeliveryPartnerProvider = ({ children }) => {
     refreshOrderData,
     socketMessage,
     setSocketMessage,
+    modalVisible,
+    modalData,
+    showModal,
+    hideModal,
+    refreshDeliveries,
   };
 
   return (

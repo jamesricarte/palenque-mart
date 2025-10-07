@@ -98,7 +98,7 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
                     state: {
                       routes: [
                         {
-                          name: "Account",
+                          name: "Home",
                           params: { message: responseData?.message },
                         },
                       ],
@@ -122,7 +122,7 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
                     state: {
                       routes: [
                         {
-                          name: "Account",
+                          name: "Home",
                           params: { message: responseData?.message },
                         },
                       ],

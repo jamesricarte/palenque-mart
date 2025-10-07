@@ -23,6 +23,10 @@ const getSellerStoreDetails = async (req, res) => {
         s.average_rating,
         s.review_count,
         s.account_type,
+        s.weekday_opening_time,
+        s.weekday_closing_time,
+        s.weekend_opening_time,
+        s.weekend_closing_time,
         u.id as seller_user_id,
         u.first_name,
         u.last_name,
@@ -122,10 +126,14 @@ const getSellerStoreDetails = async (req, res) => {
       seller_user_id: store.seller_user_id,
       store_name: store.store_name,
       store_description: store.store_description,
-      store_logo_key: storeLogoUrl, // Now contains full public URL
+      store_logo_key: storeLogoUrl,
       average_rating: Number.parseFloat(store.average_rating) || 0,
       review_count: store.review_count || 0,
       account_type: store.account_type,
+      weekday_opening_time: store.weekday_opening_time,
+      weekday_closing_time: store.weekday_closing_time,
+      weekend_opening_time: store.weekend_opening_time,
+      weekend_closing_time: store.weekend_closing_time,
       contact: {
         name: `${store.first_name || ""} ${store.last_name || ""}`.trim(),
         phone: store.phone,
@@ -147,7 +155,7 @@ const getSellerStoreDetails = async (req, res) => {
           .join(", "),
       },
       categories: categories,
-      products: productsWithUrls, // Using products with public URLs
+      products: productsWithUrls,
     };
 
     res.status(200).json({

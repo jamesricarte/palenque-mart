@@ -49,6 +49,16 @@ const SellerStoreScreen = () => {
   const [selectedPreparations, setSelectedPreparations] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  const categoriesColor = {
+    Meat: "#EF5350",
+    Seafood: "#42A5F5",
+    Poultry: "#BCAAA4",
+    Vegetables: "#66BB6A",
+    Fruits: "#FFCA28",
+    Grains: "#CFD8DC",
+    Others: null,
+  };
+
   const fetchStoreData = async () => {
     try {
       const response = await axios.get(
@@ -172,13 +182,22 @@ const SellerStoreScreen = () => {
       per_kilo: "kg",
       per_250g: "250g",
       per_500g: "500g",
-      per_piece: "piece",
+      per_piece: "pcs",
       per_bundle: "bundle",
       per_pack: "pack",
       per_liter: "liter",
       per_dozen: "dozen",
     };
     return unitMap[unitType] || unitType;
+  };
+
+  const formatTime = (time) => {
+    if (!time) return null;
+    const [hour, minute] = time.split(":");
+    let h = parseInt(hour);
+    const ampm = h >= 12 ? "pm" : "am";
+    h = h % 12 || 12;
+    return `${h}:${minute}${ampm}`;
   };
 
   const handleFollowStore = () => {
@@ -267,6 +286,18 @@ const SellerStoreScreen = () => {
           </View>
         </View>
 
+        {/* Category label */}
+        <View className="flex-row flex-wrap gap-1 mt-2 mb-1">
+          <View
+            style={{ backgroundColor: categoriesColor[product.category] }}
+            className={`px-2 py-0.5 rounded`}
+          >
+            <Text className="text-xs font-medium text-white">
+              {product.category}
+            </Text>
+          </View>
+        </View>
+
         <View className="flex-row items-center justify-between mb-2">
           <Text className="text-sm font-bold text-orange-600">
             ₱{Number.parseFloat(product.price).toFixed(2)}/
@@ -287,13 +318,15 @@ const SellerStoreScreen = () => {
           )}
         </View>
 
-        <Text className="text-xs text-gray-400">
-          Stock: {product.stock_quantity}
-        </Text>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-xs text-gray-400">
+            Stock: {product.stock_quantity}
+          </Text>
 
-        <Text className="text-xs text-gray-400">
-          {new Date(product.created_at).toLocaleDateString()}
-        </Text>
+          <Text className="text-xs text-gray-400">
+            {new Date(product.created_at).toLocaleDateString()}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -440,12 +473,29 @@ const SellerStoreScreen = () => {
                 </Text>
               </View>
 
-              <View className="flex-row items-center mt-1">
-                <Feather name="clock" size={14} color="#6B7280" />
-                <Text className="ml-1 text-sm text-gray-600">
-                  6:00 AM – 6:00 PM
-                </Text>
-              </View>
+              {/* Opening Hours - Weekdays */}
+              {storeData.weekday_opening_time &&
+                storeData.weekday_closing_time && (
+                  <View className="flex-row items-center mt-1">
+                    <Feather name="clock" size={14} color="#6B7280" />
+                    <Text className="ml-1 text-sm text-gray-600">
+                      Weekdays: {formatTime(storeData.weekday_opening_time)} –{" "}
+                      {formatTime(storeData.weekday_closing_time)}
+                    </Text>
+                  </View>
+                )}
+
+              {/* Opening Hours - Weekends */}
+              {storeData.weekend_opening_time &&
+                storeData.weekend_closing_time && (
+                  <View className="flex-row items-center mt-1">
+                    <Feather name="clock" size={14} color="#6B7280" />
+                    <Text className="ml-1 text-sm text-gray-600">
+                      Weekends: {formatTime(storeData.weekend_opening_time)} –{" "}
+                      {formatTime(storeData.weekend_closing_time)}
+                    </Text>
+                  </View>
+                )}
             </View>
           </View>
 

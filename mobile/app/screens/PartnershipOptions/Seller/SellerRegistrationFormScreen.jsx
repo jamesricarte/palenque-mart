@@ -8,8 +8,9 @@ import {
   TextInput,
   Alert,
   Pressable,
+  Modal,
 } from "react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -23,6 +24,12 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
   const { accountType } = route.params;
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
+
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
+  const [currentTimeField, setCurrentTimeField] = useState(null);
+  const [selectedHour, setSelectedHour] = useState("08");
+  const [selectedMinute, setSelectedMinute] = useState("00");
+  const [selectedPeriod, setSelectedPeriod] = useState("AM"); // Add this
 
   // Form state
   const [formData, setFormData] = useState({
@@ -58,6 +65,11 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     categories: [],
     returnPolicy: "",
     shippingOptions: [],
+
+    weekdayOpeningTime: "",
+    weekdayClosingTime: "",
+    weekendOpeningTime: "",
+    weekendClosingTime: "",
 
     // Document uploads
     governmentId: null,
@@ -217,8 +229,8 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     if (currentStep === 3) {
       if (!formData.governmentId)
         newErrors.governmentId = "Government ID is required";
-      if (!formData.selfieWithId)
-        newErrors.selfieWithId = "Selfie with ID is required";
+      // if (!formData.selfieWithId)
+      //   newErrors.selfieWithId = "Selfie with ID is required";
     }
 
     if (currentStep === 4) {
@@ -226,6 +238,52 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         newErrors.storeName = "Store name is required";
       if (!formData.storeDescription.trim())
         newErrors.storeDescription = "Store description is required";
+
+      // Check if weekday hours are partially filled
+      const hasWeekdayOpening = formData.weekdayOpeningTime?.trim();
+      const hasWeekdayClosing = formData.weekdayClosingTime?.trim();
+      const weekdayPartiallyFilled = hasWeekdayOpening || hasWeekdayClosing;
+      const weekdayCompletelyFilled = hasWeekdayOpening && hasWeekdayClosing;
+
+      // Check if weekend hours are partially filled
+      const hasWeekendOpening = formData.weekendOpeningTime?.trim();
+      const hasWeekendClosing = formData.weekendClosingTime?.trim();
+      const weekendPartiallyFilled = hasWeekendOpening || hasWeekendClosing;
+      const weekendCompletelyFilled = hasWeekendOpening && hasWeekendClosing;
+
+      // If weekday is partially filled, both fields must be filled
+      if (weekdayPartiallyFilled && !weekdayCompletelyFilled) {
+        if (!hasWeekdayOpening) {
+          newErrors.weekdayOpeningTime = "Please complete weekday hours";
+        }
+        if (!hasWeekdayClosing) {
+          newErrors.weekdayClosingTime = "Please complete weekday hours";
+        }
+      }
+
+      // If weekend is partially filled, both fields must be filled
+      if (weekendPartiallyFilled && !weekendCompletelyFilled) {
+        if (!hasWeekendOpening) {
+          newErrors.weekendOpeningTime = "Please complete weekend hours";
+        }
+        if (!hasWeekendClosing) {
+          newErrors.weekendClosingTime = "Please complete weekend hours";
+        }
+      }
+
+      // At least one complete set (weekday OR weekend) must be filled
+      if (!weekdayCompletelyFilled && !weekendCompletelyFilled) {
+        newErrors.weekdayOpeningTime = "At least one set of hours required";
+        newErrors.weekdayClosingTime = "At least one set of hours required";
+        newErrors.weekendOpeningTime = "At least one set of hours required";
+        newErrors.weekendClosingTime = "At least one set of hours required";
+
+        if (formData.storeName.trim() && formData.storeDescription.trim())
+          Alert.alert(
+            "Incomplete Store Hours",
+            "Please provide at least one complete set of operating hours (either weekday or weekend hours with both opening and closing times)."
+          );
+      }
     }
 
     setErrors(newErrors);
@@ -271,6 +329,44 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     } else {
       navigation.goBack();
     }
+  };
+
+  const formatTimeTo12Hour = (time24) => {
+    if (!time24 || !time24.includes(":")) return "";
+
+    const [hour24, minute] = time24.split(":");
+    const hourNum = parseInt(hour24);
+
+    let hour12 = hourNum % 12;
+    if (hour12 === 0) hour12 = 12;
+    const period = hourNum >= 12 ? "PM" : "AM";
+
+    return `${hour12.toString().padStart(2, "0")}:${minute} ${period}`;
+  };
+
+  const openTimePicker = (fieldName, currentValue) => {
+    setCurrentTimeField(fieldName);
+
+    // Parse existing time or use defaults
+    if (currentValue && currentValue.includes(":")) {
+      const [hour24, minute] = currentValue.split(":");
+      const hourNum = parseInt(hour24);
+
+      // Convert 24-hour to 12-hour format
+      let hour12 = hourNum % 12;
+      if (hour12 === 0) hour12 = 12;
+      const period = hourNum >= 12 ? "PM" : "AM";
+
+      setSelectedHour(hour12.toString().padStart(2, "0"));
+      setSelectedMinute(minute.padStart(2, "0"));
+      setSelectedPeriod(period);
+    } else {
+      setSelectedHour("08");
+      setSelectedMinute("00");
+      setSelectedPeriod("AM");
+    }
+
+    setTimePickerVisible(true);
   };
 
   const renderProgressBar = () => (
@@ -860,6 +956,232 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           )}
         </View>
 
+        <View className="mb-4">
+          <Text className="mb-3 text-lg font-semibold">
+            Store Operating Hours
+          </Text>
+
+          {/* Weekday Hours */}
+          <View className="p-4 mb-4 border border-gray-200 rounded-lg bg-gray-50">
+            <View className="flex flex-row items-center mb-3">
+              <Ionicons name="calendar-outline" size={18} color="#374151" />
+              <Text className="ml-2 font-medium text-gray-800">
+                Weekday Hours (Mon-Fri)
+              </Text>
+            </View>
+
+            <View className="flex flex-row gap-3">
+              {/* Weekday Opening Time */}
+              <View className="flex-1">
+                <Text className="mb-2 text-xs font-medium text-gray-600">
+                  Opening Time *
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    openTimePicker(
+                      "weekdayOpeningTime",
+                      formData.weekdayOpeningTime
+                    )
+                  }
+                  className={`w-full px-3 py-3 border rounded-lg flex-row items-center justify-between ${
+                    errors.weekdayOpeningTime && showErrors
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  <Text
+                    className={
+                      formData.weekdayOpeningTime
+                        ? "text-sm text-gray-800"
+                        : "text-sm text-gray-400"
+                    }
+                  >
+                    {formData.weekdayOpeningTime
+                      ? formatTimeTo12Hour(formData.weekdayOpeningTime)
+                      : "Select time"}
+                  </Text>
+                  {formData.weekdayOpeningTime ? (
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        updateFormData("weekdayOpeningTime", "");
+                      }}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                  ) : (
+                    <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                  )}
+                </TouchableOpacity>
+                {errors.weekdayOpeningTime && showErrors && (
+                  <Text className="mt-1 text-xs text-red-500">
+                    {errors.weekdayOpeningTime}
+                  </Text>
+                )}
+              </View>
+
+              {/* Weekday Closing Time */}
+              <View className="flex-1">
+                <Text className="mb-2 text-xs font-medium text-gray-600">
+                  Closing Time *
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    openTimePicker(
+                      "weekdayClosingTime",
+                      formData.weekdayClosingTime
+                    )
+                  }
+                  className={`w-full px-3 py-3 border rounded-lg flex-row items-center justify-between ${
+                    errors.weekdayClosingTime && showErrors
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  <Text
+                    className={
+                      formData.weekdayClosingTime
+                        ? "text-sm text-gray-800"
+                        : "text-sm text-gray-400"
+                    }
+                  >
+                    {formData.weekdayClosingTime
+                      ? formatTimeTo12Hour(formData.weekdayClosingTime)
+                      : "Select time"}
+                  </Text>
+                  {formData.weekdayClosingTime ? (
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        updateFormData("weekdayClosingTime", "");
+                      }}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                  ) : (
+                    <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                  )}
+                </TouchableOpacity>
+                {errors.weekdayClosingTime && showErrors && (
+                  <Text className="mt-1 text-xs text-red-500">
+                    {errors.weekdayClosingTime}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Weekend Hours */}
+          <View className="p-4 mb-4 border border-gray-200 rounded-lg bg-gray-50">
+            <View className="flex flex-row items-center mb-3">
+              <Ionicons name="calendar-outline" size={18} color="#374151" />
+              <Text className="ml-2 font-medium text-gray-800">
+                Weekend Hours (Sat-Sun)
+              </Text>
+            </View>
+
+            <View className="flex flex-row gap-3">
+              {/* Weekend Opening Time */}
+              <View className="flex-1">
+                <Text className="mb-2 text-xs font-medium text-gray-600">
+                  Opening Time *
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    openTimePicker(
+                      "weekendOpeningTime",
+                      formData.weekendOpeningTime
+                    )
+                  }
+                  className={`w-full px-3 py-3 border rounded-lg flex-row items-center justify-between ${
+                    errors.weekendOpeningTime && showErrors
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  <Text
+                    className={
+                      formData.weekendOpeningTime
+                        ? "text-sm text-gray-800"
+                        : "text-sm text-gray-400"
+                    }
+                  >
+                    {formData.weekendOpeningTime
+                      ? formatTimeTo12Hour(formData.weekendOpeningTime)
+                      : "Select time"}
+                  </Text>
+                  {formData.weekendOpeningTime ? (
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        updateFormData("weekendOpeningTime", "");
+                      }}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                  ) : (
+                    <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                  )}
+                </TouchableOpacity>
+                {errors.weekendOpeningTime && showErrors && (
+                  <Text className="mt-1 text-xs text-red-500">
+                    {errors.weekendOpeningTime}
+                  </Text>
+                )}
+              </View>
+
+              {/* Weekend Closing Time */}
+              <View className="flex-1">
+                <Text className="mb-2 text-xs font-medium text-gray-600">
+                  Closing Time *
+                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    openTimePicker(
+                      "weekendClosingTime",
+                      formData.weekendClosingTime
+                    )
+                  }
+                  className={`w-full px-3 py-3 border rounded-lg flex-row items-center justify-between ${
+                    errors.weekendClosingTime && showErrors
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                >
+                  <Text
+                    className={
+                      formData.weekendClosingTime
+                        ? "text-sm text-gray-800"
+                        : "text-sm text-gray-400"
+                    }
+                  >
+                    {formData.weekendClosingTime
+                      ? formatTimeTo12Hour(formData.weekendClosingTime)
+                      : "Select time"}
+                  </Text>
+                  {formData.weekendClosingTime ? (
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        updateFormData("weekendClosingTime", "");
+                      }}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                  ) : (
+                    <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                  )}
+                </TouchableOpacity>
+                {errors.weekendClosingTime && showErrors && (
+                  <Text className="mt-1 text-xs text-red-500">
+                    {errors.weekendClosingTime}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+
         <View className="p-4 border border-purple-200 rounded-lg bg-purple-50">
           <View className="flex flex-row items-start">
             <Ionicons name="bulb-outline" size={20} color="#8b5cf6" />
@@ -925,6 +1247,206 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Time Picker Modal - Moved inside return */}
+      <Modal
+        visible={timePickerVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setTimePickerVisible(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/50"
+          onPress={() => setTimePickerVisible(false)}
+        >
+          <View className="justify-end flex-1">
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <View className="bg-white rounded-t-3xl">
+                {/* Header */}
+                <View className="flex flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
+                  <TouchableOpacity onPress={() => setTimePickerVisible(false)}>
+                    <Text className="text-base text-gray-600">Cancel</Text>
+                  </TouchableOpacity>
+                  <Text className="text-lg font-semibold">Select Time</Text>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      // Convert 12-hour to 24-hour format
+                      let hour24 = parseInt(selectedHour);
+                      if (selectedPeriod === "PM" && hour24 !== 12) {
+                        hour24 += 12;
+                      } else if (selectedPeriod === "AM" && hour24 === 12) {
+                        hour24 = 0;
+                      }
+                      const timeValue = `${hour24.toString().padStart(2, "0")}:${selectedMinute}`;
+
+                      // Validation logic
+                      let isValid = true;
+                      let errorMessage = "";
+
+                      if (currentTimeField === "weekdayOpeningTime") {
+                        const closingTime = formData.weekdayClosingTime;
+                        if (closingTime && timeValue >= closingTime) {
+                          isValid = false;
+                          errorMessage =
+                            "Opening time must be earlier than closing time";
+                        }
+                      } else if (currentTimeField === "weekdayClosingTime") {
+                        const openingTime = formData.weekdayOpeningTime;
+                        if (openingTime && timeValue <= openingTime) {
+                          isValid = false;
+                          errorMessage =
+                            "Closing time must be later than opening time";
+                        }
+                      } else if (currentTimeField === "weekendOpeningTime") {
+                        const closingTime = formData.weekendClosingTime;
+                        if (closingTime && timeValue >= closingTime) {
+                          isValid = false;
+                          errorMessage =
+                            "Opening time must be earlier than closing time";
+                        }
+                      } else if (currentTimeField === "weekendClosingTime") {
+                        const openingTime = formData.weekendOpeningTime;
+                        if (openingTime && timeValue <= openingTime) {
+                          isValid = false;
+                          errorMessage =
+                            "Closing time must be later than opening time";
+                        }
+                      }
+
+                      if (!isValid) {
+                        Alert.alert("Invalid Time", errorMessage);
+                        return;
+                      }
+
+                      updateFormData(currentTimeField, timeValue);
+                      setTimePickerVisible(false);
+                    }}
+                  >
+                    <Text className="text-base font-semibold text-blue-500">
+                      Done
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Time Display */}
+                <View className="items-center py-4 bg-gray-50">
+                  <Text className="text-4xl font-bold text-gray-800">
+                    {selectedHour}:{selectedMinute} {selectedPeriod}
+                  </Text>
+                  <Text className="mt-1 text-sm text-gray-500">
+                    12-hour format
+                  </Text>
+                </View>
+
+                {/* Time Picker */}
+                <View className="flex flex-row items-center justify-center py-6">
+                  {/* Hours Picker */}
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-medium text-center text-gray-600">
+                      Hour
+                    </Text>
+                    <ScrollView
+                      className="h-48"
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {Array.from({ length: 12 }, (_, i) =>
+                        (i + 1).toString().padStart(2, "0")
+                      ).map((hour) => (
+                        <TouchableOpacity
+                          key={hour}
+                          onPress={() => setSelectedHour(hour)}
+                          className={`py-3 ${selectedHour === hour ? "bg-blue-50" : ""}`}
+                        >
+                          <Text
+                            className={`text-center text-lg ${
+                              selectedHour === hour
+                                ? "font-bold text-blue-500"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {hour}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+
+                  {/* Separator */}
+                  <Text className="px-2 text-2xl font-bold text-gray-400">
+                    :
+                  </Text>
+
+                  {/* Minutes Picker */}
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-medium text-center text-gray-600">
+                      Minute
+                    </Text>
+                    <ScrollView
+                      className="h-48"
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {Array.from({ length: 60 }, (_, i) =>
+                        i.toString().padStart(2, "0")
+                      ).map((minute) => (
+                        <TouchableOpacity
+                          key={minute}
+                          onPress={() => setSelectedMinute(minute)}
+                          className={`py-3 ${selectedMinute === minute ? "bg-blue-50" : ""}`}
+                        >
+                          <Text
+                            className={`text-center text-lg ${
+                              selectedMinute === minute
+                                ? "font-bold text-blue-500"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {minute}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+
+                  {/* Separator */}
+                  <Text className="px-2 text-2xl font-bold text-gray-400">
+                    {" "}
+                  </Text>
+
+                  {/* AM/PM Picker */}
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-medium text-center text-gray-600">
+                      Period
+                    </Text>
+                    <ScrollView
+                      className="h-48"
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {["AM", "PM"].map((period) => (
+                        <TouchableOpacity
+                          key={period}
+                          onPress={() => setSelectedPeriod(period)}
+                          className={`py-3 ${selectedPeriod === period ? "bg-blue-50" : ""}`}
+                        >
+                          <Text
+                            className={`text-center text-lg ${
+                              selectedPeriod === period
+                                ? "font-bold text-blue-500"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {period}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                </View>
+              </View>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };

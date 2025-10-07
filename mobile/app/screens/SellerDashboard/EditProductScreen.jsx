@@ -467,7 +467,7 @@ const EditProductScreen = ({ navigation, route }) => {
           </View>
 
           {/* Subcategory */}
-          {formData.category && subcategoriesByCategory[formData.category] && (
+          {/* {formData.category && subcategoriesByCategory[formData.category] && (
             <View className="mb-4">
               <Text className="mb-2 text-base font-medium text-gray-900">
                 Subcategory
@@ -486,7 +486,7 @@ const EditProductScreen = ({ navigation, route }) => {
                 </Picker>
               </View>
             </View>
-          )}
+          )} */}
 
           {/* Unit Type */}
           <View className="mb-4">

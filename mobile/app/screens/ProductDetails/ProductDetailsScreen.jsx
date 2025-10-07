@@ -545,6 +545,10 @@ const ProductDetailsScreen = () => {
     setSelectedMediaModal(media);
   };
 
+  const handleLikePress = () => {
+    Alert.alert("Likes Feature", "Likes feature will be implented soon!");
+  };
+
   const loadMoreReviews = () => {
     if (reviewPagination.hasNextPage && !loadingMoreReviews) {
       fetchReviews(reviewPagination.currentPage + 1, false);
@@ -700,23 +704,27 @@ const ProductDetailsScreen = () => {
               <View className="px-3 py-2 bg-red-500 rounded-lg">
                 <Text className="font-medium text-white">Out of Stock</Text>
               </View>
-            ) : product.stock_quantity <= 10 ? (
-              <View className="px-3 py-2 bg-orange-500 rounded-lg">
-                <Text className="font-medium text-white">Low Stock</Text>
-              </View>
             ) : (
-              <View className="px-3 py-2 bg-green-500 rounded-lg">
-                <Text className="font-medium text-white">In Stock</Text>
-              </View>
+              product.stock_quantity <= 10 && (
+                <View className="px-3 py-2 rounded-lg bg-accent">
+                  <Text className="font-medium text-white">Low Stock</Text>
+                </View>
+              )
             )}
           </View>
         </View>
 
         {/* Product Info */}
         <View className="p-4 bg-white border-b border-gray-200">
-          <Text className="mb-2 text-2xl font-bold text-gray-900">
-            {product.name}
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="mb-2 text-2xl font-bold text-gray-900">
+              {product.name}
+            </Text>
+
+            <TouchableOpacity className="p-2 mr-2" onPress={handleLikePress}>
+              <Ionicons name="heart-outline" size={22} color="black" />
+            </TouchableOpacity>
+          </View>
 
           <View className="flex-row items-center justify-between mb-4">
             {/* Price Display with Original vs Discounted */}
@@ -746,11 +754,6 @@ const ProductDetailsScreen = () => {
               <Text className="px-3 py-1 text-sm font-medium text-orange-600 bg-orange-100 rounded-full">
                 {product.category}
               </Text>
-              {product.subcategory && (
-                <Text className="px-3 py-1 ml-2 text-sm text-gray-600 bg-gray-100 rounded-full">
-                  {product.subcategory}
-                </Text>
-              )}
             </View>
           )}
 

@@ -28,7 +28,7 @@ const AddProductScreen = () => {
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
   const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
+  const [subcategory, setSubcategory] = useState(null);
   const [unitType, setUnitType] = useState("per_piece");
   const [freshnessIndicator, setFreshnessIndicator] = useState("");
   const [harvestDate, setHarvestDate] = useState(new Date());
@@ -230,7 +230,7 @@ const AddProductScreen = () => {
         </View>
 
         {/* Subcategory */}
-        {category && subcategoriesByCategory[category] && (
+        {/* {category && subcategoriesByCategory[category] && (
           <View className="mb-4">
             <Text className="mb-1 font-medium text-gray-700">Subcategory</Text>
             <View className="bg-white border border-gray-300 rounded-lg">
@@ -245,7 +245,7 @@ const AddProductScreen = () => {
               </Picker>
             </View>
           </View>
-        )}
+        )} */}
 
         {/* Unit Type */}
         <View className="mb-4">
