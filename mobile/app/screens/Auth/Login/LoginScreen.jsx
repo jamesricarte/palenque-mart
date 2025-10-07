@@ -94,6 +94,7 @@ const LoginScreen = ({ navigation }) => {
       setTimeout(
         () => {
           setLoading(false);
+
           if (responseData?.success) {
             if (!responseData.exists) {
               let apiPath;
@@ -136,52 +137,50 @@ const LoginScreen = ({ navigation }) => {
                 }
               }
 
-              return signUpAccount();
-            }
-
-            if (!responseData?.twoFA) {
-              login(responseData.data.token);
-
-              // Check if user is admin and redirect accordingly
-              if (responseData.data.isAdmin) {
-                navigation.dispatch(
-                  CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: "AdminDashboard" }],
-                  })
-                );
-              } else {
-                navigation.dispatch(
-                  CommonActions.reset({
-                    index: 0,
-                    routes: [
-                      {
-                        name: "Dashboard",
-                        state: {
-                          routes: [
-                            {
-                              name: "Account",
-                              params: { message: responseData?.message },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  })
-                );
-              }
-              return;
+              signUpAccount();
             } else {
-              if (responseData?.data?.email) {
-                navigation.navigate("EmailSentVerification", {
-                  email: responseData?.data?.email,
-                });
-              } else if (responseData?.data?.mobileNumber) {
-                navigation.navigate("MobileNumberVerification", {
-                  mobileNumber: responseData?.data?.mobileNumber,
-                });
+              if (!responseData?.twoFA) {
+                login(responseData.data.token);
+
+                if (responseData.data.isAdmin) {
+                  navigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [{ name: "AdminDashboard" }],
+                    })
+                  );
+                } else {
+                  navigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [
+                        {
+                          name: "Dashboard",
+                          state: {
+                            routes: [
+                              {
+                                name: "Home",
+                                params: { message: responseData?.message },
+                              },
+                            ],
+                          },
+                        },
+                      ],
+                    })
+                  );
+                }
+                return;
+              } else {
+                if (responseData?.data?.email) {
+                  navigation.navigate("EmailSentVerification", {
+                    email: responseData?.data?.email,
+                  });
+                } else if (responseData?.data?.mobileNumber) {
+                  navigation.navigate("MobileNumberVerification", {
+                    mobileNumber: responseData?.data?.mobileNumber,
+                  });
+                }
               }
-              return;
             }
           } else {
             setMessage(responseData);
@@ -209,7 +208,7 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View className="flex-1 items-center justify-center">
+        <View className="items-center justify-center flex-1">
           <Image
             source={LogoImage}
             style={{ width: 300, height: 180 }}
@@ -310,7 +309,7 @@ const LoginScreen = ({ navigation }) => {
 
         <View className="flex w-full gap-4">
           <TouchableOpacity
-            className="items-center justify-center p-4 border rounded-md border-gray-300 bg-white"
+            className="items-center justify-center p-4 bg-white border border-gray-300 rounded-md"
             onPress={() => {}}
           >
             <Image
@@ -324,7 +323,7 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="items-center justify-center p-4 border rounded-md border-gray-300 bg-white"
+            className="items-center justify-center p-4 bg-white border border-gray-300 rounded-md"
             onPress={() => {}}
           >
             <Image

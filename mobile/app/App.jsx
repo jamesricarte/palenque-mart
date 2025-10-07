@@ -9,6 +9,8 @@ import LoadingScreen from "./screens/LoadingScreen";
 import { prettyLog } from "./utils/prettyLog";
 import { StatusBar } from "expo-status-bar";
 
+import DeliveryPartnerGlobalModal from "./components/DeliveryPartnerGlobalModal";
+
 import "../global.css";
 global.prettyLog = prettyLog;
 
@@ -35,6 +37,7 @@ const App = () => {
         <SellerProvider>
           <DeliveryPartnerProvider>
             <AppContent />
+            <DeliveryPartnerGlobalModal />
           </DeliveryPartnerProvider>
         </SellerProvider>
       </AuthProvider>

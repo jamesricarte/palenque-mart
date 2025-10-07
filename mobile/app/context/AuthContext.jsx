@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authProcessing, setAuthProcessing] = useState(false);
   const [approvalStatusUpdated, setApprovalStatusUpdated] = useState(false);
   const [socketMessage, setSocketMessage] = useState(null);
 
@@ -92,9 +93,13 @@ export const AuthProvider = ({ children }) => {
   const resetApprovalStatus = () => setApprovalStatusUpdated(false);
 
   const login = async (newToken) => {
+    setAuthProcessing(true);
+
     setToken(newToken);
+
     axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
     await AsyncStorage.setItem("token", newToken);
+
     try {
       const response = await axios.get(`${API_URL}/api/profile`);
       setUser(response.data.data);
@@ -102,6 +107,8 @@ export const AuthProvider = ({ children }) => {
       console.error("Failed to fetch profile after login:", error);
       // Handle error if profile fetch fails
       setUser(null);
+    } finally {
+      setAuthProcessing(false);
     }
   };
 
@@ -125,6 +132,7 @@ export const AuthProvider = ({ children }) => {
         resetApprovalStatus,
         socketMessage,
         setSocketMessage,
+        authProcessing,
       }}
     >
       {children}

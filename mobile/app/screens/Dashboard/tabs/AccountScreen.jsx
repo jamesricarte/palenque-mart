@@ -295,7 +295,11 @@ const AccountScreen = () => {
         </View>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 30 }}
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Section */}
         <TouchableOpacity
           className="flex flex-row items-center p-4 mx-4 bg-white border border-gray-200 shadow-sm rounded-xl"

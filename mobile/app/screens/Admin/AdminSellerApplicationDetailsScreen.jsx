@@ -567,6 +567,51 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
           </InfoSection>
         )}
 
+        {/* Store Operating Hours */}
+        {storeProfile && (
+          <InfoSection title="Store Operating Hours">
+            <View className="p-3 mb-2 border border-blue-200 rounded-lg bg-blue-50">
+              <Text className="mb-1 font-medium text-blue-800">
+                Weekdays (Mon-Fri)
+              </Text>
+              <View className="flex-row justify-between">
+                <View>
+                  <Text className="text-xs text-gray-600">Opening</Text>
+                  <Text className="font-medium">
+                    {storeProfile.weekday_opening_time || "Not set"}
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text className="text-xs text-gray-600">Closing</Text>
+                  <Text className="font-medium">
+                    {storeProfile.weekday_closing_time || "Not set"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="p-3 border border-purple-200 rounded-lg bg-purple-50">
+              <Text className="mb-1 font-medium text-purple-800">
+                Weekends (Sat-Sun)
+              </Text>
+              <View className="flex-row justify-between">
+                <View>
+                  <Text className="text-xs text-gray-600">Opening</Text>
+                  <Text className="font-medium">
+                    {storeProfile.weekend_opening_time || "Not set"}
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text className="text-xs text-gray-600">Closing</Text>
+                  <Text className="font-medium">
+                    {storeProfile.weekend_closing_time || "Not set"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </InfoSection>
+        )}
+
         {/* Address Information */}
         {address && (
           <InfoSection title="Address Information">

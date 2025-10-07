@@ -16,6 +16,10 @@ const submitSellerApplication = async (req, res) => {
     addresses, // New addresses structure
     storeName,
     storeDescription,
+    weekdayOpeningTime,
+    weekdayClosingTime,
+    weekendOpeningTime,
+    weekendClosingTime,
   } = req.body;
 
   const files = req.files || {};
@@ -168,12 +172,20 @@ const submitSellerApplication = async (req, res) => {
 
       // Insert store profile
       await connection.execute(
-        "INSERT INTO seller_store_profiles (application_id, store_name, store_description, store_logo_key) VALUES (?, ?, ?, ?)",
+        `INSERT INTO seller_store_profiles (
+          application_id, store_name, store_description, store_logo_key,
+          weekday_opening_time, weekday_closing_time,
+          weekend_opening_time, weekend_closing_time
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           dbApplicationId,
           storeName,
           storeDescription,
           uploadedFilePaths.store_logo || null,
+          weekdayOpeningTime || null,
+          weekdayClosingTime || null,
+          weekendOpeningTime || null,
+          weekendClosingTime || null,
         ]
       );
 

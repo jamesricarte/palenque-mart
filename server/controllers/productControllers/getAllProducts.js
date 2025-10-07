@@ -206,6 +206,10 @@ const getHomeData = async (req, res) => {
       s.store_logo_key,
       s.store_description,
       s.average_rating,
+      s.weekday_opening_time,
+      s.weekday_closing_time,
+      s.weekend_opening_time,
+      s.weekend_closing_time,
       sa.city,
       sa.province,
       GROUP_CONCAT(DISTINCT p.category) as categories
@@ -213,7 +217,7 @@ const getHomeData = async (req, res) => {
     JOIN seller_addresses sa ON s.application_id = sa.application_id
     LEFT JOIN products p ON s.id = p.seller_id AND p.is_active = 1
     WHERE s.is_active = 1 AND sa.type = 'store'
-    GROUP BY s.id, s.store_name, s.store_logo_key, s.store_description, s.average_rating, sa.city, sa.province
+    GROUP BY s.id, s.store_name, s.store_logo_key, s.store_description, s.average_rating, s.weekday_opening_time, s.weekday_closing_time, s.weekend_opening_time, s.weekend_closing_time, sa.city, sa.province
     ORDER BY s.average_rating DESC, s.created_at DESC
     LIMIT 8
   `;

@@ -177,6 +177,24 @@ const createDeliveryAssignment = async (req, res) => {
       );
     }
 
+    // Get the complete delivery assignment data for the modal
+    const [assignmentData] = await db.execute(
+      `SELECT da.id, da.order_id, da.status, da.delivery_fee, da.pickup_address, 
+          da.delivery_address, da.special_instructions,
+          o.order_number, o.delivery_recipient_name, o.delivery_phone_number,
+          o.delivery_street_address, o.delivery_barangay, o.delivery_city,
+          o.delivery_landmark, o.delivery_notes, o.total_amount,
+          COUNT(oi.id) as item_count
+   FROM delivery_assignments da
+   JOIN orders o ON da.order_id = o.id
+   LEFT JOIN order_items oi ON o.id = oi.order_id
+   WHERE da.id = ?
+   GROUP BY da.id`,
+      [assignmentId]
+    );
+
+    const deliveryData = assignmentData[0];
+
     // Notify all tracked delivery partners via WebSocket to refresh their orders
     const deliveryPartners = req.app.get("deliveryPartners");
 
@@ -194,6 +212,34 @@ const createDeliveryAssignment = async (req, res) => {
       ) {
         partnerData.socket.send(JSON.stringify(refreshNotification));
         console.log(`Sent refresh notification to partner id: ${partner.id}`);
+
+        const newDeliveryNotification = {
+          type: "NEW_DELIVERY_AVAILABLE",
+          message: "New delivery opportunity available",
+          data: {
+            assignment_id: assignmentId,
+            order_number: deliveryData.order_number,
+            delivery_status: deliveryData.status,
+            delivery_fee: deliveryData.delivery_fee.toString(),
+            distance: partner.distance.toFixed(1),
+            item_count: deliveryData.item_count,
+            total_amount: deliveryData.total_amount.toString(),
+            pickup_address: deliveryData.pickup_address,
+            delivery_street_address: deliveryData.delivery_street_address,
+            delivery_barangay: deliveryData.delivery_barangay,
+            delivery_city: deliveryData.delivery_city,
+            delivery_landmark: deliveryData.delivery_landmark || "",
+            delivery_recipient_name: deliveryData.delivery_recipient_name,
+            delivery_phone_number: deliveryData.delivery_phone_number,
+            special_instructions: deliveryData.special_instructions || "",
+            delivery_notes: deliveryData.delivery_notes || "",
+          },
+        };
+
+        partnerData.socket.send(JSON.stringify(newDeliveryNotification));
+        console.log(
+          `Sent new delivery notification to partner id: ${partner.id}`
+        );
       }
     });
 

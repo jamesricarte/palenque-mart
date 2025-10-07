@@ -96,7 +96,7 @@ const EmailSentVerificationScreen = ({ navigation }) => {
                   state: {
                     routes: [
                       {
-                        name: "Account",
+                        name: "Home",
                         params: { message: responseData?.message },
                       },
                     ],

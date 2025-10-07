@@ -59,11 +59,9 @@ const reviewSellerApplication = async (req, res) => {
 
       // Update application status
       await connection.execute(
-        `
-    UPDATE seller_applications 
-    SET status = ?, rejection_reason = ?, reviewed_at = NOW(), reviewed_by = ?
-    WHERE application_id = ?
-  `,
+        `UPDATE seller_applications 
+        SET status = ?, rejection_reason = ?, reviewed_at = NOW(), reviewed_by = ? 
+        WHERE application_id = ?`,
         [newStatus, rejectionReason || null, adminId, applicationId]
       );
 
@@ -82,9 +80,10 @@ const reviewSellerApplication = async (req, res) => {
           await connection.execute(
             `INSERT INTO sellers (
               user_id, application_id, seller_id, account_type, 
-              store_name, store_description, store_logo_key
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            `,
+              store_name, store_description, store_logo_key,
+              weekday_opening_time, weekday_closing_time,
+              weekend_opening_time, weekend_closing_time
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               application.user_id,
               application.id,
@@ -93,6 +92,10 @@ const reviewSellerApplication = async (req, res) => {
               storeProfile.store_name,
               storeProfile.store_description,
               null, // Will be updated after logo migration
+              storeProfile.weekday_opening_time,
+              storeProfile.weekday_closing_time,
+              storeProfile.weekend_opening_time,
+              storeProfile.weekend_closing_time,
             ]
           );
 

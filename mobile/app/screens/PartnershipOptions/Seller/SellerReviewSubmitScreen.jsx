@@ -44,6 +44,23 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
       formDataToSend.append("storeName", formData.storeName);
       formDataToSend.append("storeDescription", formData.storeDescription);
 
+      formDataToSend.append(
+        "weekdayOpeningTime",
+        formData.weekdayOpeningTime || ""
+      );
+      formDataToSend.append(
+        "weekdayClosingTime",
+        formData.weekdayClosingTime || ""
+      );
+      formDataToSend.append(
+        "weekendOpeningTime",
+        formData.weekendOpeningTime || ""
+      );
+      formDataToSend.append(
+        "weekendClosingTime",
+        formData.weekendClosingTime || ""
+      );
+
       // Add address data in new format
       if (formData.addresses) {
         formDataToSend.append("addresses", JSON.stringify(formData.addresses));
@@ -277,6 +294,79 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
     </View>
   );
 
+  const renderOperatingHoursSection = () => (
+    <View className="p-4 mb-6 rounded-lg bg-gray-50">
+      <View className="flex flex-row items-center justify-between mb-3">
+        <Text className="text-lg font-semibold">Store Operating Hours</Text>
+        <TouchableOpacity onPress={() => handleEdit("store")}>
+          <Feather name="edit-2" size={18} color="#3b82f6" />
+        </TouchableOpacity>
+      </View>
+
+      {formData.is247 ? (
+        <View className="p-3 bg-white border border-green-200 rounded-lg">
+          <View className="flex flex-row items-center">
+            <Ionicons name="time" size={20} color="#059669" />
+            <Text className="ml-2 font-semibold text-green-700">Open 24/7</Text>
+          </View>
+          <Text className="mt-1 text-sm text-gray-600">
+            Store operates all day, every day
+          </Text>
+        </View>
+      ) : (
+        <>
+          {/* Weekday Hours */}
+          <View className="p-3 mb-3 bg-white border border-gray-200 rounded-lg">
+            <View className="flex flex-row items-center mb-2">
+              <Ionicons name="calendar" size={16} color="#3b82f6" />
+              <Text className="ml-2 text-sm font-semibold text-blue-700">
+                WEEKDAYS (MON-FRI)
+              </Text>
+            </View>
+            <View className="flex flex-row justify-between">
+              <View>
+                <Text className="text-xs text-gray-500">Opening</Text>
+                <Text className="text-sm font-medium text-gray-900">
+                  {formData.weekdayOpeningTime || "Not set"}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="text-xs text-gray-500">Closing</Text>
+                <Text className="text-sm font-medium text-gray-900">
+                  {formData.weekdayClosingTime || "Not set"}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Weekend Hours */}
+          <View className="p-3 bg-white border border-gray-200 rounded-lg">
+            <View className="flex flex-row items-center mb-2">
+              <Ionicons name="calendar" size={16} color="#7c3aed" />
+              <Text className="ml-2 text-sm font-semibold text-purple-700">
+                WEEKENDS (SAT-SUN)
+              </Text>
+            </View>
+            <View className="flex flex-row justify-between">
+              <View>
+                <Text className="text-xs text-gray-500">Opening</Text>
+                <Text className="text-sm font-medium text-gray-900">
+                  {formData.weekendOpeningTime || "Not set"}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="text-xs text-gray-500">Closing</Text>
+                <Text className="text-sm font-medium text-gray-900">
+                  {formData.weekendClosingTime || "Not set"}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </>
+      )}
+    </View>
+  );
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -333,6 +423,9 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
           },
           "store"
         )}
+
+        {/* Store Operating Hours */}
+        {renderOperatingHoursSection()}
 
         {/* Documents */}
         {(formData.governmentId ||
