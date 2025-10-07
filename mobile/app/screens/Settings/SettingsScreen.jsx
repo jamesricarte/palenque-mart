@@ -42,7 +42,7 @@ const SettingsScreen = ({ navigation }) => {
 
   if (!user) {
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-white">
         {/* Header */}
         <View className="flex-row items-center p-4 pt-16 bg-white border-b border-gray-300">
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -72,17 +72,18 @@ const SettingsScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center p-4 pt-16 bg-white border-b border-gray-300">
+      <View className="flex-row items-center justify-between p-4 pt-16 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={30} color="black" />
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text className="ml-4 text-xl font-semibold">Settings</Text>
+        <Text className="mr-4 text-xl font-semibold">Settings</Text>
+        <View></View>
       </View>
 
-      <ScrollView className="flex-1">
-        <View className="mt-4 bg-white">
+      <View className="flex-1">
+        <View className="mx-4 mt-4 bg-white border border-gray-200 shadow-sm rounded-xl">
           {settingsOptions.map((option, index) => (
             <TouchableOpacity
               key={option.id}
@@ -108,7 +109,7 @@ const SettingsScreen = ({ navigation }) => {
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 };

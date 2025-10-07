@@ -15,6 +15,7 @@ import {
   useRoute,
 } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import axios from "axios";
 
@@ -137,7 +138,7 @@ const OrdersScreen = () => {
   const renderOrderCard = (order) => (
     <TouchableOpacity
       key={order.id}
-      className="p-4 mb-4 bg-white rounded-lg shadow-sm"
+      className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm"
       onPress={() => navigation.navigate("OrderDetails", { orderId: order.id })}
     >
       <View className="flex-row items-center justify-between mb-3">
@@ -176,7 +177,7 @@ const OrdersScreen = () => {
 
       {/* First product display with image */}
       {order.first_product_name && (
-        <View className="flex-row items-center p-2 mb-3 rounded-md bg-gray-50">
+        <View className="flex-row items-center p-2 mb-3 rounded-md bg-white">
           {order.first_product_image_url ? (
             <Image
               source={{ uri: order.first_product_image_url }}
@@ -275,13 +276,12 @@ const OrdersScreen = () => {
   if (!user) {
     return (
       <View className="flex-1 bg-white">
-        <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Feather name="arrow-left" size={24} color="black" />
-            </TouchableOpacity>
-            <Text className="ml-4 text-xl font-semibold">My Orders</Text>
-          </View>
+        <View className="flex-row items-center justify-between p-4 pt-16 bg-white border-b border-gray-200">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="mr-6 text-xl font-semibold">My Orders</Text>
+          <View></View>
         </View>
 
         <View className="items-center justify-center flex-1 px-6">
@@ -306,13 +306,12 @@ const OrdersScreen = () => {
   if (loading) {
     return (
       <View className="flex-1 bg-white">
-        <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Feather name="arrow-left" size={24} color="black" />
-            </TouchableOpacity>
-            <Text className="ml-4 text-xl font-semibold">My Orders</Text>
-          </View>
+        <View className="flex-row items-center justify-between p-4 pt-16 bg-white border-b border-gray-200">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="mr-6 text-xl font-semibold">My Orders</Text>
+          <View></View>
         </View>
 
         <View className="items-center justify-center flex-1">
@@ -323,15 +322,14 @@ const OrdersScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={24} color="black" />
-          </TouchableOpacity>
-          <Text className="ml-4 text-xl font-semibold">My Orders</Text>
-        </View>
+      <View className="flex-row items-center justify-between p-4 pt-16 bg-white border-b border-gray-200">
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+        <Text className="mr-6 text-xl font-semibold">My Orders</Text>
+        <View></View>
       </View>
       {/* Status Filter */}
       <View className="p-4 bg-white border-b border-gray-200">

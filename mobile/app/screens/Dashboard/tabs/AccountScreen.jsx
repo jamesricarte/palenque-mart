@@ -74,9 +74,17 @@ const AccountScreen = () => {
       onPress: () => console.log("Help pressed"),
     },
     {
+      id: "settings",
+      title: "Settings",
+      subtitle: "Manage app settings",
+      icon: "settings-outline",
+      iconType: "ionicon",
+      onPress: () => navigation.navigate("Settings"),
+    },
+    {
       id: "logout",
       title: "Logout",
-      subtitle: "Sign out of your account",
+      subtitle: "Sign out your account",
       icon: "log-out",
       iconType: "feather",
       onPress: () => handleLogoutClick(),
@@ -132,6 +140,10 @@ const AccountScreen = () => {
     }, 2000);
   };
 
+  const handleLikePress = () => {
+    Alert.alert("Likes Feature", "Likes feature will be implented soon!");
+  };
+
   const fetchCartCount = async () => {
     if (!user) return;
     try {
@@ -163,7 +175,7 @@ const AccountScreen = () => {
 
   if (loading) {
     return (
-      <View className="h-screen bg-gray-50">
+      <View className="h-screen bg-white">
         {/* Header */}
         <View className="px-4 pt-16 pb-6 bg-white border-b border-gray-200">
           <View className="flex flex-row items-center justify-between">
@@ -205,7 +217,7 @@ const AccountScreen = () => {
 
   if (!user) {
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-white">
         {/* Header */}
         <View className="px-4 pt-16 pb-6 bg-white border-b border-gray-200">
           <View className="flex flex-row items-center justify-between">
@@ -257,12 +269,15 @@ const AccountScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="px-4 pt-16 pb-6 bg-white border-b border-gray-200">
-        <View className="flex flex-row items-center justify-between">
-          <Text className="text-2xl font-semibold text-gray-900">Account</Text>
-          <View className="flex flex-row gap-4">
+      <View className="px-4 pt-16 pb-5 bg-white mt-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-3xl font-semibold">My Account</Text>
+          <View className="flex-row gap-0.5">
+            <TouchableOpacity className="p-2 mr-2" onPress={handleLikePress}>
+              <Ionicons name="heart-outline" size={24} color="black" />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigation.navigate("Cart")}
               className="relative p-2"
@@ -276,12 +291,6 @@ const AccountScreen = () => {
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Settings")}
-              className="p-2"
-            >
-              <Ionicons name="settings-outline" size={24} color="black" />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -293,7 +302,7 @@ const AccountScreen = () => {
       >
         {/* Profile Section */}
         <TouchableOpacity
-          className="flex flex-row items-center p-4 mx-4 mt-6 bg-white border border-gray-200 shadow-sm rounded-xl"
+          className="flex flex-row items-center p-4 mx-4 bg-white border border-gray-200 shadow-sm rounded-xl"
           onPress={() => navigation.navigate("Profile")}
         >
           <View className="flex items-center justify-center w-16 h-16 mr-4 overflow-hidden bg-orange-100 rounded-full">
@@ -321,7 +330,7 @@ const AccountScreen = () => {
         </TouchableOpacity>
 
         {/* Main Navigation Options */}
-        <View className="mx-4 mt-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+        <View className="mx-4 mt-4 bg-white border border-gray-200 shadow-sm rounded-xl">
           <View className="p-4 border-b border-gray-100">
             <Text className="text-lg font-semibold text-gray-900">
               Quick Actions
@@ -356,7 +365,7 @@ const AccountScreen = () => {
         </View>
 
         {/* Account Options */}
-        <View className="mx-4 mt-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+        <View className="mx-4 mt-4 bg-white border border-gray-200 shadow-sm rounded-xl">
           <View className="p-4 border-b border-gray-100">
             <Text className="text-lg font-semibold text-gray-900">
               Account Options

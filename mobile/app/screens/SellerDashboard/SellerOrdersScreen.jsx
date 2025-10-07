@@ -13,13 +13,14 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useAuth } from "../../../context/AuthContext";
-import { useSeller } from "../../../context/SellerContext";
-import { API_URL } from "../../../config/apiConfig";
+import { useAuth } from "../../context/AuthContext";
+import { useSeller } from "../../context/SellerContext";
+import { API_URL } from "../../config/apiConfig";
 import axios from "axios";
-import DefaultLoadingAnimation from "../../../components/DefaultLoadingAnimation";
+import DefaultLoadingAnimation from "../../components/DefaultLoadingAnimation";
 
 const SellerOrdersScreen = ({ navigation }) => {
   const { token } = useAuth();
@@ -38,7 +39,7 @@ const SellerOrdersScreen = ({ navigation }) => {
 
   const statusOptions = [
     { value: "all", label: "All Orders", color: "#6B7280", count: 0 },
-    { value: "preorder", label: "Pre-orders", color: "#8B5CF6", count: 0 },
+    { value: "preorder", label: "Pre-orders", color: "#39B54A", count: 0 },
     {
       value: "pending",
       label: "New Orders",
@@ -300,9 +301,9 @@ const SellerOrdersScreen = ({ navigation }) => {
       <TouchableOpacity
         key={order.id}
         onPress={() => navigateToOrderDetails(order.id)}
-        className={`mx-4 mt-4 bg-white rounded-lg shadow-sm ${
-          getOrderPriority(order) ? "border-l-4 border-orange-500" : ""
-        } ${isPreorderOrder ? "border-r-4 border-purple-500" : ""}`}
+        className={`mx-4 mt-4 bg-white border border-gray-200 rounded-lg shadow-sm ${
+          getOrderPriority(order) ? "" : ""
+        } ${isPreorderOrder ? "" : ""}`}
       >
         <View className="p-4 border-b border-gray-100">
           <View className="flex-row items-center justify-between">
@@ -358,12 +359,12 @@ const SellerOrdersScreen = ({ navigation }) => {
           {isPreorderOrder && (
             <View className="mt-2">
               {order.preorder_deposit_paid > 0 && (
-                <Text className="text-sm text-purple-600">
+                <Text className="text-sm text-green-600">
                   Deposit: {formatCurrency(order.preorder_deposit_paid)}
                 </Text>
               )}
               {order.remaining_balance > 0 && (
-                <Text className="text-sm text-purple-600">
+                <Text className="text-sm text-green-600">
                   Remaining: {formatCurrency(order.remaining_balance)}
                 </Text>
               )}
@@ -398,8 +399,8 @@ const SellerOrdersScreen = ({ navigation }) => {
                     {order.items[0].product_name}
                   </Text>
                   {isPreorderOrder && (
-                    <View className="px-1 py-0.5 ml-2 bg-purple-100 rounded">
-                      <Text className="text-xs font-medium text-purple-800">
+                    <View className="px-1 py-0.5 ml-2 bg-green-100 rounded">
+                      <Text className="text-xs font-medium text-green-800">
                         Pre
                       </Text>
                     </View>
@@ -411,7 +412,7 @@ const SellerOrdersScreen = ({ navigation }) => {
                 </Text>
                 {isPreorderOrder &&
                   order.items[0].expected_availability_date && (
-                    <Text className="mt-1.5 text-xs text-purple-600">
+                    <Text className="mt-1.5 text-xs text-green-600">
                       Available:{" "}
                       {formatDate(order.items[0].expected_availability_date)}
                     </Text>
@@ -438,14 +439,14 @@ const SellerOrdersScreen = ({ navigation }) => {
           </View>
 
           {isPreorderOrder && order.status === "pending" && (
-            <View className="p-3 mb-3 border border-purple-200 rounded-lg bg-purple-50">
+            <View className="p-3 mb-3 border border-green-200 rounded-lg bg-green-50">
               <View className="flex-row items-center">
                 <Feather name="clock" size={16} color="#8B5CF6" />
-                <Text className="ml-2 text-sm font-medium text-purple-800">
+                <Text className="ml-2 text-sm font-medium text-green-800">
                   Preorder
                 </Text>
               </View>
-              <Text className="mt-1 text-xs text-purple-600">
+              <Text className="mt-1 text-xs text-green-600">
                 This is a preorder. Items will be available on the expected
                 date.
               </Text>
@@ -576,9 +577,13 @@ const SellerOrdersScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50">
-        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <Text className="text-xl font-semibold">Order Management</Text>
+      <View className="flex-1 bg-white">
+        <View className="flex-row items-center justify-between p-4 pt-16 bg-white border-b border-gray-200">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="mr-6 text-xl font-semibold">Manage Orders</Text>
+          <View></View>
         </View>
         <View className="items-center justify-center flex-1">
           <DefaultLoadingAnimation />
@@ -588,48 +593,58 @@ const SellerOrdersScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-xl font-semibold">Order Management</Text>
+    <View className="flex-1 bg-white">
+      <View className="flex-row items-center justify-between p-4 pt-16 bg-white border-b border-gray-200">
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+        <Text className="mr-6 text-xl font-semibold">Manage Orders</Text>
+        <View></View>
+      </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-4"
-        >
-          {statusOptions.map((status) => (
-            <TouchableOpacity
-              key={status.value}
-              onPress={() => {
-                setFilterLoading(true);
-                setSelectedStatus(status.value);
-              }}
-              className={`mr-3 px-4 py-2 rounded-full flex-row items-center ${
-                selectedStatus === status.value ? "bg-blue-600" : "bg-gray-200"
-              }`}
-            >
-              <Text
-                className={`text-sm font-medium ${selectedStatus === status.value ? "text-white" : "text-gray-700"}`}
+      {/* Status Filter */}
+      <View className="p-4 bg-white border-b border-gray-200">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View className="flex-row gap-3">
+            {statusOptions.map((status) => (
+              <TouchableOpacity
+                key={status.value}
+                onPress={() => {
+                  setFilterLoading(true);
+                  setSelectedStatus(status.value);
+                }}
+                className={`px-4 py-2 rounded-full flex-row items-center ${
+                  selectedStatus === status.value
+                    ? "bg-orange-600"
+                    : "bg-gray-200"
+                }`}
               >
-                {status.label}
-              </Text>
-              {status.count > 0 && (
-                <View
-                  className={`ml-2 px-2 py-1 rounded-full ${
+                <Text
+                  className={`text-sm font-medium ${
                     selectedStatus === status.value
-                      ? "bg-white bg-opacity-20"
-                      : "bg-orange-500"
+                      ? "text-white"
+                      : "text-gray-700"
                   }`}
                 >
-                  <Text
-                    className={`text-xs font-bold ${selectedStatus === status.value ? "text-white" : "text-white"}`}
+                  {status.label}
+                </Text>
+
+                {status.count > 0 && (
+                  <View
+                    className={`ml-2 px-2 py-1 rounded-full ${
+                      selectedStatus === status.value
+                        ? "bg-white bg-opacity-20"
+                        : "bg-orange-500"
+                    }`}
                   >
-                    {status.count}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+                    <Text className="text-xs font-bold text-white">
+                      {status.count}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
         </ScrollView>
       </View>
 

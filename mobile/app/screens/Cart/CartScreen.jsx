@@ -244,7 +244,7 @@ const CartScreen = ({ navigation }) => {
             Please login to view your cart items
           </Text>
           <TouchableOpacity
-            className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
+            className="px-6 py-3 mt-6 bg-primary rounded-lg"
             onPress={() => navigation.navigate("Login")}
           >
             <Text className="font-semibold text-white">Login</Text>
@@ -259,7 +259,7 @@ const CartScreen = ({ navigation }) => {
       <>
         <View className="flex-row items-center justify-between p-3 border-b border-gray-300 pt-14">
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={30} color="black" />
+            <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text className="text-xl font-semibold">My Cart</Text>
           <View style={{ width: 30 }} />
@@ -274,15 +274,15 @@ const CartScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center justify-between p-3 bg-white border-b border-gray-300 pt-14">
+      <View className="flex-row items-center justify-between p-4 bg-white border-b border-gray-300 pt-14">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold">My Cart</Text>
         <View className="px-2 py-1 bg-white rounded-full">
-          {/* <Text className="text-sm font-medium text-orange-600">
+          {/* <Text className="text-sm font-medium text-primary">
             {getTotalItems()}
           </Text> */}
         </View>
@@ -297,7 +297,7 @@ const CartScreen = ({ navigation }) => {
             <View
               className={`w-6 h-6 rounded border-2 mr-3 items-center justify-center ${
                 selectedItems.size === cartItems.length && cartItems.length > 0
-                  ? "bg-orange-600 border-orange-600"
+                  ? "bg-primary border-primary"
                   : "border-gray-300"
               }`}
             >
@@ -333,7 +333,7 @@ const CartScreen = ({ navigation }) => {
               Add some products to your cart to get started
             </Text>
             <TouchableOpacity
-              className="px-6 py-3 mt-6 bg-orange-600 rounded-lg"
+              className="px-6 py-3 mt-6 bg-primary rounded-lg"
               onPress={() => navigation.navigate("Dashboard")}
             >
               <Text className="font-semibold text-white">Start Shopping</Text>
@@ -374,9 +374,9 @@ const CartScreen = ({ navigation }) => {
                         <View
                           className={`w-6 h-6 rounded border-2 items-center justify-center ${
                             allStoreItemsSelected
-                              ? "bg-orange-600 border-orange-600"
+                              ? "bg-primary border-primary"
                               : someStoreItemsSelected
-                                ? "bg-orange-200 border-orange-600"
+                                ? "bg-orange-200 border-primary"
                                 : "border-gray-300"
                           }`}
                         >
@@ -384,7 +384,7 @@ const CartScreen = ({ navigation }) => {
                             <Feather name="check" size={14} color="white" />
                           )}
                           {someStoreItemsSelected && !allStoreItemsSelected && (
-                            <View className="w-2 h-2 bg-orange-600 rounded-full" />
+                            <View className="w-2 h-2 bg-primary rounded-full" />
                           )}
                         </View>
                       </TouchableOpacity>
@@ -427,7 +427,7 @@ const CartScreen = ({ navigation }) => {
                           <View
                             className={`w-6 h-6 rounded border-2 items-center justify-center ${
                               selectedItems.has(item.cart_id)
-                                ? "bg-orange-600 border-orange-600"
+                                ? "bg-primary border-primary"
                                 : "border-gray-300"
                             }`}
                           >
@@ -490,7 +490,7 @@ const CartScreen = ({ navigation }) => {
                                 </Text>
                               </View>
                             ) : (
-                              <Text className="text-lg font-bold text-orange-600">
+                              <Text className="text-lg font-bold text-primary">
                                 ₱
                                 {Number.parseFloat(item.total_price).toFixed(2)}
                               </Text>
@@ -580,19 +580,19 @@ const CartScreen = ({ navigation }) => {
           </ScrollView>
 
           {/* Checkout Section */}
-          <View className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-white border-t border-gray-200">
+          <View className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-primary">
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-lg font-semibold text-gray-900">
+              <Text className="text-xl font-semibold text-white">
                 Selected ({getSelectedItemsCount()} items)
               </Text>
-              <Text className="text-2xl font-bold text-orange-600">
+              <Text className="text-2xl font-bold text-white">
                 ₱{getSelectedTotal().toFixed(2)}
               </Text>
             </View>
 
             <TouchableOpacity
               className={`flex items-center justify-center p-4 rounded-lg ${
-                selectedItems.size > 0 ? "bg-orange-600" : "bg-gray-300"
+                selectedItems.size > 0 ? "bg-white" : "bg-gray-200"
               }`}
               onPress={() => {
                 if (selectedItems.size === 0) {
@@ -614,7 +614,7 @@ const CartScreen = ({ navigation }) => {
               disabled={selectedItems.size === 0}
             >
               <Text
-                className={`text-lg font-semibold ${selectedItems.size > 0 ? "text-white" : "text-gray-500"}`}
+                className={`text-lg font-semibold ${selectedItems.size > 0 ? "text-primary" : "text-gray-400"}`}
               >
                 Proceed to Checkout
               </Text>

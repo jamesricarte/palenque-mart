@@ -43,62 +43,65 @@ const SellerWelcomeScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text className="text-xl font-semibold">Become a Seller</Text>
+        <Text className="text-xl font-semibold">Became a Vendor Partner</Text>
         <View className="w-6" />
       </View>
-
-      <>
-        <ScrollView className="flex-1">
+      <ScrollView>
+        <View className="flex-1">
           {/* Hero Section */}
           <View className="px-6 py-8 bg-gradient-to-r from-blue-50 to-blue-100">
-            <View className="items-center mb-6">
-              <View className="flex items-center justify-center w-20 h-20 mb-4 bg-blue-500 rounded-full">
+            <View className="items-center">
+              <View className="flex items-center justify-center w-20 h-20 mb-4 bg-primary rounded-full">
                 <MaterialCommunityIcons
                   name="storefront-outline"
                   size={40}
                   color="white"
                 />
               </View>
-              <Text className="mb-2 text-2xl font-bold text-center">
-                Start Your Online Business
+              <Text className="mb-1 text-2xl font-bold text-center">
+                Start Your Online Store
               </Text>
               <Text className="text-center text-gray-600">
-                Join thousands of successful sellers on Palenque Mart
+                Become one of successful vendors on PalenqueMart
               </Text>
             </View>
           </View>
 
-          {/* Benefits Section */}
-          <View className="px-6 py-6">
-            <Text className="mb-4 text-xl font-semibold">
-              Why Sell With Us?
-            </Text>
-            {benefits.map((benefit, index) => (
-              <View key={index} className="flex flex-row items-start mb-4">
-                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-blue-100 rounded-lg">
-                  <Feather name={benefit.icon} size={20} color="#3b82f6" />
+          <View className="mx-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+            {/* Benefits Section */}
+            <View className="px-6 py-4">
+              <Text className="mb-4 text-xl font-semibold">
+                Why Partner With Us?
+              </Text>
+              {benefits.map((benefit, index) => (
+                <View key={index} className="flex flex-row items-start mb-4">
+                  <View className="flex items-center justify-center w-10 h-10 mr-3 bg-orange-100 rounded-lg">
+                    <Feather name={benefit.icon} size={20} color="#EA580C" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="mb-1 font-semibold">{benefit.title}</Text>
+                    <Text className="text-sm text-gray-600">
+                      {benefit.description}
+                    </Text>
+                  </View>
                 </View>
-                <View className="flex-1">
-                  <Text className="mb-1 font-semibold">{benefit.title}</Text>
-                  <Text className="text-sm text-gray-600">
-                    {benefit.description}
-                  </Text>
+              ))}
+            </View>
+          </View>
+          <View className="mx-6 mt-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+            {/* Requirements Section */}
+            <View className="px-6 py-4 bg-white">
+              <Text className="mb-4 text-xl font-semibold">
+                What You'll Need
+              </Text>
+              {requirements.map((requirement, index) => (
+                <View key={index} className="flex flex-row items-center mb-3">
+                  <Feather name="check" size={16} color="#10b981" />
+                  <Text className="ml-3 text-gray-700">{requirement}</Text>
                 </View>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-
-          {/* Requirements Section */}
-          <View className="px-6 py-6 bg-gray-50">
-            <Text className="mb-4 text-xl font-semibold">What You'll Need</Text>
-            {requirements.map((requirement, index) => (
-              <View key={index} className="flex flex-row items-center mb-3">
-                <AntDesign name="checkcircle" size={16} color="#10b981" />
-                <Text className="ml-3 text-gray-700">{requirement}</Text>
-              </View>
-            ))}
-          </View>
-
           {/* FAQ Link */}
           <TouchableOpacity className="p-4 mx-6 my-4 border border-gray-200 rounded-lg">
             <View className="flex flex-row items-center justify-between">
@@ -111,20 +114,19 @@ const SellerWelcomeScreen = ({ navigation }) => {
               <Feather name="chevron-right" size={20} color="gray" />
             </View>
           </TouchableOpacity>
-        </ScrollView>
-
-        {/* Bottom CTA */}
-        <View className="px-6 py-4 bg-white border-t border-gray-200">
-          <TouchableOpacity
-            className="w-full py-4 bg-blue-500 rounded-lg"
-            onPress={() => navigation.navigate("SellerAccountType")}
-          >
-            <Text className="text-lg font-semibold text-center text-white">
-              Start Registration
-            </Text>
-          </TouchableOpacity>
         </View>
-      </>
+      </ScrollView>
+      {/* Bottom CTA */}
+      <View className="px-6 pt-6 pb-8 bg-primary">
+        <TouchableOpacity
+          className="w-full py-4 bg-white rounded-lg"
+          onPress={() => navigation.navigate("SellerAccountType")}
+        >
+          <Text className="text-lg font-semibold text-center text-primary">
+            Start Registration
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

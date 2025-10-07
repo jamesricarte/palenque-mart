@@ -89,6 +89,7 @@ import SellerChatConversationScreen from "../screens/SellerDashboard/SellerChatC
 import SellerDashboardScreen from "../screens/SellerDashboard/SellerDashboardScreen";
 import SellerDeliveryPartnerChatScreen from "../screens/SellerDashboard/SellerDeliveryPartnerChatScreen";
 import SellerOrderDetailsScreen from "../screens/SellerDashboard/SellerOrderDetailsScreen";
+import SellerOrdersScreen from "../screens/SellerDashboard/SellerOrdersScreen";
 
 // Seller Store
 import SellerStoreScreen from "../screens/SellerStore/SellerStoreScreen";
@@ -312,6 +313,7 @@ const MainStackNavigator = () => {
         name="SellerOrderDetails"
         component={SellerOrderDetailsScreen}
       />
+      <Stack.Screen name="SellerOrders" component={SellerOrdersScreen} />
 
       {/* Seller Store */}
       <Stack.Screen name="SellerStore" component={SellerStoreScreen} />

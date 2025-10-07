@@ -92,11 +92,11 @@ const SellerChatScreen = ({ navigation }) => {
     >
       {/* Customer Avatar */}
       <View className="mr-3">
-        <View className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
-          <Feather name="user" size={20} color="#1e40af" />
+        <View className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full">
+          <Feather name="user" size={20} color="#F16B44" />
         </View>
         {conversation.seller_unread_count > 0 && (
-          <View className="absolute flex items-center justify-center w-5 h-5 bg-blue-600 rounded-full -top-1 -right-1">
+          <View className="absolute flex items-center justify-center w-5 h-5 bg-primary rounded-full -top-1 -right-1">
             <Text className="text-xs font-bold text-white">
               {conversation.seller_unread_count > 9
                 ? "9+"
@@ -155,11 +155,10 @@ const SellerChatScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-2xl font-semibold">Customer Messages</Text>
-        <Text className="text-sm text-gray-600">Chat with your customers</Text>
+        <Text className="text-2xl font-semibold">Messages</Text>
       </View>
 
       {conversations.length === 0 ? (

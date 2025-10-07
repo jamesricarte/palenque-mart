@@ -130,14 +130,14 @@ const AddressManagementScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Feather name="arrow-left" size={24} color="black" />
           </TouchableOpacity>
-          <Text className="ml-4 text-xl font-semibold">My Addresses</Text>
+          <Text className="ml-32 text-xl font-semibold">My Addresses</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("AddNewAddress")}>
           <Feather name="plus" size={24} color="#EA580C" />
@@ -192,8 +192,8 @@ const AddressManagementScreen = ({ navigation }) => {
                       </Text>
                     </View>
                   )}
-                  <View className="px-2 py-1 bg-gray-100 rounded">
-                    <Text className="text-xs font-medium text-gray-800">
+                  <View className="px-2 py-1 bg-secondary rounded">
+                    <Text className="text-sm font-medium text-white">
                       {formatAddressType(address.address_type)}
                     </Text>
                   </View>
@@ -216,12 +216,10 @@ const AddressManagementScreen = ({ navigation }) => {
               <View className="flex-row items-center justify-between mt-4">
                 <View className="flex-row">
                   <TouchableOpacity
-                    className="px-3 py-2 mr-2 border border-gray-300 rounded-lg"
+                    className="px-3 py-2 mr-2 bg-primary border border-primary rounded-lg"
                     onPress={() => openEditModal(address)}
                   >
-                    <Text className="text-sm font-medium text-gray-700">
-                      Edit
-                    </Text>
+                    <Text className="text-sm font-medium text-white">Edit</Text>
                   </TouchableOpacity>
 
                   {address.is_default !== 1 && (

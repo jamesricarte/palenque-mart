@@ -34,6 +34,8 @@ const getSellerStoreDetails = require("../controllers/sellerControllers/getSelle
 // get all vendors
 const getAllVendors = require("../controllers/sellerControllers/getAllVendors");
 
+const getOrderCount = require("../controllers/sellerControllers/getOrderCount");
+
 // Routes
 router.post(
   "/submit-application",
@@ -101,5 +103,7 @@ router.get("/store/:sellerId", getSellerStoreDetails);
 
 // Route to get all vendos
 router.get("/all-vendors", getAllVendors);
+
+router.get("/count", authenticateToken, getOrderCount);
 
 module.exports = router;

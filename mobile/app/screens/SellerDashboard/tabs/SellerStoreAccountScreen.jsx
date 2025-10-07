@@ -12,6 +12,7 @@ import { useState, useCallback } from "react";
 import axios from "axios";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { useAuth } from "../../../context/AuthContext";
 import { API_URL } from "../../../config/apiConfig";
@@ -21,10 +22,12 @@ const SellerStoreAccountScreen = ({ navigation }) => {
   const { user, token, logout } = useAuth();
   const [sellerData, setSellerData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [orderCount, setOrderCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       fetchSellerData();
+      fetchOrderCount();
     }, [])
   );
 
@@ -43,6 +46,21 @@ const SellerStoreAccountScreen = ({ navigation }) => {
       console.error("Error fetching seller data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrderCount = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/seller/count`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.success) {
+        setOrderCount(response.data.data.totalOrders);
+      }
+    } catch (error) {
+      console.error("Error fetching order count:", error);
     }
   };
 
@@ -98,102 +116,149 @@ const SellerStoreAccountScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1">
-      <ScrollView className="flex-1 bg-gray-50">
-        {/* Header */}
-        <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <Text className="text-xl font-semibold">Seller Account</Text>
-        </View>
-
-        {/* Store Profile Section */}
-        {sellerData && (
-          <TouchableOpacity
-            className="p-6 mt-4 bg-white border-b border-gray-200"
-            onPress={() => navigation.navigate("EditStoreProfile")}
-          >
-            <View className="flex flex-row items-center gap-4 mb-4">
-              {sellerData.storeLogoUrl ? (
-                <Image
-                  source={{ uri: sellerData.storeLogoUrl }}
-                  className="w-16 h-16 rounded-full"
-                  style={{ width: 64, height: 64, borderRadius: 32 }}
-                />
-              ) : (
-                <View className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
-                  <FontAwesome6 name="store" size={24} color="#3b82f6" />
-                </View>
-              )}
-              <View className="flex-1">
-                <Text className="text-xl font-semibold">
-                  {sellerData.storeName || "Your Store"}
-                </Text>
-                <Text className="text-sm text-gray-600 capitalize">
-                  {sellerData.accountType} Account
-                </Text>
-                <View className="flex flex-row items-center mt-1">
-                  <View
-                    className={`w-2 h-2 mr-2 rounded-full ${sellerData.isActive ? "bg-green-500" : "bg-red-500"}`}
-                  />
-                  <Text
-                    className={`text-sm font-medium ${sellerData.isActive ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {sellerData.isActive ? "Active Seller" : "Inactive Seller"}
+    <View className="flex-1 bg-white">
+      {/* Header */}
+      <View className="px-4 pt-16 pb-5 bg-white mt-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-3xl font-semibold">My Store</Text>
+          <View className="flex-row gap-0.5">
+            <TouchableOpacity
+              onPress={() => navigation.push("SellerOrders")}
+              className="relative p-2"
+            >
+              <Feather name="shopping-bag" size={24} color="black" />
+              {orderCount > 0 && (
+                <View className="absolute flex items-center justify-center w-5 h-5 bg-red-500 rounded-full -top-1 -right-1">
+                  <Text className="text-xs font-bold text-white">
+                    {orderCount}
                   </Text>
                 </View>
-              </View>
-              <Feather name="chevron-right" size={20} color="gray" />
-            </View>
-          </TouchableOpacity>
-        )}
-
-        {/* Quick Actions */}
-        <View className="p-6 bg-white border-b border-gray-200">
-          <Text className="mb-4 text-lg font-semibold">Quick Actions</Text>
-
-          <TouchableOpacity className="flex flex-row items-center gap-4 p-4 mb-3 border border-gray-200 rounded-lg">
-            <Feather name="settings" size={20} color="black" />
-            <View className="flex-1">
-              <Text className="font-medium">Store Settings</Text>
-              <Text className="text-sm text-gray-600">
-                Manage store preferences
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={20} color="gray" />
-          </TouchableOpacity>
-
-          <TouchableOpacity className="flex flex-row items-center gap-4 p-4 border border-gray-200 rounded-lg">
-            <Feather name="help-circle" size={20} color="black" />
-            <View className="flex-1">
-              <Text className="font-medium">Seller Support</Text>
-              <Text className="text-sm text-gray-600">
-                Get help with selling
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={20} color="gray" />
-          </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
+      </View>
+
+      {/* Store Profile Section */}
+      {sellerData && (
+        <TouchableOpacity
+          className="flex flex-row items-center p-4 mx-4 bg-white border border-gray-200 shadow-sm rounded-xl"
+          onPress={() => navigation.navigate("EditStoreProfile")}
+        >
+          <View className="flex flex-row items-center gap-4 flex-1">
+            {sellerData.storeLogoUrl ? (
+              <Image
+                source={{ uri: sellerData.storeLogoUrl }}
+                className="w-16 h-16 rounded-full"
+                style={{ resizeMode: "cover" }}
+              />
+            ) : (
+              <View className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
+                <FontAwesome6 name="store" size={24} color="#3b82f6" />
+              </View>
+            )}
+
+            <View className="flex-1">
+              <Text className="text-lg font-semibold text-gray-900">
+                {sellerData.storeName || "Your Store"}
+              </Text>
+              <Text className="text-sm text-gray-600 capitalize">
+                {sellerData.accountType} Account
+              </Text>
+
+              <View className="flex flex-row items-center mt-1">
+                <View
+                  className={`w-2 h-2 mr-2 rounded-full ${
+                    sellerData.isActive ? "bg-green-500" : "bg-red-500"
+                  }`}
+                />
+                <Text
+                  className={`text-sm font-medium ${
+                    sellerData.isActive ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {sellerData.isActive ? "Active" : "Inactive"}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <Feather name="chevron-right" size={20} color="gray" />
+        </TouchableOpacity>
+      )}
+
+      {/* Quick Actions */}
+      <View className="mx-4 mt-4 bg-white border border-gray-200 shadow-sm rounded-xl">
+        <View className="p-4 border-b border-gray-100">
+          <Text className="text-lg font-semibold text-gray-900">
+            Quick Actions
+          </Text>
+        </View>
+
+        {/* Store Settings */}
+        <TouchableOpacity
+          className="flex-row items-center p-4 border-b border-gray-100"
+          onPress={() => {}}
+          activeOpacity={0.7}
+        >
+          <View className="flex items-center justify-center w-10 h-10 mr-4 bg-gray-100 rounded-full">
+            <Ionicons name="settings-outline" size={20} color="black" />
+          </View>
+
+          <View className="flex-1">
+            <Text className="text-base font-medium text-gray-900">
+              Store Settings
+            </Text>
+            <Text className="text-sm text-gray-500">
+              Manage store preferences
+            </Text>
+          </View>
+
+          <Feather name="chevron-right" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+
+        {/* Seller Support */}
+        <TouchableOpacity
+          className="flex-row items-center p-4"
+          onPress={() => {}}
+          activeOpacity={0.7}
+        >
+          <View className="flex items-center justify-center w-10 h-10 mr-4 bg-gray-100 rounded-full">
+            <Ionicons name="help-circle-outline" size={20} color="black" />
+          </View>
+
+          <View className="flex-1">
+            <Text className="text-base font-medium text-gray-900">
+              Help & Support
+            </Text>
+            <Text className="text-sm text-gray-500">Get help with selling</Text>
+          </View>
+
+          <Feather name="chevron-right" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
 
         {/* Switch to Customer Dashboard */}
         <TouchableOpacity
-          className="bg-white border-b border-gray-200"
+          className="flex-row items-center p-4"
           onPress={handleSwitchToCustomerDashboard}
+          activeOpacity={0.7}
         >
-          <View className="flex flex-row items-center gap-4 p-6">
-            <View className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
-              <Feather name="shopping-bag" size={20} color="#16a34a" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-lg font-semibold">
-                Switch to Customer View
-              </Text>
-              <Text className="text-sm text-gray-600">
-                Browse and shop as a customer
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={20} color="gray" />
+          <View className="flex items-center justify-center w-10 h-10 mr-4 bg-orange-100 rounded-full">
+            <FontAwesome6 name="arrows-rotate" size={20} color="#EA580C" />
           </View>
+
+          <View className="flex-1">
+            <Text className="text-base font-medium text-gray-900">
+              Switch to Customer View
+            </Text>
+            <Text className="text-sm text-gray-500">
+              Browse and shop as a customer
+            </Text>
+          </View>
+
+          <Feather name="chevron-right" size={20} color="#9CA3AF" />
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </View>
   );
 };
