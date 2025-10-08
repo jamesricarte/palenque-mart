@@ -499,7 +499,7 @@ const SellerAddressSetupScreen = ({ navigation, route }) => {
         </View>
 
         <TouchableOpacity
-          className="w-full py-4 bg-blue-500 rounded-lg"
+          className="w-full py-4 bg-orange-500 rounded-lg"
           onPress={handleSave}
           disabled={isSearching || !!locationError}
         >

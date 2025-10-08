@@ -11,6 +11,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useAuth } from "../../../context/AuthContext";
 import { useDeliveryPartner } from "../../../context/DeliveryPartnerContext";
 
@@ -66,33 +67,43 @@ const DeliveryPartnerAccountScreen = ({
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
-      <View className="p-4">
-        {/* Profile Header */}
-        <View className="p-6 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <View className="flex flex-row items-center mb-4">
-            <View className="flex items-center justify-center w-16 h-16 mr-4 overflow-hidden bg-green-100 rounded-full">
-              {deliveryPartnerProfile?.profile_picture_url ? (
-                <Image
-                  source={{ uri: deliveryPartnerProfile.profile_picture_url }}
-                  className="w-full h-full"
-                  style={{ resizeMode: "cover" }}
-                />
-              ) : (
-                <Feather name="user" size={32} color="#16a34a" />
-              )}
-            </View>
+    <ScrollView className="flex-1 bg-white">
+      {/* Header */}
+      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <Text className="text-2xl font-semibold">My Account</Text>
+      </View>
+
+      <View className="px-4 pb-6">
+        {/* Profile Section - Styled like Seller Account */}
+        <TouchableOpacity
+          onPress={handleEditProfile}
+          className="flex flex-row items-center p-4 mt-4 bg-white border border-gray-200 shadow-sm rounded-xl"
+        >
+          <View className="flex flex-row items-center gap-4 flex-1">
+            {deliveryPartnerProfile?.profile_picture_url ? (
+              <Image
+                source={{ uri: deliveryPartnerProfile.profile_picture_url }}
+                className="w-16 h-16 rounded-full"
+                style={{ resizeMode: "cover" }}
+              />
+            ) : (
+              <View className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
+                <Feather name="user" size={24} color="#16a34a" />
+              </View>
+            )}
+
             <View className="flex-1">
-              <Text className="text-xl font-semibold text-gray-900">
+              <Text className="text-lg font-semibold text-gray-900">
                 {deliveryPartnerProfile?.first_name}{" "}
                 {deliveryPartnerProfile?.last_name}
               </Text>
               <Text className="text-sm text-gray-600">
                 {deliveryPartnerProfile?.partner_id}
               </Text>
+
               <View className="flex flex-row items-center mt-1">
                 <View
-                  className={`w-3 h-3 rounded-full mr-2 ${
+                  className={`w-2 h-2 mr-2 rounded-full ${
                     isOnline ? "bg-green-500" : "bg-gray-400"
                   }`}
                 />
@@ -113,162 +124,95 @@ const DeliveryPartnerAccountScreen = ({
             </View>
           </View>
 
+          <Feather name="chevron-right" size={20} color="gray" />
+        </TouchableOpacity>
+
+        {/* Quick Actions Section - Same layout as Seller's Quick Actions */}
+        <View className="mt-4 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <View className="p-4 border-b border-gray-100">
+            <Text className="text-lg font-semibold text-gray-900">
+              Quick Actions
+            </Text>
+          </View>
+
+          {/* Help & Support */}
           <TouchableOpacity
-            onPress={handleEditProfile}
-            className="w-full py-3 bg-green-600 rounded-lg"
+            className="flex-row items-center p-4 border-b border-gray-100"
+            onPress={() => {}}
+            activeOpacity={0.7}
           >
-            <Text className="font-semibold text-center text-white">
-              Edit Profile
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Vehicle Information */}
-        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Text className="mb-4 text-lg font-semibold text-gray-900">
-            Vehicle Information
-          </Text>
-
-          <View className="space-y-3">
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Vehicle Type</Text>
-              <Text className="text-sm font-medium text-gray-900 capitalize">
-                {deliveryPartnerProfile?.vehicle_type}
+            <View className="flex items-center justify-center w-10 h-10 mr-4 bg-gray-100 rounded-full">
+              <MaterialIcons name="help-outline" size={20} color="black" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-medium text-gray-900">
+                Help & Support
+              </Text>
+              <Text className="text-sm text-gray-500">
+                Get help with deliveries
               </Text>
             </View>
-
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Make & Model</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.vehicle_make}{" "}
-                {deliveryPartnerProfile?.vehicle_model}
-              </Text>
-            </View>
-
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Year</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.vehicle_year}
-              </Text>
-            </View>
-
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Color</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.vehicle_color}
-              </Text>
-            </View>
-
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">License Number</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.license_number}
-              </Text>
-            </View>
-
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Registration</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.vehicle_registration}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Performance Stats */}
-        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Text className="mb-4 text-lg font-semibold text-gray-900">
-            Performance
-          </Text>
-
-          <View className="flex flex-row justify-between">
-            <View className="items-center flex-1">
-              <Text className="text-2xl font-bold text-green-600">
-                {typeof deliveryPartnerProfile?.rating === "number"
-                  ? deliveryPartnerProfile.rating.toFixed(1)
-                  : "5.0"}
-              </Text>
-              <Text className="text-sm text-gray-600">Rating</Text>
-            </View>
-
-            <View className="items-center flex-1">
-              <Text className="text-2xl font-bold text-blue-600">
-                {deliveryPartnerProfile?.total_deliveries || 0}
-              </Text>
-              <Text className="text-sm text-gray-600">Total Deliveries</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Emergency Contact */}
-        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Text className="mb-4 text-lg font-semibold text-gray-900">
-            Emergency Contact
-          </Text>
-
-          <View className="space-y-3">
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Name</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.emergency_contact_name}
-              </Text>
-            </View>
-
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Phone</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.emergency_contact_phone}
-              </Text>
-            </View>
-
-            <View className="flex flex-row items-center justify-between">
-              <Text className="text-sm text-gray-600">Relation</Text>
-              <Text className="text-sm font-medium text-gray-900">
-                {deliveryPartnerProfile?.emergency_contact_relation}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Account Actions */}
-        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Text className="mb-4 text-lg font-semibold text-gray-900">
-            Account
-          </Text>
-
-          <TouchableOpacity className="flex flex-row items-center p-3 mb-3 border border-gray-200 rounded-lg">
-            <MaterialIcons name="help-outline" size={20} color="#6b7280" />
-            <Text className="flex-1 ml-3 text-sm font-medium text-gray-900">
-              Help & Support
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+            <Feather name="chevron-right" size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-row items-center p-3 mb-3 border border-gray-200 rounded-lg">
-            <MaterialIcons name="privacy-tip" size={20} color="#6b7280" />
-            <Text className="flex-1 ml-3 text-sm font-medium text-gray-900">
-              Privacy Policy
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+          {/* Privacy Policy */}
+          <TouchableOpacity
+            className="flex-row items-center p-4 border-b border-gray-100"
+            onPress={() => {}}
+            activeOpacity={0.7}
+          >
+            <View className="flex items-center justify-center w-10 h-10 mr-4 bg-gray-100 rounded-full">
+              <MaterialIcons name="privacy-tip" size={20} color="black" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-medium text-gray-900">
+                Privacy Policy
+              </Text>
+              <Text className="text-sm text-gray-500">
+                Read our privacy terms
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-row items-center p-3 mb-3 border border-gray-200 rounded-lg">
-            <MaterialIcons name="description" size={20} color="#6b7280" />
-            <Text className="flex-1 ml-3 text-sm font-medium text-gray-900">
-              Terms of Service
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+          {/* Terms of Service */}
+          <TouchableOpacity
+            className="flex-row items-center p-4 border-b border-gray-100"
+            onPress={() => {}}
+            activeOpacity={0.7}
+          >
+            <View className="flex items-center justify-center w-10 h-10 mr-4 bg-gray-100 rounded-full">
+              <MaterialIcons name="description" size={20} color="black" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-medium text-gray-900">
+                Terms of Service
+              </Text>
+              <Text className="text-sm text-gray-500">
+                Review delivery partner terms
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
+          {/* Switch to Customer View */}
           <TouchableOpacity
             onPress={handleSwitchToCustomerView}
-            className="flex flex-row items-center p-3 border border-blue-200 rounded-lg bg-blue-50"
+            className="flex-row items-center p-4"
+            activeOpacity={0.7}
           >
-            <MaterialIcons name="swap-horiz" size={20} color="#2563eb" />
-            <Text className="flex-1 ml-3 text-sm font-medium text-blue-600">
-              Switch to Customer View
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#2563eb" />
+            <View className="flex items-center justify-center w-10 h-10 mr-4 bg-green-100 rounded-full">
+              <FontAwesome6 name="arrows-rotate" size={20} color="#39B54A" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-medium text-gray-900">
+                Switch to Customer View
+              </Text>
+              <Text className="text-sm text-gray-500">
+                Browse and shop as a customer
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
       </View>

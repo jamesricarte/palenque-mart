@@ -28,12 +28,12 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const statusOptions = [
-    { value: "all", label: "All", color: "bg-gray-100" },
-    { value: "pending", label: "Pending", color: "bg-yellow-100" },
-    { value: "under_review", label: "Review", color: "bg-blue-100" },
-    { value: "needs_resubmission", label: "Resubmit", color: "bg-orange-100" },
-    { value: "approved", label: "Approved", color: "bg-green-100" },
-    { value: "rejected", label: "Rejected", color: "bg-red-100" },
+    { value: "all", label: "All", color: "bg-white" },
+    { value: "pending", label: "Pending", color: "bg-white" },
+    { value: "under_review", label: "Review", color: "bg-white" },
+    { value: "needs_resubmission", label: "Resubmit", color: "bg-white" },
+    { value: "approved", label: "Approved", color: "bg-white" },
+    { value: "rejected", label: "Rejected", color: "bg-white" },
   ];
 
   const fetchApplications = async (
@@ -171,22 +171,18 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
   );
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Header */}
+    <View className="flex-1 bg-white">
+      {/* Header (Styled same as AdminSettingsScreen) */}
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <View className="flex flex-row items-center justify-between mb-4">
-          <Text className="text-xl font-semibold">Seller Applications</Text>
-          <TouchableOpacity
-            onPress={() => fetchApplications(true, selectedStatus, 1)}
-          >
-            <Ionicons name="refresh" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
+        <Text className="text-2xl font-semibold">Seller Applications</Text>
+      </View>
 
+      {/* Filters and Search */}
+      <View className="px-4 pt-4 pb-2 bg-white ">
         {/* Search */}
         <View className="relative mb-4">
           <TextInput
-            className="w-full p-3 pl-10 border border-gray-300 rounded-lg bg-gray-50"
+            className="w-full p-3 pl-10 border border-gray-300 rounded-lg bg-white"
             placeholder="Search applications..."
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -210,13 +206,17 @@ const AdminSellerApplicationsScreen = ({ navigation, route }) => {
               key={option.value}
               className={`px-4 py-2 mr-2 rounded-full border ${
                 selectedStatus === option.value
-                  ? "border-blue-500 bg-blue-50"
+                  ? "border-secondary bg-secondary"
                   : `border-gray-300 ${option.color}`
               }`}
               onPress={() => setSelectedStatus(option.value)}
             >
               <Text
-                className={`text-sm font-medium ${selectedStatus === option.value ? "text-blue-600" : "text-gray-700"}`}
+                className={`text-sm font-medium ${
+                  selectedStatus === option.value
+                    ? "text-white"
+                    : "text-gray-700"
+                }`}
               >
                 {option.label}
               </Text>

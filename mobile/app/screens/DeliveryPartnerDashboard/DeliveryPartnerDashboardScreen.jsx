@@ -16,7 +16,6 @@ import DeliveryPartnerOverviewScreen from "./tabs/DeliveryPartnerOverviewScreen"
 import DeliveryPartnerDeliveriesScreen from "./tabs/DeliveryPartnerDeliveriesScreen";
 import DeliveryPartnerHistoryScreen from "./tabs/DeliveryPartnerHistoryScreen";
 import DeliveryPartnerAccountScreen from "./tabs/DeliveryPartnerAccountScreen";
-// import DeliveryPartnerChatScreen from "./tabs/DeliveryPartnerChatScreen"; // Removed Chat tab from bottom navigation
 
 const Tab = createBottomTabNavigator();
 
@@ -106,34 +105,13 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
 
   return (
     <>
-      <StatusBar style="light" />
-      {/* Header */}
-      <View className="flex flex-row items-center justify-between px-4 pt-16 pb-4 bg-green-600">
-        <View className="flex-1">
-          <Text className="text-lg font-semibold text-white">
-            Delivery Partner Dashboard
-          </Text>
-          <Text className="text-sm text-green-100">
-            {deliveryPartnerProfile?.partner_id || "Loading..."}
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={handleSwitchToCustomerView}
-          className="p-2 bg-green-700 rounded-lg"
-        >
-          <MaterialIcons name="swap-horiz" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Tab Navigator */}
+      {/* Tab Navigator with updated UI */}
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
-            const IconComponent = Ionicons;
-
-            if (route.name === "Overview") {
+            if (route.name === "Home") {
               iconName = focused ? "home" : "home-outline";
             } else if (route.name === "Deliveries") {
               iconName = focused ? "list" : "list-outline";
@@ -143,23 +121,24 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
               iconName = focused ? "person" : "person-outline";
             }
 
-            return <IconComponent name={iconName} size={size} color={color} />;
+            return <Ionicons name={iconName} size={30} color={color} />;
           },
-          tabBarActiveTintColor: "#16a34a",
-          tabBarInactiveTintColor: "#6b7280",
+          tabBarActiveTintColor: "#fff",
+          tabBarInactiveTintColor: "#fff",
           tabBarStyle: {
-            backgroundColor: "white",
+            backgroundColor: "#39B54A",
+            borderTopColor: "#39B54A",
             borderTopWidth: 1,
-            borderTopColor: "#e5e7eb",
+            height: 100,
+            paddingTop: 15,
           },
           tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: "500",
+            fontSize: 13,
           },
         })}
       >
         <Tab.Screen
-          name="Overview"
+          name="Home"
           component={DeliveryPartnerOverviewScreen}
           initialParams={{ deliveryPartnerProfile }}
         />

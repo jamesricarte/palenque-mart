@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Image,
 } from "react-native";
 import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -106,9 +107,12 @@ const AdminOverviewScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View className="flex-1 bg-white">
-        <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-          <Text className="text-xl font-semibold">Admin Overview</Text>
-          <Ionicons name="notifications-outline" size={24} color="black" />
+        <View className="px-4 pt-16 pb-5 bg-white">
+          <Image
+            source={require("../../../assets/images/Palenque-Logo-v1.png")}
+            className="h-16 w-52"
+            resizeMode="cover"
+          />
         </View>
         <View className="items-center justify-center flex-1">
           <Text className="text-gray-500">Loading overview...</Text>
@@ -118,13 +122,16 @@ const AdminOverviewScreen = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-xl font-semibold">Admin Overview</Text>
-        <TouchableOpacity onPress={() => fetchOverview(true)}>
-          <Ionicons name="refresh" size={24} color="black" />
-        </TouchableOpacity>
+      <View className="px-4 pt-16 pb-5 bg-white ">
+        <View className="flex-row items-center justify-between">
+          <Image
+            source={require("../../../assets/images/Palenque-Logo-v1.png")}
+            className="h-16 w-52"
+            resizeMode="cover"
+          />
+        </View>
       </View>
 
       <ScrollView
@@ -138,18 +145,18 @@ const AdminOverviewScreen = ({ navigation }) => {
       >
         {/* Quick Stats */}
         <View className="p-4">
-          <Text className="mb-4 text-lg font-semibold">Quick Stats</Text>
+          <Text className="mb-4 text-xl font-semibold">Quick Stats</Text>
           <View className="flex flex-row mb-4">
             <StatCard
               title="Total Sellers"
               value={overviewData?.seller?.total || 0}
               subtitle={`${overviewData?.seller?.recentApplications || 0} this week`}
-              color="border-blue-200 bg-blue-50"
+              color="border-orange-200 bg-orange-50"
               icon={
                 <MaterialCommunityIcons
                   name="storefront-outline"
                   size={20}
-                  color="#2563eb"
+                  color="#F16B44"
                 />
               }
               onPress={() => navigation.navigate("Sellers")}
@@ -168,7 +175,7 @@ const AdminOverviewScreen = ({ navigation }) => {
           <StatusCard
             title="Seller Applications"
             stats={overviewData?.seller?.stats || {}}
-            color="border-blue-200 bg-blue-50"
+            color="border-orange-200 bg-orange-50"
           />
 
           {/* Delivery Partner Applications Status */}
@@ -177,56 +184,6 @@ const AdminOverviewScreen = ({ navigation }) => {
             stats={overviewData?.deliveryPartner?.stats || {}}
             color="border-green-200 bg-green-50"
           />
-
-          {/* Quick Actions */}
-          <View className="mt-4">
-            <Text className="mb-4 text-lg font-semibold">Quick Actions</Text>
-            <View className="space-y-3">
-              <TouchableOpacity
-                className="flex flex-row items-center p-4 bg-white border border-gray-200 rounded-lg"
-                onPress={() =>
-                  navigation.navigate("Sellers", { filter: "pending" })
-                }
-              >
-                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-yellow-100 rounded-lg">
-                  <Ionicons name="time-outline" size={20} color="#d97706" />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-medium">Review Pending Sellers</Text>
-                  <Text className="text-sm text-gray-600">
-                    {overviewData?.seller?.stats?.pending || 0} applications
-                    waiting
-                  </Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#6b7280" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="flex flex-row items-center p-4 bg-white border border-gray-200 rounded-lg"
-                onPress={() =>
-                  navigation.navigate("Sellers", {
-                    filter: "needs_resubmission",
-                  })
-                }
-              >
-                <View className="flex items-center justify-center w-10 h-10 mr-3 bg-orange-100 rounded-lg">
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={20}
-                    color="#f97316"
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-medium">Seller Resubmissions</Text>
-                  <Text className="text-sm text-gray-600">
-                    {overviewData?.seller?.stats?.needs_resubmission || 0}{" "}
-                    applications need action
-                  </Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-          </View>
         </View>
       </ScrollView>
     </View>

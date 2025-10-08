@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "../../../context/AuthContext";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
@@ -211,7 +212,12 @@ const DeliveryPartnerHistoryScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
+      {/* Header */}
+      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <Text className="text-2xl font-semibold">History</Text>
+      </View>
+
       {/* Status Filter */}
       <View className="p-4 bg-white border-b border-gray-200">
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -227,7 +233,11 @@ const DeliveryPartnerHistoryScreen = () => {
                 }`}
               >
                 <Text
-                  className={`text-sm font-medium ${selectedStatus === option.value ? "text-white" : "text-gray-700"}`}
+                  className={`text-sm font-medium ${
+                    selectedStatus === option.value
+                      ? "text-white"
+                      : "text-gray-700"
+                  }`}
                 >
                   {option.label}
                 </Text>

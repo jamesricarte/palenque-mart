@@ -138,7 +138,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
       <View className="flex flex-row items-center justify-between mb-3">
         <Text className="text-lg font-semibold">{title}</Text>
         <TouchableOpacity onPress={() => handleEdit(editSection)}>
-          <Feather name="edit-2" size={18} color="#3b82f6" />
+          <Feather name="edit-2" size={18} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -214,7 +214,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
       <View className="flex flex-row items-center justify-between mb-3">
         <Text className="text-lg font-semibold">Address Information</Text>
         <TouchableOpacity onPress={() => handleEdit("address")}>
-          <Feather name="edit-2" size={18} color="#3b82f6" />
+          <Feather name="edit-2" size={18} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -299,7 +299,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
       <View className="flex flex-row items-center justify-between mb-3">
         <Text className="text-lg font-semibold">Store Operating Hours</Text>
         <TouchableOpacity onPress={() => handleEdit("store")}>
-          <Feather name="edit-2" size={18} color="#3b82f6" />
+          <Feather name="edit-2" size={18} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -318,8 +318,8 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
           {/* Weekday Hours */}
           <View className="p-3 mb-3 bg-white border border-gray-200 rounded-lg">
             <View className="flex flex-row items-center mb-2">
-              <Ionicons name="calendar" size={16} color="#3b82f6" />
-              <Text className="ml-2 text-sm font-semibold text-blue-700">
+              <Ionicons name="calendar" size={16} color="#000" />
+              <Text className="ml-2 text-sm font-semibold text-black">
                 WEEKDAYS (MON-FRI)
               </Text>
             </View>
@@ -385,11 +385,11 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
         </Text>
 
         {/* Account Type */}
-        <View className="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
-          <Text className="mb-1 text-lg font-semibold text-blue-800">
+        <View className="p-4 mb-6 border border-orange-200 rounded-lg bg-orange-50">
+          <Text className="mb-1 text-lg font-semibold text-primary">
             Account Type
           </Text>
-          <Text className="text-blue-600 capitalize">{accountType} Seller</Text>
+          <Text className="text-primary capitalize">{accountType} Seller</Text>
         </View>
 
         {/* Personal/Business Details */}
@@ -481,13 +481,13 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View className="px-6 py-4 bg-white border-t border-gray-200">
+      <View className="px-6 py-6 bg-primary border-t border-gray-200">
         <TouchableOpacity
-          className={`w-full py-4 rounded-lg ${isSubmitting ? "bg-gray-400" : "bg-green-500"}`}
+          className={`w-full py-4 rounded-lg ${isSubmitting ? "bg-gray-400" : "bg-white"}`}
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
-          <Text className="text-lg font-semibold text-center text-white">
+          <Text className="text-lg font-semibold text-center text-primary">
             {isSubmitting ? "Submitting..." : "Submit Application"}
           </Text>
         </TouchableOpacity>

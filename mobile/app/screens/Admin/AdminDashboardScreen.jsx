@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import AdminOverviewScreen from "./tabs/AdminOverviewScreen";
 import AdminSellerApplicationsScreen from "./tabs/AdminSellerApplicationsScreen";
@@ -15,56 +16,47 @@ const Tab = createBottomTabNavigator();
 const AdminDashboardScreen = () => {
   return (
     <Tab.Navigator
-      initialRouteName="Overview"
-      screenOptions={{
+      initialRouteName="Home"
+      screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: "#dc2626",
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopColor: "#e5e7eb",
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          let IconComponent = Ionicons;
+
+          if (route.name === "Home") {
+            IconComponent = Ionicons;
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Sellers") {
+            IconComponent = Ionicons;
+            iconName = focused ? "storefront" : "storefront-outline";
+          } else if (route.name === "Delivery") {
+            IconComponent = MaterialCommunityIcons;
+            iconName = focused ? "truck" : "truck-outline";
+          } else if (route.name === "Account") {
+            IconComponent = Ionicons;
+            iconName = focused ? "person" : "person-outline";
+          }
+
+          return <IconComponent name={iconName} size={30} color={color} />;
         },
-      }}
+        tabBarActiveTintColor: "#fff",
+        tabBarInactiveTintColor: "#fff",
+        tabBarStyle: {
+          backgroundColor: "#39B54A",
+          borderTopColor: "#39B54A",
+          borderTopWidth: 1,
+          height: 100,
+          paddingTop: 15,
+        },
+        tabBarLabelStyle: {
+          fontSize: 13,
+        },
+      })}
     >
-      <Tab.Screen
-        name="Overview"
-        component={AdminOverviewScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="analytics" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Sellers"
-        component={AdminSellerApplicationsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="store" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Delivery"
-        component={AdminDeliveryApplicationsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="truck" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={AdminSettingsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons
-              name="admin-panel-settings"
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
+      <Tab.Screen name="Home" component={AdminOverviewScreen} />
+      <Tab.Screen name="Sellers" component={AdminSellerApplicationsScreen} />
+      <Tab.Screen name="Delivery" component={AdminDeliveryApplicationsScreen} />
+      <Tab.Screen name="Account" component={AdminSettingsScreen} />
     </Tab.Navigator>
   );
 };

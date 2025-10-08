@@ -350,7 +350,7 @@ const AdminDeliveryPartnerApplicationDetailsScreen = ({
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Document Viewer Modal */}
       <Modal
         animationType="slide"

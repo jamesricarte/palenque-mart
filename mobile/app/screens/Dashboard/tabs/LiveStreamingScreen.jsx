@@ -5,10 +5,7 @@ const LiveStreamingScreen = () => {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <Text className="text-2xl font-semibold">Live Selling</Text>
-      </View>
-
+      de
       <View className="items-center justify-center flex-1 p-8">
         <View className="items-center justify-center w-20 h-20 mb-6 bg-orange-100 rounded-full">
           <Ionicons name="videocam" size={40} color="#f97316" />

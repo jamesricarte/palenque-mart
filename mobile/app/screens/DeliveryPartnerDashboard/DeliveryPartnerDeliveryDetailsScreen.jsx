@@ -343,7 +343,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
 
     if (candidateStatus === "pending") {
       return (
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-3 pb-4 pt-2">
           <TouchableOpacity
             onPress={() =>
               handleUpdateStatus(
@@ -352,7 +352,11 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
               )
             }
             disabled={updating}
-            className={`flex-1 py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-green-600"}`}
+            className={`flex-1 py-4 rounded-lg border ${
+              updating
+                ? "bg-gray-400 border-gray-500"
+                : "bg-secondary border-white"
+            }`}
           >
             <Text className="font-semibold text-center text-white">
               {updating ? "Accepting..." : "Accept Delivery"}
@@ -366,9 +370,17 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
               )
             }
             disabled={updating}
-            className={`flex-1 py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-red-600"}`}
+            className={`flex-1 py-4 rounded-lg border ${
+              updating
+                ? "bg-gray-100 border-gray-300"
+                : "bg-white border-secondary"
+            }`}
           >
-            <Text className="font-semibold text-center text-white">
+            <Text
+              className={`font-semibold text-center ${
+                updating ? "text-gray-400" : "text-secondary"
+              }`}
+            >
               {updating ? "Declining..." : "Decline Delivery"}
             </Text>
           </TouchableOpacity>
@@ -387,7 +399,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
               )
             }
             disabled={updating}
-            className={`w-full py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-blue-600"}`}
+            className={`w-full py-4 mb-4 mt-2 rounded-lg ${updating ? "bg-gray-400" : "bg-secondary"}`}
           >
             <Text className="font-semibold text-center text-white">
               {updating ? "Updating..." : "Mark as Picked Up"}
@@ -406,7 +418,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
               )
             }
             disabled={updating}
-            className={`w-full py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-green-600"}`}
+            className={`w-full py-4 rounded-lg ${updating ? "bg-gray-400" : "bg-secondary"}`}
           >
             <Text className="font-semibold text-center text-white">
               {updating ? "Updating..." : "Mark as Delivered"}
@@ -599,7 +611,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
           {deliveryDetails && (
             <View className="p-4 bg-white border-t border-gray-200">
               <View className="mb-4">
-                <Text className="mb-1 text-sm text-gray-600">
+                <Text className="text-sm mb-2 text-gray-600">
                   Current Status:
                 </Text>
                 <View
@@ -1081,7 +1093,7 @@ const DeliveryPartnerDeliveryDetailsScreen = ({ navigation, route }) => {
 
       {/* Action Buttons at Bottom */}
       {deliveryDetails && renderActionButtons() && (
-        <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+        <View className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-200">
           {renderActionButtons()}
         </View>
       )}

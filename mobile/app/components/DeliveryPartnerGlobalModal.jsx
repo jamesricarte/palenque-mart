@@ -250,7 +250,7 @@ export default function DeliveryPartnerGlobalModal() {
                   }
                   disabled={isUpdating}
                   className={`flex-1 py-3 rounded-lg ${
-                    isUpdating ? "bg-gray-400" : "bg-green-600"
+                    isUpdating ? "bg-gray-400" : "bg-secondary"
                   }`}
                 >
                   <Text className="font-semibold text-center text-white">
@@ -266,11 +266,17 @@ export default function DeliveryPartnerGlobalModal() {
                     )
                   }
                   disabled={isUpdating}
-                  className={`flex-1 py-3 rounded-lg ${
-                    isUpdating ? "bg-gray-400" : "bg-red-600"
+                  className={`flex-1 py-3 rounded-lg border ${
+                    isUpdating
+                      ? "bg-gray-100 border-gray-400"
+                      : "bg-white border-secondary"
                   }`}
                 >
-                  <Text className="font-semibold text-center text-white">
+                  <Text
+                    className={`font-semibold text-center ${
+                      isUpdating ? "text-gray-500" : "text-secondary"
+                    }`}
+                  >
                     {isUpdating ? "Processing..." : "Decline Delivery"}
                   </Text>
                 </TouchableOpacity>

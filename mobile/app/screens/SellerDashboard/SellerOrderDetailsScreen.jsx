@@ -418,7 +418,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
 
   if (!order) {
     return (
-      <View className="flex-1 bg-gray-50">
+      <View className="flex-1 bg-white">
         <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -439,7 +439,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
   const isPreorderOrder = order.order_type === "preorder";
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
@@ -531,8 +531,8 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
 
         {/* Looking for Rider UI - Centered and Beautiful */}
         {order.status === "ready_for_pickup" && (
-          <View className="items-center justify-center flex-1 px-8 mt-4">
-            <View className="items-center p-8 bg-white shadow-lg rounded-2xl">
+          <View className="items-center justify-center flex-1 px-4 mt-4">
+            <View className="items-center p-8 bg-white border border-gray-200 rounded-md">
               <View>
                 <LottieView
                   source={require("../../assets/animations/loading/loading-animation-2-2differentcolors.json")}
@@ -764,10 +764,10 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         )}
 
         {/* Order Status Progress */}
-        <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
+        <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-md">
           <View className="p-4">
-            <Text className="mb-4 text-lg font-semibold">Order Progress</Text>
-            <View className="space-y-3">
+            <Text className="mb-2 text-lg font-semibold">Order Progress</Text>
+            <View className="space-y-3  ">
               {[
                 {
                   status: "pending",
@@ -819,7 +819,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                 return (
                   <View key={step.status} className="flex-row items-center">
                     <View
-                      className={`w-8 h-8 rounded-full items-center justify-center ${
+                      className={`w-8 h-8 mt-2 rounded-full items-center justify-center ${
                         isCompleted
                           ? "bg-green-500"
                           : isCurrent
@@ -851,104 +851,14 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Order Summary */}
-        <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
-          <View className="p-4">
-            <Text className="mb-3 text-lg font-semibold">Order Summary</Text>
-            <View className="space-y-2">
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">Order Date:</Text>
-                <Text className="font-medium">
-                  {formatDate(order.created_at)}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">Payment Method:</Text>
-                <Text className="font-medium capitalize">
-                  {order.payment_method.replace(/_/g, " ")}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">Payment Status:</Text>
-                <Text className="font-medium capitalize">
-                  {order.payment_status}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">Total Amount:</Text>
-                <Text className="text-lg font-semibold text-orange-600">
-                  {formatCurrency(order.seller_total_amount)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Customer Info */}
-        <View className="mx-4 mt-4 bg-white rounded-lg shadow-sm">
-          <View className="p-4">
-            <Text className="mb-3 text-lg font-semibold">
-              Customer Information
-            </Text>
-            <View className="space-y-2">
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">Name:</Text>
-                <Text className="font-medium">
-                  {order.customer_first_name} {order.customer_last_name}
-                </Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">Email:</Text>
-                <Text className="font-medium">{order.customer_email}</Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-gray-600">Phone:</Text>
-                <Text className="font-medium">{order.customer_phone}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Delivery Address */}
-        <View className="mx-4 mt-4 mb-4 bg-white rounded-lg shadow-sm">
-          <View className="p-4">
-            <Text className="mb-3 text-lg font-semibold">Delivery Address</Text>
-            <View className="p-3 rounded-lg bg-gray-50">
-              <Text className="font-medium">
-                {order.delivery_recipient_name}
-              </Text>
-              <Text className="text-gray-600">
-                {order.delivery_phone_number}
-              </Text>
-              <Text className="mt-2 text-gray-600">
-                {order.delivery_street_address}
-              </Text>
-              <Text className="text-gray-600">
-                {order.delivery_barangay}, {order.delivery_city},{" "}
-                {order.delivery_province}
-              </Text>
-              {order.delivery_landmark && (
-                <Text className="mt-1 text-gray-600">
-                  Landmark: {order.delivery_landmark}
-                </Text>
-              )}
-              {order.delivery_notes && (
-                <Text className="mt-1 text-gray-600">
-                  Notes: {order.delivery_notes}
-                </Text>
-              )}
-            </View>
-          </View>
-        </View>
-
         {/* Order Items */}
-        <View className="mx-4 mt-4 mb-4 bg-white rounded-lg shadow-sm">
+        <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-md">
           <View className="p-4">
             <Text className="mb-3 text-lg font-semibold">Order Items</Text>
             {order.items.map((item, index) => (
               <View
                 key={item.id}
-                className="flex-row items-center p-3 mb-4 rounded-lg bg-gray-50"
+                className="flex-row items-center p-3 mb-4 rounded-lg bg-white"
               >
                 <View className="w-16 h-16 mr-4 bg-gray-200 rounded-lg">
                   {item.image_keys && (
@@ -995,6 +905,96 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                 </Text>
               </View>
             ))}
+          </View>
+        </View>
+
+        {/* Order Summary */}
+        <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-md">
+          <View className="p-4">
+            <Text className="mb-3 text-lg font-semibold">Order Summary</Text>
+            <View className="space-y-2">
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Order Date:</Text>
+                <Text className="font-medium">
+                  {formatDate(order.created_at)}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Payment Method:</Text>
+                <Text className="font-medium capitalize">
+                  {order.payment_method.replace(/_/g, " ")}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Payment Status:</Text>
+                <Text className="font-medium capitalize">
+                  {order.payment_status}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Total Amount:</Text>
+                <Text className="text-lg font-semibold text-orange-600">
+                  {formatCurrency(order.seller_total_amount)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Customer Info */}
+        <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-md">
+          <View className="p-4">
+            <Text className="mb-3 text-lg font-semibold">
+              Customer Information
+            </Text>
+            <View className="space-y-2">
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Name:</Text>
+                <Text className="font-medium">
+                  {order.customer_first_name} {order.customer_last_name}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Email:</Text>
+                <Text className="font-medium">{order.customer_email}</Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-gray-600">Phone:</Text>
+                <Text className="font-medium">{order.customer_phone}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Delivery Address */}
+        <View className="mx-4 mt-4 mb-2 bg-white border border-gray-200 rounded-md">
+          <View className="p-4">
+            <Text className="mb-3 text-lg font-semibold">Delivery Address</Text>
+            <View className="p-3 rounded-lg bg-white">
+              <Text className="font-medium">
+                {order.delivery_recipient_name}
+              </Text>
+              <Text className="text-gray-600">
+                {order.delivery_phone_number}
+              </Text>
+              <Text className="mt-2 text-gray-600">
+                {order.delivery_street_address}
+              </Text>
+              <Text className="text-gray-600">
+                {order.delivery_barangay}, {order.delivery_city},{" "}
+                {order.delivery_province}
+              </Text>
+              {order.delivery_landmark && (
+                <Text className="mt-1 text-gray-600">
+                  Landmark: {order.delivery_landmark}
+                </Text>
+              )}
+              {order.delivery_notes && (
+                <Text className="mt-1 text-gray-600">
+                  Notes: {order.delivery_notes}
+                </Text>
+              )}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -1051,7 +1051,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <View className="p-3 mb-4 rounded-lg bg-gray-50">
+            <View className="p-3 mb-4 rounded-lg bg-white">
               <Text className="font-medium text-gray-900">
                 {order.order_number}
               </Text>
@@ -1073,7 +1073,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
                 key={action.value}
                 onPress={() => handleStatusUpdate(action.value, action)}
                 disabled={updatingStatus}
-                className="flex-row items-center p-4 mb-3 border border-gray-200 rounded-lg"
+                className="flex-row items-center p-4 mb-3 border border-gray-200 rounded-md"
                 style={{
                   backgroundColor: updatingStatus ? "#F3F4F6" : "white",
                 }}

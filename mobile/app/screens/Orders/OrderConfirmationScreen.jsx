@@ -20,7 +20,7 @@ const OrderConfirmationScreen = () => {
   const finalTotalAmount = totalAmount || route.params.totalAmount;
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <View className="flex-row items-center">
@@ -48,7 +48,7 @@ const OrderConfirmationScreen = () => {
         </View>
 
         {/* Order Details */}
-        <View className="p-4 mb-4 bg-white rounded-lg">
+        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-md">
           <Text className="mb-3 text-lg font-semibold text-gray-900">
             Order Details
           </Text>
@@ -97,7 +97,7 @@ const OrderConfirmationScreen = () => {
         </View>
 
         {/* Next Steps */}
-        <View className="p-4 mb-4 bg-white rounded-lg">
+        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-md">
           <Text className="mb-3 text-lg font-semibold text-gray-900">
             What's Next?
           </Text>
@@ -147,21 +147,21 @@ const OrderConfirmationScreen = () => {
         </View>
 
         {/* Estimated Delivery */}
-        <View className="p-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
+        <View className="p-4 mb-4 border border-blue-200 rounded-lg bg-green-50">
           <View className="flex-row items-center mb-2">
-            <Feather name="clock" size={20} color="#2563EB" />
-            <Text className="ml-2 font-medium text-blue-900">
+            <Feather name="clock" size={20} color="#39B54A" />
+            <Text className="ml-2 font-medium text-secondary">
               Estimated Delivery
             </Text>
           </View>
-          <Text className="text-blue-800">
+          <Text className="text-secondary">
             Your order{ordersList.length > 1 ? "s" : ""} will be delivered
             within 1-2 hours after confirmation.
           </Text>
         </View>
 
         {/* Contact Info */}
-        <View className="p-4 bg-white rounded-lg">
+        <View className="p-4 bg-white border border-gray-200 rounded-md">
           <Text className="mb-3 text-lg font-semibold text-gray-900">
             Need Help?
           </Text>
@@ -179,22 +179,22 @@ const OrderConfirmationScreen = () => {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="p-4 bg-white border-t border-gray-200">
+      <View className="px-4 pt-6 pb-8 bg-primary">
         <View className="flex-row gap-3">
           <TouchableOpacity
-            className="items-center flex-1 p-4 border border-orange-600 rounded-lg"
+            className="items-center flex-1 p-4 border border-white rounded-md"
             onPress={() => navigation.navigate("Orders")}
           >
-            <Text className="font-semibold text-orange-600">
-              View My Orders
-            </Text>
+            <Text className="font-semibold text-white">View My Orders</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="items-center flex-1 p-4 bg-orange-600 rounded-lg"
+            className="items-center flex-1 p-4 bg-white rounded-md"
             onPress={() => navigation.navigate("Dashboard")}
           >
-            <Text className="font-semibold text-white">Continue Shopping</Text>
+            <Text className="font-semibold text-primary">
+              Continue Shopping
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

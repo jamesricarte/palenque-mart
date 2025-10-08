@@ -702,48 +702,6 @@ const HomeScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
 
-              {/* Product Info */}
-              <View className="items-center justify-center">
-                <View className="flex-row items-center justify-center w-3/4 p-4 rounded-lg">
-                  <View className="flex-1 ml-3">
-                    <Text className="text-lg font-semibold" numberOfLines={2}>
-                      {selectedProduct?.name}
-                    </Text>
-
-                    <View className="flex-row items-center mb-2">
-                      {selectedProduct?.store_logo_key ? (
-                        <Image
-                          source={{ uri: selectedProduct?.store_logo_key }}
-                          className="w-5 h-5 mr-1 rounded-full"
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View className="flex items-center justify-center w-5 h-5 mr-1 bg-gray-200 rounded-full">
-                          <Feather name="image" size={9} color="#9CA3AF" />
-                        </View>
-                      )}
-                      <Text
-                        className="flex-1 text-xs text-gray-600"
-                        numberOfLines={1}
-                      >
-                        {selectedProduct?.store_name}
-                      </Text>
-                    </View>
-
-                    <Text className="font-bold text-primary">
-                      ₱{Number.parseFloat(selectedProduct?.price).toFixed(2)}/
-                      {formatUnitType(selectedProduct?.unit_type)}
-                    </Text>
-                  </View>
-
-                  <Image
-                    source={{ uri: selectedProduct?.image_keys }}
-                    className="w-24 h-24 rounded-lg"
-                    resizeMode="cover"
-                  />
-                </View>
-              </View>
-
               <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Quantity Selection */}
                 <View className="mb-4">

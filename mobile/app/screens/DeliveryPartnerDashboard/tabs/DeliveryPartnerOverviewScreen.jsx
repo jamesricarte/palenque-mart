@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-} from "react-native";
+import { View, Text, ScrollView, RefreshControl, Image } from "react-native";
 import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -22,6 +16,8 @@ const DeliveryPartnerOverviewScreen = ({ route }) => {
   const [stats, setStats] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const deliveryPartnerProfile = route?.params?.deliveryPartnerProfile;
 
   useEffect(() => {
     fetchStats();
@@ -64,45 +60,26 @@ const DeliveryPartnerOverviewScreen = ({ route }) => {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50"
+      className="flex-1 bg-white"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
+      <View className="px-4 pt-16">
+        <View className="flex-row items-center justify-between mb-4">
+          <Image
+            source={require("../../../assets/images/Palenque-Logo-v1.png")}
+            className="h-16 w-52"
+            resizeMode="cover"
+          />
+        </View>
+      </View>
       <View className="p-4">
         {/* Online Status Display */}
-        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <View className="flex flex-row items-center justify-between">
-            <View className="flex-1">
-              <Text className="text-lg font-semibold">Online Status</Text>
-              <Text className="text-sm text-gray-600">
-                You're automatically online while in delivery dashboard
-              </Text>
-              {currentLocation && (
-                <Text className="mt-1 text-xs text-green-600">
-                  Location tracking active
-                </Text>
-              )}
-            </View>
-            <View className="flex flex-row items-center">
-              <View
-                className={`w-3 h-3 mr-2 ${
-                  isOnline ? "bg-green-500" : "bg-gray-400"
-                } rounded-full`}
-              ></View>
-              <Text
-                className={`font-semibold ${
-                  isOnline ? "text-green-600" : "text-gray-600"
-                }`}
-              >
-                {isOnline ? "Online" : "Offline"}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <View></View>
 
         {/* Stats Cards */}
-        <View className="flex flex-row flex-wrap gap-4 mb-6">
+        <View className="flex flex-row flex-wrap gap-4 mb-4">
           {/* Total Deliveries */}
           <View className="flex-1 min-w-[45%] bg-white border border-gray-200 rounded-lg shadow-sm p-4">
             <View className="flex flex-row items-center justify-between mb-2">
@@ -174,52 +151,111 @@ const DeliveryPartnerOverviewScreen = ({ route }) => {
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <Text className="mb-4 text-lg font-semibold">Quick Actions</Text>
+        {/* Vehicle Information Card */}
+        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <Text className="mb-4 text-lg font-semibold text-gray-900">
+            Vehicle Information
+          </Text>
 
-          <TouchableOpacity className="flex flex-row items-center p-3 mb-3 border border-gray-200 rounded-lg">
-            <View className="flex items-center justify-center w-10 h-10 mr-3 bg-green-100 rounded-lg">
-              <MaterialIcons name="assignment" size={20} color="#16a34a" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-900">
-                View Available Orders
-              </Text>
-              <Text className="text-sm text-gray-600">
-                Check orders ready for pickup
+          <View className="space-y-3">
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Vehicle Type</Text>
+              <Text className="text-sm font-medium text-gray-900 capitalize">
+                {deliveryPartnerProfile?.vehicle_type || "N/A"}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-          </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-row items-center p-3 mb-3 border border-gray-200 rounded-lg">
-            <View className="flex items-center justify-center w-10 h-10 mr-3 bg-blue-100 rounded-lg">
-              <MaterialIcons name="history" size={20} color="#3b82f6" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-900">
-                Delivery History
-              </Text>
-              <Text className="text-sm text-gray-600">
-                View past deliveries
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Make & Model</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.vehicle_make || "N/A"}{" "}
+                {deliveryPartnerProfile?.vehicle_model || ""}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-          </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-row items-center p-3 border border-gray-200 rounded-lg">
-            <View className="flex items-center justify-center w-10 h-10 mr-3 bg-purple-100 rounded-lg">
-              <MaterialIcons name="person" size={20} color="#8b5cf6" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-gray-900">Update Profile</Text>
-              <Text className="text-sm text-gray-600">
-                Manage your account settings
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Year</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.vehicle_year || "N/A"}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-          </TouchableOpacity>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Color</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.vehicle_color || "N/A"}
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">License Number</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.license_number || "N/A"}
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Registration</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.vehicle_registration || "N/A"}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Performance Card */}
+        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <Text className="mb-4 text-lg font-semibold text-gray-900">
+            Performance
+          </Text>
+
+          <View className="flex flex-row justify-between">
+            <View className="items-center flex-1">
+              <Text className="text-2xl font-bold text-green-600">
+                {typeof deliveryPartnerProfile?.rating === "number"
+                  ? deliveryPartnerProfile.rating.toFixed(1)
+                  : "5.0"}
+              </Text>
+              <Text className="text-sm text-gray-600">Rating</Text>
+            </View>
+
+            <View className="items-center flex-1">
+              <Text className="text-2xl font-bold text-blue-600">
+                {deliveryPartnerProfile?.total_deliveries || 0}
+              </Text>
+              <Text className="text-sm text-gray-600">Total Deliveries</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Emergency Contact Card */}
+        <View className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <Text className="mb-4 text-lg font-semibold text-gray-900">
+            Emergency Contact
+          </Text>
+
+          <View className="space-y-3">
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Name</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.emergency_contact_name || "N/A"}
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Phone</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.emergency_contact_phone || "N/A"}
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">Relation</Text>
+              <Text className="text-sm font-medium text-gray-900">
+                {deliveryPartnerProfile?.emergency_contact_relation || "N/A"}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     </ScrollView>

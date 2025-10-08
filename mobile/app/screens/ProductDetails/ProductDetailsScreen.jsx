@@ -1399,7 +1399,7 @@ const ProductDetailsScreen = () => {
           style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         >
           <View className="justify-end flex-1">
-            <View className="p-6 bg-white rounded-t-3xl max-h-96">
+            <View className="p-6 bg-white rounded-t-3xl">
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-xl font-semibold">
                   Select Preferences
@@ -1444,10 +1444,10 @@ const ProductDetailsScreen = () => {
                 {/* Preparation Options */}
                 {product.preparation_options &&
                   Object.keys(product.preparation_options).length > 0 && (
-                    <View className="mb-4">
-                      <Text className="mb-2 text-lg font-medium">
+                    <View className="mb-1">
+                      {/* <Text className="mb-2 text-lg font-medium">
                         Preparation Options
-                      </Text>
+                      </Text> */}
                       {Object.entries(product.preparation_options).map(
                         ([option, available]) =>
                           available && (

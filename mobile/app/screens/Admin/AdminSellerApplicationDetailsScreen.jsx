@@ -342,7 +342,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Document Viewer Modal */}
       <Modal
         animationType="slide"
@@ -646,7 +646,7 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
               return (
                 <View
                   key={doc.id}
-                  className="p-3 mb-2 border border-gray-200 rounded-lg bg-gray-50"
+                  className="p-3 mb-2 border border-gray-200 rounded-lg bg-white"
                 >
                   <View className="flex-row items-center justify-between">
                     <Text className="flex-1 font-medium capitalize">
@@ -685,21 +685,21 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
                   {doc.verification_status === "pending" && (
                     <View className="flex-row gap-2 mt-3">
                       <TouchableOpacity
-                        className="flex-1 py-2 bg-red-500 rounded-md"
-                        onPress={() => openDocRejectionModal(doc)}
-                        disabled={processing}
-                      >
-                        <Text className="font-semibold text-center text-white">
-                          Reject
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
                         className="flex-1 py-2 bg-green-500 rounded-md"
                         onPress={() => confirmVerifyDocument(doc)}
                         disabled={processing}
                       >
                         <Text className="font-semibold text-center text-white">
                           Verify
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="flex-1 py-2 bg-white rounded-md border border-secondary"
+                        onPress={() => openDocRejectionModal(doc)}
+                        disabled={processing}
+                      >
+                        <Text className="font-semibold text-center text-secondary">
+                          Reject
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -728,26 +728,10 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
       {/* Action Buttons */}
       {(application.status === "pending" ||
         application.status === "under_review") && (
-        <View className="px-4 py-4 bg-white border-t border-gray-200">
-          {!allRequiredDocsVerified && (
-            <Text className="mb-2 text-xs text-center text-red-600">
-              All required documents must be verified before approving the
-              application.
-            </Text>
-          )}
+        <View className="px-4 py-6 bg-secondary">
           <View className="flex flex-row gap-3">
             <TouchableOpacity
-              className="flex-1 py-4 border border-red-300 rounded-lg"
-              onPress={() => handleReview("reject")}
-              disabled={processing}
-            >
-              <Text className="text-lg font-semibold text-center text-red-600">
-                {processing ? "Processing..." : "Reject App"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className={`flex-1 py-4 rounded-lg ${allRequiredDocsVerified ? "bg-green-500" : "bg-gray-300"}`}
+              className={`flex-1 py-4 rounded-lg ${allRequiredDocsVerified ? "bg-secondary border border-white" : "bg-gray-300"}`}
               onPress={() => handleReview("approve")}
               disabled={processing || !allRequiredDocsVerified}
             >
@@ -755,7 +739,22 @@ const AdminSellerApplicationDetailsScreen = ({ navigation, route }) => {
                 {processing ? "Processing..." : "Approve App"}
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 py-4 bg-white rounded-lg"
+              onPress={() => handleReview("reject")}
+              disabled={processing}
+            >
+              <Text className="text-lg font-semibold text-center text-secondary">
+                {processing ? "Processing..." : "Reject App"}
+              </Text>
+            </TouchableOpacity>
           </View>
+          {!allRequiredDocsVerified && (
+            <Text className="mt-2 text-sm text-center text-white">
+              All required documents must be verified before approving the
+              application.
+            </Text>
+          )}
         </View>
       )}
     </View>

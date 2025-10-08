@@ -229,8 +229,8 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
     if (currentStep === 3) {
       if (!formData.governmentId)
         newErrors.governmentId = "Government ID is required";
-      // if (!formData.selfieWithId)
-      //   newErrors.selfieWithId = "Selfie with ID is required";
+      if (!formData.selfieWithId)
+        newErrors.selfieWithId = "Selfie with ID is required";
     }
 
     if (currentStep === 4) {
@@ -381,7 +381,7 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
       </View>
       <View className="w-full h-2 bg-gray-200 rounded-full">
         <View
-          className="h-2 transition-all duration-300 bg-blue-500 rounded-full"
+          className="h-2 transition-all duration-300 bg-primary rounded-full"
           style={{ width: `${(currentStep / totalSteps) * 100}%` }}
         />
       </View>
@@ -417,14 +417,14 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
       </View>
 
       {/* Pre-filled Fields Notice */}
-      <View className="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
+      <View className="p-4 mb-6 border border-orange-200 rounded-lg bg-orange-50">
         <View className="flex flex-row items-start">
-          <Ionicons name="information-circle" size={20} color="#3b82f6" />
+          <Ionicons name="information-circle" size={20} color="#F16B44" />
           <View className="flex-1 ml-3">
-            <Text className="mb-1 font-semibold text-blue-800">
+            <Text className="mb-1 font-semibold text-primary">
               Personal Information
             </Text>
-            <Text className="text-sm text-blue-700">
+            <Text className="text-sm text-primary">
               Your personal details are pre-filled from your account. To change
               these details, please update them in your Profile Settings.
             </Text>
@@ -1226,22 +1226,22 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
       <ScrollView className="flex-1">{renderCurrentStep()}</ScrollView>
 
       {/* Bottom Navigation */}
-      <View className="px-6 py-4 bg-white border-t border-gray-200">
+      <View className="px-6 py-6 bg-primary border-t border-gray-200">
         <View className="flex flex-row gap-3">
           {currentStep > 1 && (
             <TouchableOpacity
-              className="flex-1 py-4 border border-gray-300 rounded-lg"
+              className="flex-1 py-4 border border-white rounded-lg"
               onPress={handleBack}
             >
-              <Text className="font-semibold text-center">Back</Text>
+              <Text className="font-semibold text-center text-white">Back</Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity
-            className="flex-1 py-4 bg-blue-500 rounded-lg"
+            className="flex-1 py-4 bg-white rounded-lg"
             onPress={handleNext}
           >
-            <Text className="font-semibold text-center text-white">
+            <Text className="font-semibold text-center text-primary">
               {currentStep === totalSteps ? "Review & Submit" : "Next"}
             </Text>
           </TouchableOpacity>

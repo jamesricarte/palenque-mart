@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "../../../context/AuthContext";
 import { useDeliveryPartner } from "../../../context/DeliveryPartnerContext";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -65,7 +66,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
 
   const takeProofOfDeliveryPhoto = async () => {
     try {
-      // Request camera permissions
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
       if (status !== "granted") {
@@ -76,7 +76,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
         return null;
       }
 
-      // Launch camera
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -138,8 +137,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
         const formData = new FormData();
         formData.append("assignmentId", assignmentId);
         formData.append("status", status);
-
-        // Append the photo
         formData.append("proof_of_delivery", {
           uri: proofOfDeliveryPhoto.uri,
           type: "image/jpeg",
@@ -156,9 +153,7 @@ const DeliveryPartnerDeliveriesScreen = () => {
       const response = await axios.put(
         `${API_URL}/api/delivery-partner/update-assignment-status`,
         requestData,
-        {
-          headers,
-        }
+        { headers }
       );
 
       if (response.data.success) {
@@ -169,7 +164,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
             picked_up: "picked up",
             delivered: "delivered",
           };
-
           return statusPastTense[status];
         };
 
@@ -251,7 +245,7 @@ const DeliveryPartnerDeliveriesScreen = () => {
           <TouchableOpacity
             onPress={() => handleUpdateStatus(assignmentId, "accept", "Accept")}
             disabled={isUpdating}
-            className={`flex-1 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-green-600"}`}
+            className={`flex-1 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-secondary"}`}
           >
             <Text className="font-semibold text-center text-white">
               {isUpdating ? "Accepting..." : "Accept Delivery"}
@@ -262,9 +256,17 @@ const DeliveryPartnerDeliveriesScreen = () => {
               handleUpdateStatus(assignmentId, "decline", "Decline")
             }
             disabled={isUpdating}
-            className={`flex-1 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-red-600"}`}
+            className={`flex-1 py-3 rounded-lg border ${
+              isUpdating
+                ? "bg-gray-100 border-gray-400"
+                : "bg-white border-secondary"
+            }`}
           >
-            <Text className="font-semibold text-center text-white">
+            <Text
+              className={`font-semibold text-center ${
+                isUpdating ? "text-gray-500" : "text-secondary"
+              }`}
+            >
               {isUpdating ? "Declining..." : "Decline Delivery"}
             </Text>
           </TouchableOpacity>
@@ -280,7 +282,7 @@ const DeliveryPartnerDeliveriesScreen = () => {
               handleUpdateStatus(assignmentId, "picked_up", "Picked Up")
             }
             disabled={isUpdating}
-            className={`w-full mt-2 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-blue-600"}`}
+            className={`w-full mt-2 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-secondary"}`}
           >
             <Text className="font-semibold text-center text-white">
               {isUpdating ? "Updating..." : "Mark as Picked Up"}
@@ -296,7 +298,7 @@ const DeliveryPartnerDeliveriesScreen = () => {
               handleUpdateStatus(assignmentId, "delivered", "Delivered")
             }
             disabled={isUpdating}
-            className={`w-full mt-2 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-green-600"}`}
+            className={`w-full mt-2 py-3 rounded-lg ${isUpdating ? "bg-gray-400" : "bg-secondary"}`}
           >
             <Text className="font-semibold text-center text-white">
               {isUpdating ? "Updating..." : "Mark as Delivered"}
@@ -315,7 +317,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
       onPress={() => handleDeliveryPress(delivery)}
       className="p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm"
     >
-      {/* Delivery Header */}
       <View className="flex gap-1 mb-5">
         <Text className="text-lg font-semibold text-gray-900">
           {delivery.order_number}
@@ -336,7 +337,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
         </View>
       </View>
 
-      {/* Distance Badge */}
       {delivery.distance && (
         <View className="flex flex-row items-center mb-2">
           <MaterialIcons name="near-me" size={16} color="#6b7280" />
@@ -346,12 +346,12 @@ const DeliveryPartnerDeliveriesScreen = () => {
         </View>
       )}
 
-      {/* Delivery Details */}
       <View className="mb-3">
         <View className="flex flex-row items-center mb-2">
           <MaterialIcons name="shopping-bag" size={16} color="#6b7280" />
           <Text className="ml-2 text-sm text-gray-600">
-            {delivery.item_count} item{delivery.item_count !== 1 ? "s" : ""} • ₱
+            {delivery.item_count} item
+            {delivery.item_count !== 1 ? "s" : ""} • ₱
             {Number.parseFloat(delivery.total_amount).toFixed(2)}
           </Text>
         </View>
@@ -391,7 +391,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
         </View>
       </View>
 
-      {/* Special Instructions */}
       {delivery.special_instructions && (
         <View className="p-3 mb-3 border border-yellow-200 rounded-lg bg-yellow-50">
           <Text className="text-sm font-medium text-yellow-800">
@@ -403,7 +402,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
         </View>
       )}
 
-      {/* Delivery Notes */}
       {delivery.delivery_notes && (
         <View className="p-3 mb-3 border border-blue-200 rounded-lg bg-blue-50">
           <Text className="text-sm font-medium text-blue-800">
@@ -415,7 +413,6 @@ const DeliveryPartnerDeliveriesScreen = () => {
         </View>
       )}
 
-      {/* Action Button */}
       {renderActionButtons(delivery)}
     </TouchableOpacity>
   );
@@ -429,41 +426,42 @@ const DeliveryPartnerDeliveriesScreen = () => {
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-gray-50"
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <View className="p-4">
-        {/* Header */}
-        <View className="mb-4">
-          <Text className="text-xl font-semibold text-gray-900">
-            Available Deliveries
-          </Text>
-          <Text className="text-sm text-gray-600">
-            {availableDeliveries.length} deliver
-            {availableDeliveries.length !== 1 ? "ies" : "y"} available for you
-          </Text>
-        </View>
+    <View className="flex-1 bg-white">
+      {/* Header */}
+      <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
+        <Text className="text-2xl font-semibold">Deliveries</Text>
+      </View>
 
-        {/* Deliveries List */}
-        {availableDeliveries.length > 0 ? (
-          availableDeliveries.map(renderDeliveryCard)
-        ) : (
-          <View className="items-center justify-center py-12">
-            <MaterialIcons name="inbox" size={64} color="#d1d5db" />
-            <Text className="mt-4 text-lg font-medium text-gray-500">
-              No Available Deliveries
-            </Text>
-            <Text className="mt-2 text-sm text-center text-gray-400">
-              There are no deliveries available for you at the moment.{"\n"}
-              Pull down to refresh.
+      <ScrollView
+        className="flex-1 bg-white"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View className="p-4">
+          <View className="mb-2">
+            <Text className="text-xl font-semibold text-gray-900">
+              Available Deliveries ({availableDeliveries.length})
             </Text>
           </View>
-        )}
-      </View>
-    </ScrollView>
+
+          {availableDeliveries.length > 0 ? (
+            availableDeliveries.map(renderDeliveryCard)
+          ) : (
+            <View className="items-center justify-center py-12">
+              <MaterialIcons name="inbox" size={64} color="#d1d5db" />
+              <Text className="mt-4 text-lg font-medium text-gray-500">
+                No Available Deliveries
+              </Text>
+              <Text className="mt-2 text-sm text-center text-gray-400">
+                There are no deliveries available for you at the moment.{"\n"}
+                Pull down to refresh.
+              </Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 

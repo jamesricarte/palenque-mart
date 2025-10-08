@@ -458,7 +458,7 @@ const SellerOrdersScreen = ({ navigation }) => {
               <View className="flex-row gap-3">
                 <TouchableOpacity
                   onPress={() => openQuickActionModal(order)}
-                  className="flex-row items-center justify-center flex-1 py-3 bg-orange-500 rounded-lg"
+                  className="flex-row items-center justify-center flex-1 py-3 bg-primary rounded-lg"
                 >
                   <Feather name="check-circle" size={16} color="white" />
                   <Text className="ml-2 font-medium text-white">
@@ -501,7 +501,7 @@ const SellerOrdersScreen = ({ navigation }) => {
                     key={action.value}
                     onPress={() => openQuickActionModal(order)}
                     className={`flex-1 py-3 rounded-lg flex-row items-center justify-center ${
-                      index === 0 ? "bg-orange-500" : "bg-gray-200"
+                      index === 0 ? "bg-primary" : "bg-gray-200"
                     }`}
                   >
                     <Feather
@@ -614,9 +614,7 @@ const SellerOrdersScreen = ({ navigation }) => {
                   setSelectedStatus(status.value);
                 }}
                 className={`px-4 py-2 rounded-full flex-row items-center ${
-                  selectedStatus === status.value
-                    ? "bg-orange-600"
-                    : "bg-gray-200"
+                  selectedStatus === status.value ? "bg-primary" : "bg-gray-200"
                 }`}
               >
                 <Text
@@ -634,7 +632,7 @@ const SellerOrdersScreen = ({ navigation }) => {
                     className={`ml-2 px-2 py-1 rounded-full ${
                       selectedStatus === status.value
                         ? "bg-white bg-opacity-20"
-                        : "bg-orange-500"
+                        : "bg-primary"
                     }`}
                   >
                     <Text className="text-xs font-bold text-white">
@@ -724,7 +722,7 @@ const SellerOrdersScreen = ({ navigation }) => {
                             description: "Accept and confirm this preorder",
                           })
                         }
-                        className="flex-row items-center justify-center flex-1 py-3 bg-orange-500 rounded-lg"
+                        className="flex-row items-center justify-center flex-1 py-3 bg-primary rounded-lg"
                       >
                         <Feather name="check-circle" size={16} color="white" />
                         <Text className="ml-2 font-medium text-white">
