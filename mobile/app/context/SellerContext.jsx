@@ -34,10 +34,6 @@ export const SellerProvider = ({ children }) => {
     token && isInSellerDashboard && triggerWebsocket ? WEBSOCKET_URL : null
   );
 
-  const { socket: socket2, isConnected: isConnected2 } = useWebSocket(
-    token && isInSellerDashboard && trackDeliveryPartner ? WEBSOCKET_URL : null
-  );
-
   useEffect(() => {
     if (socket && isConnected) {
       const sellerUser = {
@@ -90,21 +86,29 @@ export const SellerProvider = ({ children }) => {
     };
   }, [socket, isConnected]);
 
+  const { socket: trackDeliverySocket, isConnected: trackDeliveryConnection } =
+    useWebSocket(
+      token && isInSellerDashboard && trackDeliveryPartner
+        ? WEBSOCKET_URL
+        : null
+    );
+
   useEffect(() => {
-    if (socket2 && isConnected2) {
+    if (trackDeliverySocket && trackDeliveryConnection) {
       const trackData = {
         type: "track_delivery_partner",
         deliveryPartnerId: deliveryPartnerId,
-        sellerId: sellerId,
+        role: "seller",
+        id: sellerId,
       };
 
       try {
-        socket2.send(JSON.stringify(trackData));
+        trackDeliverySocket.send(JSON.stringify(trackData));
       } catch (error) {
         console.error("Error sending seller user data via WebSocket:", error);
       }
 
-      socket2.onmessage = (event) => {
+      trackDeliverySocket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
 
@@ -118,13 +122,13 @@ export const SellerProvider = ({ children }) => {
     }
 
     return () => {
-      if (socket2) {
-        socket2.onmessage = null;
+      if (trackDeliverySocket) {
+        trackDeliverySocket.onmessage = null;
       }
 
       setDeliveryPartnerLocation(null);
     };
-  }, [socket2, isConnected2]);
+  }, [trackDeliverySocket, trackDeliveryConnection]);
 
   useEffect(() => {
     let timer;

@@ -767,7 +767,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-md">
           <View className="p-4">
             <Text className="mb-2 text-lg font-semibold">Order Progress</Text>
-            <View className="space-y-3  ">
+            <View className="space-y-3">
               {[
                 {
                   status: "pending",
@@ -858,7 +858,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
             {order.items.map((item, index) => (
               <View
                 key={item.id}
-                className="flex-row items-center p-3 mb-4 rounded-lg bg-white"
+                className="flex-row items-center p-3 mb-4 bg-white rounded-lg"
               >
                 <View className="w-16 h-16 mr-4 bg-gray-200 rounded-lg">
                   {item.image_keys && (
@@ -970,7 +970,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
         <View className="mx-4 mt-4 mb-2 bg-white border border-gray-200 rounded-md">
           <View className="p-4">
             <Text className="mb-3 text-lg font-semibold">Delivery Address</Text>
-            <View className="p-3 rounded-lg bg-white">
+            <View className="p-3 bg-white rounded-lg">
               <Text className="font-medium">
                 {order.delivery_recipient_name}
               </Text>
@@ -1051,7 +1051,7 @@ const SellerOrderDetailsScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <View className="p-3 mb-4 rounded-lg bg-white">
+            <View className="p-3 mb-4 bg-white rounded-lg">
               <Text className="font-medium text-gray-900">
                 {order.order_number}
               </Text>

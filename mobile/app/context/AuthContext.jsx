@@ -15,6 +15,9 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [authProcessing, setAuthProcessing] = useState(false);
   const [approvalStatusUpdated, setApprovalStatusUpdated] = useState(false);
+  const [deliveryPartnerId, setDeliveryPartnerId] = useState(null);
+  const [trackDeliveryPartner, setTrackDeliveryPartner] = useState(false);
+  const [deliveryPartnerLocation, setDeliveryPartnerLocation] = useState(null);
   const [socketMessage, setSocketMessage] = useState(null);
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export const AuthProvider = ({ children }) => {
     loadAuthData();
   }, []);
 
+  // Socket connection
   const { socket, isConnected } = useWebSocket(
     token && user ? WEBSOCKET_URL : null
   );
@@ -90,7 +94,59 @@ export const AuthProvider = ({ children }) => {
     };
   }, [socket, isConnected, user]);
 
+  // Track delivery socket connection
+  const { socket: trackDeliverySocket, isConnected: trackDeliveryConnection } =
+    useWebSocket(token && user && trackDeliveryPartner ? WEBSOCKET_URL : null);
+
+  useEffect(() => {
+    if (trackDeliverySocket && trackDeliveryConnection && user) {
+      const trackData = {
+        type: "track_delivery_partner",
+        deliveryPartnerId: deliveryPartnerId,
+        role: "user",
+        id: user.id,
+      };
+
+      try {
+        trackDeliverySocket.send(JSON.stringify(trackData));
+      } catch (error) {
+        console.error("Error tracking delivery partner:", error);
+      }
+
+      const handleMessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+
+          if (message.type === "delivery_partner_location_update") {
+            setDeliveryPartnerLocation(message.deliveryPartnerLocation);
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
+      };
+
+      trackDeliverySocket.onmessage = handleMessage;
+    }
+
+    return () => {
+      if (trackDeliverySocket) {
+        trackDeliverySocket.onmessage = null;
+      }
+    };
+  }, [trackDeliverySocket, trackDeliveryConnection, user]);
+
   const resetApprovalStatus = () => setApprovalStatusUpdated(false);
+
+  const startTrackingDeliveryPartner = (deliveryPartnerId) => {
+    setTrackDeliveryPartner(true);
+    setDeliveryPartnerId(deliveryPartnerId);
+  };
+
+  const stopTrackingDeliveryPartner = () => {
+    setTrackDeliveryPartner(false);
+    setDeliveryPartnerId(null);
+    setDeliveryPartnerLocation(null);
+  };
 
   const login = async (newToken) => {
     setAuthProcessing(true);
@@ -133,6 +189,9 @@ export const AuthProvider = ({ children }) => {
         socketMessage,
         setSocketMessage,
         authProcessing,
+        deliveryPartnerLocation,
+        startTrackingDeliveryPartner,
+        stopTrackingDeliveryPartner,
       }}
     >
       {children}

@@ -23,11 +23,19 @@ import { useAuth } from "../../context/AuthContext";
 import { useFocusEffect } from "@react-navigation/native";
 
 const OrderDetailsScreen = ({ route, navigation }) => {
-  const { user, socketMessage } = useAuth();
+  const {
+    user,
+    socketMessage,
+    deliveryPartnerLocation,
+    startTrackingDeliveryPartner,
+    stopTrackingDeliveryPartner,
+  } = useAuth();
   const { orderId, showReviewForm } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deliveryPartner, setDeliveryPartner] = useState(null);
+  const [deliveryPartnerCoordinates, setDeliveryPartnerCoordinates] =
+    useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [productRating, setProductRating] = useState(0);
   const [productReviewText, setProductReviewText] = useState("");
@@ -44,14 +52,14 @@ const OrderDetailsScreen = ({ route, navigation }) => {
   const [orderSellerReview, setOrderSellerReview] = useState(null);
   const [initialShowReviewForm, setInitialShowReviewForm] = useState(true);
   const [conversationId, setConversationId] = useState(null);
-  const [deliveryTrackingModalVisible, setDeliveryTrackingModalVisible] =
-    useState(false);
 
   const [deliveryPartnerUnreadCount, setDeliveryPartnerUnreadCount] =
     useState(0);
 
   useEffect(() => {
     fetchOrderDetails();
+
+    return () => stopTrackingDeliveryPartner();
   }, []);
 
   useEffect(() => {
@@ -75,15 +83,40 @@ const OrderDetailsScreen = ({ route, navigation }) => {
     }
   }, [socketMessage, orderId]);
 
+  useEffect(() => {
+    if (deliveryPartner) {
+      if (deliveryPartnerLocation) {
+        setDeliveryPartnerCoordinates(deliveryPartnerLocation);
+      } else {
+        setDeliveryPartnerCoordinates(deliveryPartner.location);
+      }
+    }
+  }, [deliveryPartner, deliveryPartnerLocation]);
+
   const fetchOrderDetails = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/orders/${orderId}`);
       if (response.data.success) {
         setOrder(response.data.data.order);
+
+        const orderDetails = response.data.data.order;
+        let assignedDeliveryPartner = null;
+
         setOrderProductReview(response.data.data.order.orderProductReview);
         setOrderSellerReview(response.data.data.order.orderSellerReview);
         if (response.data.data.order.deliveryPartner) {
           setDeliveryPartner(response.data.data.order.deliveryPartner);
+          assignedDeliveryPartner = response.data.data.order.deliveryPartner;
+        }
+
+        if (
+          orderDetails &&
+          assignedDeliveryPartner &&
+          ["rider_assigned", "out_for_delivery"].includes(orderDetails.status)
+        ) {
+          startTrackingDeliveryPartner(assignedDeliveryPartner?.id);
+        } else {
+          stopTrackingDeliveryPartner();
         }
       }
     } catch (error) {
@@ -443,7 +476,7 @@ const OrderDetailsScreen = ({ route, navigation }) => {
       conversationId: conversationId,
       deliveryPartnerProfilePicture: deliveryPartner.profile_picture_key,
       deliveryStatus: order.status,
-      deliveryPartnerLocation: deliveryPartner.location,
+      deliveryPartnerLocation: deliveryPartnerCoordinates,
       deliveryLocation: order.delivery_coordinates,
     });
   };
@@ -820,14 +853,14 @@ const OrderDetailsScreen = ({ route, navigation }) => {
                     pinColor="#EF4444"
                   />
                 )}
-                {deliveryPartner && deliveryPartner.location && (
+                {deliveryPartner && deliveryPartnerCoordinates && (
                   <Marker
                     coordinate={{
                       latitude: Number.parseFloat(
-                        deliveryPartner.location.latitude
+                        deliveryPartnerCoordinates.latitude
                       ),
                       longitude: Number.parseFloat(
-                        deliveryPartner.location.longitude
+                        deliveryPartnerCoordinates.longitude
                       ),
                     }}
                     title="Delivery Partner Location"

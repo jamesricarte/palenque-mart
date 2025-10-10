@@ -23,7 +23,11 @@ import axios from "axios";
 const { width, height } = Dimensions.get("window");
 
 const DeliveryTrackingScreen = ({ navigation, route }) => {
-  const { user, token } = useAuth();
+  const {
+    user,
+    token,
+    deliveryPartnerLocation: webSocketDeliveryPartnerLocation,
+  } = useAuth();
   const {
     orderId,
     orderNumber,
@@ -59,13 +63,18 @@ const DeliveryTrackingScreen = ({ navigation, route }) => {
   );
 
   useEffect(() => {
-    if (Object.values(deliveryPartnerLocation).every(Boolean)) {
+    if (webSocketDeliveryPartnerLocation) {
+      setDeliveryPartnerCoordinates({
+        latitude: webSocketDeliveryPartnerLocation.latitude,
+        longitude: webSocketDeliveryPartnerLocation.longitude,
+      });
+    } else if (Object.values(deliveryPartnerLocation).every(Boolean)) {
       setDeliveryPartnerCoordinates({
         latitude: Number.parseFloat(deliveryPartnerLocation.latitude),
         longitude: Number.parseFloat(deliveryPartnerLocation.longitude),
       });
     }
-  }, [deliveryPartnerLocation]);
+  }, [webSocketDeliveryPartnerLocation, deliveryPartnerLocation]);
 
   const fetchDeliveryPartnerUnreadCount = async () => {
     try {

@@ -109,7 +109,7 @@ const DeliveryPartnerOverviewScreen = ({ route }) => {
           {/* Total Earnings */}
           <View className="flex-1 min-w-[45%] bg-white border border-gray-200 rounded-lg shadow-sm p-4">
             <View className="flex flex-row items-center justify-between mb-2">
-              <MaterialIcons name="attach-money" size={24} color="#f59e0b" />
+              <MaterialIcons name="money" size={24} color="#f59e0b" />
               <Text className="text-2xl font-bold text-gray-900">
                 ₱{stats?.totalEarnings?.toFixed(2) || "0.00"}
               </Text>

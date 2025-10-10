@@ -62,29 +62,53 @@ wss.on("connection", (socket) => {
     try {
       const data = JSON.parse(message);
 
+      // User socket
+      if (data.type === "user_data") {
+        const { userId } = data;
+
+        users.set(userId, {
+          socket: socket,
+        });
+
+        console.log("Connected users by id:", [...users.keys()]);
+      }
+
+      // Seller socket
+      if (data.type === "seller_user_data") {
+        const { sellerId } = data;
+
+        sellers.set(sellerId, {
+          socket: socket,
+        });
+
+        console.log("Connected sellers by id:", [...sellers.keys()]);
+      }
+
+      // Delivery partner location socket
       if (data.type === "delivery_partner_location") {
         const { deliveryPartnerId, location } = data;
 
-        const sellers = trackingMap.get(deliveryPartnerId);
-        if (sellers) {
-          sellers.forEach((seller) => {
-            if (seller.socket && seller.socket.readyState === 1) {
-              seller.socket.send(
+        const trackers = trackingMap.get(deliveryPartnerId);
+
+        if (trackers) {
+          trackers.forEach((tracker) => {
+            if (tracker.socket && tracker.socket.readyState === 1) {
+              tracker.socket.send(
                 JSON.stringify({
                   type: "delivery_partner_location_update",
-                  deliveryPartnerId: deliveryPartnerId,
+                  deliveryPartnerId,
+                  role: tracker.role,
                   deliveryPartnerLocation: location,
                 })
               );
 
               console.log(
-                `delivery partner's location sent to seller id: ${seller.sellerId}`
+                `delivery partner's location sent to tracker with role of ${tracker.role} and id ${tracker.id}`
               );
             }
           });
         }
 
-        // Update delivery partner location in Map
         deliveryPartners.set(deliveryPartnerId, {
           socket: socket,
           latitude: location.latitude,
@@ -97,33 +121,14 @@ wss.on("connection", (socket) => {
         ]);
       }
 
-      if (data.type === "user_data") {
-        const { userId } = data;
-
-        users.set(userId, {
-          socket: socket,
-        });
-
-        console.log("Connected users by id:", [...users.keys()]);
-      }
-
-      if (data.type === "seller_user_data") {
-        const { sellerId } = data;
-
-        sellers.set(sellerId, {
-          socket: socket,
-        });
-
-        console.log("Connected sellers by id:", [...sellers.keys()]);
-      }
-
+      // Trackers socket
       if (data.type === "track_delivery_partner") {
-        const { deliveryPartnerId, sellerId } = data;
+        const { deliveryPartnerId, role, id } = data;
 
         if (!trackingMap.has(deliveryPartnerId))
           trackingMap.set(deliveryPartnerId, new Set());
 
-        trackingMap.get(deliveryPartnerId).add({ sellerId, socket });
+        trackingMap.get(deliveryPartnerId).add({ role, id, socket });
 
         const deliveryPartnerData = deliveryPartners.get(deliveryPartnerId);
 
@@ -142,9 +147,7 @@ wss.on("connection", (socket) => {
             })
           );
 
-          console.log(
-            `delivery partner's location sent to seller id: ${sellerId}`
-          );
+          console.log(`delivery partner's location sent to ${role} id: ${id}`);
         } else {
           console.log("Delivery Partner is offline.");
         }
@@ -188,21 +191,23 @@ wss.on("connection", (socket) => {
       }
     }
 
-    // Remove seller in all tracking map when socket closes
-    for (const [, sellerSet] of trackingMap) {
-      for (const seller of sellerSet) {
-        if (seller.socket === socket) {
-          sellerSet.delete(seller);
-          if (sellerSet.size !== 0)
-            console.log("Remaining track map:", [...trackingMap]);
-        }
-      }
-    }
+    // Remove tracker from tracking map when socket closes
+    for (const [deliveryPartnerId, trackerSet] of trackingMap) {
+      for (const tracker of trackerSet) {
+        if (tracker.socket === socket) {
+          trackerSet.delete(tracker);
+          console.log(
+            `Removed ${tracker.role} ${tracker.id} from trackingMap for deliveryPartnerId ${deliveryPartnerId}`
+          );
 
-    for (const [partnerId, sellerSet] of trackingMap) {
-      if (sellerSet.size === 0) {
-        trackingMap.delete(partnerId);
-        console.log("Remaining track map:", [...trackingMap]);
+          // If this delivery partner has no more trackers, remove the entire entry
+          if (trackerSet.size === 0) {
+            trackingMap.delete(deliveryPartnerId);
+            console.log("Remaining track map:", [...trackingMap]);
+          } else {
+            console.log("Remaining trackingMap:", [...trackingMap]);
+          }
+        }
       }
     }
 
