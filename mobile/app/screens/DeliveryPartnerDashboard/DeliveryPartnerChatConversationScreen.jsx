@@ -3,7 +3,6 @@
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
@@ -11,8 +10,10 @@ import {
   Image,
   Alert,
   Keyboard,
+  ActivityIndicator,
+  FlatList,
 } from "react-native";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
@@ -48,96 +49,17 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
 
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
+  const [oldestTimestamp, setOldestTimestamp] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   let markReadInProgress = false;
-
-  const fetchMessages = async () => {
-    try {
-      const response = await axios.get(
-        `${API_URL}/api/chat/delivery-partner/conversations/${finalConversationId}/messages?orderId=${orderId}&chatType=${chatType}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        setMessages(response.data.data.messages);
-        // Mark messages as read
-        if (!markReadInProgress) markMessagesAsRead();
-      }
-    } catch (error) {
-      console.log("Error fetching messages:", error.response.data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markMessagesAsRead = async () => {
-    if (markReadInProgress) return;
-    markReadInProgress = true;
-
-    try {
-      await axios.put(
-        `${API_URL}/api/chat/delivery-partner/conversations/${finalConversationId}/mark-read`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error marking messages as read:", error);
-    }
-  };
-
-  const sendMessage = async () => {
-    if (!newMessage.trim() || sending) return;
-
-    setSending(true);
-    const messageText = newMessage.trim();
-    setNewMessage("");
-
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/chat/delivery-partner/send-message`,
-        {
-          conversationId: finalConversationId,
-          sellerId: chatType === "seller" ? sellerId : null,
-          consumerId: chatType === "consumer" ? consumerId : null,
-          messageText,
-          messageType: "text",
-          orderId, // Include order ID for order-based chat
-          chatType, // Include chat type
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        setFinalConversationId(response.data.data.conversationId);
-        setMessages((prev) => [...prev, response.data.data.message]);
-        if (!markReadInProgress && finalConversationId) markMessagesAsRead();
-      } else {
-        Alert.alert("Error", "Failed to send message");
-        setNewMessage(messageText);
-      }
-    } catch (error) {
-      console.error("Error sending message:", error.response?.data || error);
-      Alert.alert("Error", "Failed to send message");
-      setNewMessage(messageText);
-    } finally {
-      setSending(false);
-    }
-  };
 
   useFocusEffect(
     useCallback(() => {
-      fetchMessages();
+      setOldestTimestamp(null);
+      setHasMore(true);
+      fetchMessages(false);
     }, [])
   );
 
@@ -186,19 +108,140 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
       socketMessage &&
       socketMessage.data.conversationId === finalConversationId
     ) {
-      setMessages((prev) => [...prev, socketMessage.data.newMessage]);
+      setMessages((prev) => [socketMessage.data.newMessage, ...prev]);
+
+      if (messages.length === 0)
+        setOldestTimestamp(socketMessage.data.newMessage.created_at);
+
       setSocketMessage(null);
       if (!markReadInProgress) markMessagesAsRead();
     }
   }, [socketMessage, finalConversationId]);
 
-  useEffect(() => {
-    if (messages.length > 0) {
+  const fetchMessages = async (isLoadMore = false) => {
+    if (isLoadMore && (loadingMore || !hasMore)) return;
+
+    if (isLoadMore) {
+      setLoadingMore(true);
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        scrollViewRef.current?.scrollToEnd({
+          animated: true,
+        });
       }, 100);
+    } else {
+      setLoading(true);
     }
-  }, [messages]);
+
+    try {
+      let url = `${API_URL}/api/chat/delivery-partner/conversations/${finalConversationId}/messages?orderId=${orderId}&chatType=${chatType}&limit=20`;
+
+      if (isLoadMore && oldestTimestamp) {
+        url += `&before=${encodeURIComponent(oldestTimestamp)}`;
+      }
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        const newMessages = response.data.data.messages;
+
+        if (newMessages.length < 20) {
+          setHasMore(false);
+        }
+
+        if (isLoadMore) {
+          setMessages((prev) => [...prev, ...newMessages]);
+        } else {
+          setMessages(newMessages);
+        }
+
+        if (newMessages.length > 0) {
+          const oldestMessage = newMessages[newMessages.length - 1];
+          setOldestTimestamp(oldestMessage.created_at);
+        }
+
+        if (!markReadInProgress) markMessagesAsRead();
+      }
+    } catch (error) {
+      console.log("Error fetching messages:", error.response.data);
+    } finally {
+      if (isLoadMore) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  };
+
+  const markMessagesAsRead = async () => {
+    if (markReadInProgress) return;
+    markReadInProgress = true;
+
+    try {
+      await axios.put(
+        `${API_URL}/api/chat/delivery-partner/conversations/${finalConversationId}/mark-read`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || sending) return;
+
+    setSending(true);
+    const messageText = newMessage.trim();
+    setNewMessage("");
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/chat/delivery-partner/send-message`,
+        {
+          conversationId: finalConversationId,
+          sellerId: chatType === "seller" ? sellerId : null,
+          consumerId: chatType === "consumer" ? consumerId : null,
+          messageText,
+          messageType: "text",
+          orderId,
+          chatType,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setFinalConversationId(response.data.data.conversationId);
+        setMessages((prev) => [response.data.data.message, ...prev]);
+
+        if (messages.length === 0)
+          setOldestTimestamp(response.data.data.message.created_at);
+
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+        if (!markReadInProgress && finalConversationId) markMessagesAsRead();
+      } else {
+        Alert.alert("Error", "Failed to send message");
+        setNewMessage(messageText);
+      }
+    } catch (error) {
+      console.error("Error sending message:", error.response?.data || error);
+      Alert.alert("Error", "Failed to send message");
+      setNewMessage(messageText);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const formatMessageTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -228,7 +271,7 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
     const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
       setKeyboardVisibility(true);
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
       }, 0);
     });
 
@@ -238,7 +281,7 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
     };
   }, []);
 
-  const MessageItem = ({ message, showDate }) => {
+  const MessageItem = memo(({ message, showDate }) => {
     const isDeliveryPartner = message.sender_type === "delivery_partner";
 
     return (
@@ -300,13 +343,14 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
         </View>
       </View>
     );
-  };
+  });
 
   if (loading) {
     return (
       <View className="items-center justify-center flex-1 bg-gray-50">
         <StatusBar style="dark" />
-        <Text className="text-gray-500">Loading conversation...</Text>
+        <ActivityIndicator size="large" color="#059669" />
+        <Text className="mt-4 text-gray-600">Loading conversation...</Text>
       </View>
     );
   }
@@ -369,14 +413,29 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/* Messages */}
-      <ScrollView
+      <FlatList
         ref={scrollViewRef}
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        inverted
         className="flex-1 px-4"
         contentContainerStyle={{ paddingVertical: 16 }}
         showsVerticalScrollIndicator={false}
-      >
-        {messages.length === 0 ? (
+        removeClippedSubviews={true}
+        onEndReached={() => {
+          if (!loadingMore && hasMore && messages.length > 0) {
+            fetchMessages(true);
+          }
+        }}
+        onEndReachedThreshold={0}
+        ListFooterComponent={
+          loadingMore ? (
+            <View className="py-4">
+              <ActivityIndicator size="large" color="#059669" />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
           <View className="items-center justify-center flex-1 py-20">
             <MaterialIcons
               name="chat-bubble-outline"
@@ -390,24 +449,18 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
               Send a message to communicate about this delivery
             </Text>
           </View>
-        ) : (
-          messages.map((message, index) => {
-            const prevMessage = index > 0 ? messages[index - 1] : null;
-            const showDate =
-              !prevMessage ||
-              new Date(message.created_at).toDateString() !==
-                new Date(prevMessage.created_at).toDateString();
+        }
+        renderItem={({ item, index }) => {
+          const prevMessage =
+            index < messages.length - 1 ? messages[index + 1] : null;
+          const showDate =
+            !prevMessage ||
+            new Date(item.created_at).toDateString() !==
+              new Date(prevMessage.created_at).toDateString();
 
-            return (
-              <MessageItem
-                key={message.id}
-                message={message}
-                showDate={showDate}
-              />
-            );
-          })
-        )}
-      </ScrollView>
+          return <MessageItem message={item} showDate={showDate} />;
+        }}
+      />
 
       {!isDeliveryCompleted && (
         <View className="flex flex-row items-center px-4 py-3 bg-white border-t border-gray-200">
@@ -424,11 +477,15 @@ const DeliveryPartnerChatConversationScreen = ({ navigation, route }) => {
             disabled={!newMessage.trim() || sending}
             className={`p-3 rounded-full ${newMessage.trim() && !sending ? "bg-green-600" : "bg-gray-300"}`}
           >
-            <MaterialIcons
-              name="send"
-              size={20}
-              color={newMessage.trim() && !sending ? "white" : "#9CA3AF"}
-            />
+            {sending ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <MaterialIcons
+                name="send"
+                size={20}
+                color={newMessage.trim() && !sending ? "white" : "#9CA3AF"}
+              />
+            )}
           </TouchableOpacity>
         </View>
       )}

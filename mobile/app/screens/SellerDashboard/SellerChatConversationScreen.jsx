@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +12,7 @@ import {
   ActivityIndicator,
   Modal,
   Image,
+  FlatList,
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -26,11 +26,14 @@ import { API_URL } from "../../config/apiConfig";
 const SellerChatConversationScreen = ({ route, navigation }) => {
   const { conversationId, userId, customerName, customerPhone } = route.params;
   const { user } = useAuth();
-  const { socketMessage } = useSeller();
+  const { socketMessage, setSocketMessage } = useSeller();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [finalConversationId, setFinalConversationId] =
+    useState(conversationId);
+
   const scrollViewRef = useRef();
 
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
@@ -41,22 +44,127 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
   const [isFinalOffer, setIsFinalOffer] = useState(false);
   const [submittingCounter, setSubmittingCounter] = useState(false);
 
+  const [oldestTimestamp, setOldestTimestamp] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   let markReadInProgress = false;
 
-  const fetchMessages = async () => {
+  useEffect(() => {
+    setOldestTimestamp(null);
+    setHasMore(true);
+    fetchMessages(false);
+  }, []);
+
+  useEffect(() => {
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId === finalConversationId
+    ) {
+      (async () => {
+        try {
+          const response = await axios.get(
+            `${API_URL}/api/chat/${userId}/conversation-id`,
+            {
+              userId,
+            }
+          );
+
+          if (response.data.success) {
+            setFinalConversationId(response.data.data.conversationId);
+          }
+        } catch (error) {
+          console.log(
+            "Error getting conversation ID:",
+            error.response?.data || error
+          );
+        }
+      })();
+    }
+
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId === finalConversationId
+    ) {
+      setMessages((prev) => [socketMessage.data.newMessage, ...prev]);
+
+      if (messages.length === 0)
+        setOldestTimestamp(socketMessage.data.newMessage.created_at);
+
+      setSocketMessage(null);
+      if (!markReadInProgress) markMessagesAsRead();
+    }
+  }, [socketMessage, finalConversationId]);
+
+  useEffect(() => {
+    const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardVisibility(false);
+    });
+
+    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
+      setKeyboardVisibility(true);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }, 0);
+    });
+
+    return () => {
+      keyboardDidHide.remove();
+      keyboardDidShow.remove();
+    };
+  }, []);
+
+  const fetchMessages = async (isLoadMore = false) => {
+    if (isLoadMore && (loadingMore || !hasMore)) return;
+
+    if (isLoadMore) {
+      setLoadingMore(true);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({
+          animated: true,
+        });
+      }, 100);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      const response = await axios.get(
-        `${API_URL}/api/chat/seller/conversations/${conversationId}/messages`
-      );
+      let url = `${API_URL}/api/chat/seller/conversations/${finalConversationId}/messages?limit=20`;
+
+      if (isLoadMore && oldestTimestamp) {
+        url += `&before=${encodeURIComponent(oldestTimestamp)}`;
+      }
+
+      const response = await axios.get(url);
+
       if (response.data.success) {
-        setMessages(response.data.data.messages);
-        // Mark messages as read
+        const newMessages = response.data.data.messages;
+
+        if (newMessages.length < 20) {
+          setHasMore(false);
+        }
+
+        if (isLoadMore) {
+          setMessages((prev) => [...prev, ...newMessages]);
+        } else {
+          setMessages(newMessages);
+        }
+
+        if (newMessages.length > 0) {
+          const oldestMessage = newMessages[newMessages.length - 1];
+          setOldestTimestamp(oldestMessage.created_at);
+        }
+
         if (!markReadInProgress) markMessagesAsRead();
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {
-      setLoading(false);
+      if (isLoadMore) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -65,7 +173,7 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
     markReadInProgress = true;
     try {
       await axios.put(
-        `${API_URL}/api/chat/seller/conversations/${conversationId}/mark-read`
+        `${API_URL}/api/chat/seller/conversations/${finalConversationId}/mark-read`
       );
     } catch (err) {
       console.error("Error marking messages as read:", err);
@@ -73,20 +181,6 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
       markReadInProgress = false;
     }
   };
-
-  useEffect(() => {
-    fetchMessages();
-  }, [conversationId]);
-
-  useEffect(() => {
-    if (
-      socketMessage &&
-      socketMessage.type === "REFRESH_SELLER_CONVERSATIONS" &&
-      conversationId === socketMessage.conversationId
-    ) {
-      fetchMessages();
-    }
-  }, [socketMessage]);
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -99,7 +193,7 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
       const response = await axios.post(
         `${API_URL}/api/chat/seller/send-message`,
         {
-          conversationId: conversationId,
+          conversationId: finalConversationId,
           userId: userId,
           messageText: messageText,
           messageType: "text",
@@ -107,8 +201,12 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
       );
 
       if (response.data.success) {
-        setMessages((prev) => [...prev, response.data.data.message]);
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        setMessages((prev) => [response.data.data.message, ...prev]);
+
+        if (messages.length === 0)
+          setOldestTimestamp(response.data.data.message.created_at);
+
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -138,24 +236,6 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
       return date.toLocaleDateString();
     }
   };
-
-  useEffect(() => {
-    const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
-      setKeyboardVisibility(false);
-    });
-
-    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
-      setKeyboardVisibility(true);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 0);
-    });
-
-    return () => {
-      keyboardDidHide.remove();
-      keyboardDidShow.remove();
-    };
-  }, []);
 
   const handleBargainResponse = async (
     bargainOfferId,
@@ -606,15 +686,28 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
       </View>
 
       {/* Messages */}
-      <ScrollView
+      <FlatList
         ref={scrollViewRef}
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        inverted
         className="flex-1 px-4"
         contentContainerStyle={{ paddingVertical: 16 }}
-        onContentSizeChange={() =>
-          scrollViewRef.current?.scrollToEnd({ animated: true })
+        showsVerticalScrollIndicator={false}
+        onEndReached={() => {
+          if (!loadingMore && hasMore && messages.length > 0) {
+            fetchMessages(true);
+          }
+        }}
+        onEndReachedThreshold={0}
+        ListFooterComponent={
+          loadingMore ? (
+            <View className="py-4">
+              <ActivityIndicator size="large" color="#2563eb" />
+            </View>
+          ) : null
         }
-      >
-        {messages.length === 0 ? (
+        ListEmptyComponent={
           <View className="items-center justify-center flex-1 py-20">
             <Feather name="message-circle" size={64} color="#9CA3AF" />
             <Text className="mt-4 mb-2 text-xl font-semibold text-gray-600">
@@ -624,26 +717,24 @@ const SellerChatConversationScreen = ({ route, navigation }) => {
               Send a message to {customerName} about your products
             </Text>
           </View>
-        ) : (
-          messages.map((message, index) => {
-            const prevMessage = index > 0 ? messages[index - 1] : null;
-            const showDate =
-              !prevMessage ||
-              new Date(message.created_at).toDateString() !==
-                new Date(prevMessage.created_at).toDateString();
+        }
+        renderItem={({ item, index }) => {
+          const prevMessage =
+            index < messages.length - 1 ? messages[index + 1] : null;
+          const showDate =
+            !prevMessage ||
+            new Date(item.created_at).toDateString() !==
+              new Date(prevMessage.created_at).toDateString();
 
-            return (
-              <MessageItem
-                key={message.id}
-                message={message}
-                isLast={index === messages.length - 1}
-                showDate={showDate}
-              />
-            );
-          })
-        )}
-      </ScrollView>
-
+          return (
+            <MessageItem
+              message={item}
+              isLast={index === 0}
+              showDate={showDate}
+            />
+          );
+        }}
+      />
       {/* Message Input */}
       <View className="flex-row items-center px-4 py-3 bg-white border-t border-gray-200">
         <View className="flex-1 mr-3">

@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   TextInput,
   Image,
   KeyboardAvoidingView,
@@ -15,7 +14,7 @@ import {
   Modal,
   FlatList,
 } from "react-native";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -35,12 +34,15 @@ const ChatConversationScreen = ({ route, navigation }) => {
     fromSellerStore = false,
     fromProductDetails = false,
   } = route.params;
-  const { user, socketMessage } = useAuth();
+  const { user, socketMessage, setSocketMessage } = useAuth();
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [finalConversationId, setFinalConversationId] =
+    useState(conversationId);
+
   const scrollViewRef = useRef();
 
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
@@ -61,22 +63,129 @@ const ChatConversationScreen = ({ route, navigation }) => {
   const [counterOfferPrice, setCounterOfferPrice] = useState("");
   const [submittingCounterOffer, setSubmittingCounterOffer] = useState(false);
 
+  const [oldestTimestamp, setOldestTimestamp] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   let markReadInProgress = false;
 
-  const fetchMessages = async () => {
+  useFocusEffect(
+    useCallback(() => {
+      setOldestTimestamp(null);
+      setHasMore(true);
+      fetchMessages(false);
+    }, [])
+  );
+
+  useEffect(() => {
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId !== finalConversationId
+    ) {
+      (async () => {
+        try {
+          const response = await axios.get(
+            `${API_URL}/api/chat/${sellerId}/conversation-id`,
+            {
+              sellerId,
+            }
+          );
+
+          if (response.data.success) {
+            setFinalConversationId(response.data.data.conversationId);
+          }
+        } catch (error) {
+          console.log(
+            "Error getting conversation ID:",
+            error.response?.data || error
+          );
+        }
+      })();
+    }
+
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId === finalConversationId
+    ) {
+      setMessages((prev) => [socketMessage.data.newMessage, ...prev]);
+
+      if (messages.length === 0)
+        setOldestTimestamp(socketMessage.data.newMessage.created_at);
+
+      setSocketMessage(null);
+      if (!markReadInProgress) markMessagesAsRead();
+    }
+  }, [socketMessage, finalConversationId]);
+
+  useEffect(() => {
+    const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardVisibility(false);
+    });
+
+    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
+      setKeyboardVisibility(true);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }, 0);
+    });
+
+    return () => {
+      keyboardDidHide.remove();
+      keyboardDidShow.remove();
+    };
+  }, []);
+
+  const fetchMessages = async (isLoadMore = false) => {
+    if (isLoadMore && (loadingMore || !hasMore)) return;
+
+    if (isLoadMore) {
+      setLoadingMore(true);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({
+          animated: true,
+        });
+      }, 100);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      const response = await axios.get(
-        `${API_URL}/api/chat/conversations/${conversationId}/messages`
-      );
+      let url = `${API_URL}/api/chat/conversations/${finalConversationId}/messages?limit=20`;
+
+      if (isLoadMore && oldestTimestamp) {
+        url += `&before=${encodeURIComponent(oldestTimestamp)}`;
+      }
+
+      const response = await axios.get(url);
+
       if (response.data.success) {
-        setMessages(response.data.data.messages);
-        // Mark messages as read
+        const newMessages = response.data.data.messages;
+
+        if (newMessages.length < 20) {
+          setHasMore(false);
+        }
+
+        if (isLoadMore) {
+          setMessages((prev) => [...prev, ...newMessages]);
+        } else {
+          setMessages(newMessages);
+        }
+
+        if (newMessages.length > 0) {
+          const oldestMessage = newMessages[newMessages.length - 1];
+          setOldestTimestamp(oldestMessage.created_at);
+        }
+
         if (!markReadInProgress) markMessagesAsRead();
       }
     } catch (error) {
-      console.log("Error fetching messages:", error.response.data);
+      console.log("Error fetching messages:", error.response?.data);
     } finally {
-      setLoading(false);
+      if (isLoadMore) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -86,7 +195,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
 
     try {
       await axios.put(
-        `${API_URL}/api/chat/conversations/${conversationId}/mark-read`
+        `${API_URL}/api/chat/conversations/${finalConversationId}/mark-read`
       );
     } catch (err) {
       console.error("Error marking messages as read:", err);
@@ -99,7 +208,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
     setLoadingProducts(true);
     try {
       const response = await axios.get(
-        `${API_URL}/api/bargain/seller/${sellerId}/products/${conversationId}`
+        `${API_URL}/api/bargain/seller/${sellerId}/products/${finalConversationId}`
       );
 
       if (response.data.success) {
@@ -145,7 +254,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
         sellerId: sellerId,
         offeredPrice: offerPriceNum,
         originalPrice: originalPrice,
-        conversationId: conversationId,
+        conversationId: finalConversationId,
       });
 
       if (response.data.success) {
@@ -245,12 +354,6 @@ const ChatConversationScreen = ({ route, navigation }) => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchMessages();
-    }, [conversationId])
-  );
-
   const handleAddToCart = async () => {
     if (!cartQuantity || cartQuantity <= 0) {
       Alert.alert("Error", "Please enter a valid quantity");
@@ -282,16 +385,6 @@ const ChatConversationScreen = ({ route, navigation }) => {
     }
   };
 
-  useEffect(() => {
-    if (
-      socketMessage &&
-      socketMessage.type === "REFRESH_USER_CONVERSATIONS" &&
-      conversationId === socketMessage.conversationId
-    ) {
-      fetchMessages();
-    }
-  }, [socketMessage]);
-
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
 
@@ -301,15 +394,19 @@ const ChatConversationScreen = ({ route, navigation }) => {
 
     try {
       const response = await axios.post(`${API_URL}/api/chat/send-message`, {
-        conversationId: conversationId,
+        conversationId: finalConversationId,
         sellerId: sellerId,
         messageText: messageText,
         messageType: "text",
       });
 
       if (response.data.success) {
-        setMessages((prev) => [...prev, response.data.data.message]);
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        setMessages((prev) => [response.data.data.message, ...prev]);
+
+        if (messages.length === 0)
+          setOldestTimestamp(response.data.data.message.created_at);
+
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -340,25 +437,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
     }
   };
 
-  useEffect(() => {
-    const keyboardDidHide = Keyboard.addListener("keyboardDidHide", () => {
-      setKeyboardVisibility(false);
-    });
-
-    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
-      setKeyboardVisibility(true);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 0);
-    });
-
-    return () => {
-      keyboardDidHide.remove();
-      keyboardDidShow.remove();
-    };
-  }, []);
-
-  const BargainCard = ({ message }) => {
+  const BargainCard = memo(({ message }) => {
     const bargainData = message.bargain_data;
     const isFromUser = message.sender_type === "user";
 
@@ -639,9 +718,9 @@ const ChatConversationScreen = ({ route, navigation }) => {
         </View>
       </View>
     );
-  };
+  });
 
-  const MessageItem = ({ message, isLast, showDate }) => {
+  const MessageItem = memo(({ message, isLast, showDate }) => {
     const isFromUser = message.sender_type === "user";
 
     if (message.message_type === "bargain_offer") {
@@ -717,7 +796,7 @@ const ChatConversationScreen = ({ route, navigation }) => {
         </View>
       </View>
     );
-  };
+  });
 
   if (loading) {
     return (
@@ -808,15 +887,29 @@ const ChatConversationScreen = ({ route, navigation }) => {
       </View>
 
       {/* Messages */}
-      <ScrollView
+      <FlatList
         ref={scrollViewRef}
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        inverted
         className="flex-1 px-4"
         contentContainerStyle={{ paddingVertical: 16 }}
-        onContentSizeChange={() =>
-          scrollViewRef.current?.scrollToEnd({ animated: true })
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        onEndReached={() => {
+          if (!loadingMore && hasMore && messages.length > 0) {
+            fetchMessages(true);
+          }
+        }}
+        onEndReachedThreshold={0}
+        ListFooterComponent={
+          loadingMore ? (
+            <View className="py-4">
+              <ActivityIndicator size="large" color="#F16B44" />
+            </View>
+          ) : null
         }
-      >
-        {messages.length === 0 ? (
+        ListEmptyComponent={
           <View className="items-center justify-center flex-1 py-20">
             <Feather name="message-circle" size={64} color="#9CA3AF" />
             <Text className="mt-4 mb-2 text-xl font-semibold text-gray-600">
@@ -826,25 +919,24 @@ const ChatConversationScreen = ({ route, navigation }) => {
               Send a message to {storeName} about their products
             </Text>
           </View>
-        ) : (
-          messages.map((message, index) => {
-            const prevMessage = index > 0 ? messages[index - 1] : null;
-            const showDate =
-              !prevMessage ||
-              new Date(message.created_at).toDateString() !==
-                new Date(prevMessage.created_at).toDateString();
+        }
+        renderItem={({ item, index }) => {
+          const prevMessage =
+            index < messages.length - 1 ? messages[index + 1] : null;
+          const showDate =
+            !prevMessage ||
+            new Date(item.created_at).toDateString() !==
+              new Date(prevMessage.created_at).toDateString();
 
-            return (
-              <MessageItem
-                key={message.id}
-                message={message}
-                isLast={index === messages.length - 1}
-                showDate={showDate}
-              />
-            );
-          })
-        )}
-      </ScrollView>
+          return (
+            <MessageItem
+              message={item}
+              isLast={index === 0}
+              showDate={showDate}
+            />
+          );
+        }}
+      />
 
       {/* Message Input */}
       <View className="flex-row items-center px-4 py-3 bg-white border-t border-gray-200">

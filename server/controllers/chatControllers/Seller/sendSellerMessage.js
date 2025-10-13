@@ -81,13 +81,23 @@ const sendSellerMessage = async (req, res) => {
       [messageResult.insertId, finalConversationId]
     );
 
+    // Get the created message
+    const [newMessage] = await db.execute(
+      `SELECT id, sender_id, sender_type, message_text, message_type, order_id, created_at
+       FROM messages WHERE id = ?`,
+      [messageResult.insertId]
+    );
+
     //Send a websocket message to specific consumer user
     const users = req.app.get("users");
 
     const refreshChat = {
       type: "REFRESH_USER_CONVERSATIONS",
       message: "Sent message to user",
-      conversationId: finalConversationId,
+      data: {
+        newMessage: newMessage[0],
+        conversationId: finalConversationId,
+      },
     };
 
     const user = users.get(customerId);
@@ -96,13 +106,6 @@ const sendSellerMessage = async (req, res) => {
       user.socket.send(JSON.stringify(refreshChat));
       console.log(`Sent refresh chat to user id: ${customerId}`);
     }
-
-    // Get the created message
-    const [newMessage] = await db.execute(
-      `SELECT id, sender_id, sender_type, message_text, message_type, order_id, created_at
-       FROM messages WHERE id = ?`,
-      [messageResult.insertId]
-    );
 
     res.json({
       success: true,

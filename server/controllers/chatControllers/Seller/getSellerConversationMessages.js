@@ -5,6 +5,7 @@ const getSellerConversationMessages = async (req, res) => {
   try {
     const userId = req.user.id;
     const { conversationId } = req.params;
+    const { before, limit = 50 } = req.query;
 
     // Get seller ID and verify access to conversation
     const [sellerCheck] = await db.execute(
@@ -21,7 +22,7 @@ const getSellerConversationMessages = async (req, res) => {
       });
     }
 
-    const query = `
+    let query = `
       SELECT m.*, 
              bo.id as bargain_id, bo.product_id, bo.original_price, bo.offered_price,
              bo.current_price, bo.offer_type, bo.status, bo.is_final_offer,
@@ -29,11 +30,18 @@ const getSellerConversationMessages = async (req, res) => {
       FROM messages m
       LEFT JOIN bargain_offers bo ON m.bargain_offer_id = bo.id
       LEFT JOIN products p ON bo.product_id = p.id
-      WHERE m.conversation_id = ?
-      ORDER BY m.created_at ASC
-    `;
+      WHERE m.conversation_id = ?`;
 
-    const [messages] = await db.execute(query, [conversationId]);
+    const queryParams = [conversationId];
+
+    if (before) {
+      query += ` AND m.created_at < ?`;
+      queryParams.push(before);
+    }
+
+    query += ` ORDER BY m.created_at DESC LIMIT ${Number.parseInt(limit)}`;
+
+    const [messages] = await db.execute(query, queryParams);
 
     const formattedMessages = messages.map((message) => {
       const messageData = {

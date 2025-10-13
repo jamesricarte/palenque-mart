@@ -3,7 +3,7 @@ const db = require("../../../config/db");
 const getDeliveryPartnerConversationMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { orderId, chatType } = req.query; // Added orderId and chatType from query parameters
+    const { orderId, chatType, before, limit = 50 } = req.query; // Added cursor-based pagination parameters
     let deliveryPartnerId = req.user.id;
 
     const [deliveryPartnerIds] = await db.execute(
@@ -27,7 +27,7 @@ const getDeliveryPartnerConversationMessages = async (req, res) => {
       });
     }
 
-    const query = `
+    let query = `
       SELECT 
         m.id,
         m.conversation_id,
@@ -49,11 +49,18 @@ const getDeliveryPartnerConversationMessages = async (req, res) => {
       LEFT JOIN sellers s ON m.sender_id = s.id AND m.sender_type = 'seller'
       LEFT JOIN delivery_partners dp ON m.sender_id = dp.id AND m.sender_type = 'delivery_partner'
       WHERE m.conversation_id = ? 
-      AND (m.order_id = ? OR m.order_id IS NULL)
-      ORDER BY m.created_at ASC
-    `;
+      AND (m.order_id = ? OR m.order_id IS NULL)`;
 
-    const [messages] = await db.execute(query, [conversationId, orderId]);
+    const queryParams = [conversationId, orderId];
+
+    if (before) {
+      query += ` AND m.created_at < ?`;
+      queryParams.push(before);
+    }
+
+    query += ` ORDER BY m.created_at DESC LIMIT ${Number.parseInt(limit)}`;
+
+    const [messages] = await db.execute(query, queryParams);
 
     res.json({
       success: true,

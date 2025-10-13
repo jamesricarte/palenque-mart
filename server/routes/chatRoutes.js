@@ -13,6 +13,7 @@ const sendUserDeliveryPartnerMessage = require("../controllers/chatControllers/U
 const markUserDeliveryPartnerMessagesAsRead = require("../controllers/chatControllers/User/markDeliveryPartnerMessagesAsRead");
 
 // Seller chat controllers
+const getSellerConversationId = require("../controllers/chatControllers/Seller/getSellerConversationId");
 const getSellerConversations = require("../controllers/chatControllers/Seller/getSellerConversations");
 const getSellerConversationMessages = require("../controllers/chatControllers/Seller/getSellerConversationMessages");
 const sendSellerMessage = require("../controllers/chatControllers/Seller/sendSellerMessage");
@@ -72,6 +73,11 @@ router.put(
 );
 
 // Seller chat routes
+router.get(
+  "/:userId/conversation-id",
+  authenticateToken,
+  getSellerConversationId
+);
 router.get("/seller/conversations", authenticateToken, getSellerConversations);
 router.get(
   "/seller/conversations/:conversationId/messages",
@@ -95,7 +101,7 @@ router.get(
   getSellerDeliveryPartnerConversationId
 );
 router.get(
-  "/seller/conversations/:conversationId/messages",
+  "/seller/delivery-partner/conversations/:conversationId/messages",
   authenticateToken,
   getSellerDeliveryPartnerMessages
 );

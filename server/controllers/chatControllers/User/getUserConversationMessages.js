@@ -5,8 +5,7 @@ const getUserConversationMessages = async (req, res) => {
   try {
     const userId = req.user.id;
     const { conversationId } = req.params;
-    const { page = 1, limit = 50 } = req.query;
-    const offset = (page - 1) * limit;
+    const { before, limit = 50 } = req.query;
 
     // Verify user has access to this conversation
     const [conversationCheck] = await db.execute(
@@ -21,8 +20,7 @@ const getUserConversationMessages = async (req, res) => {
       });
     }
 
-    const [messages] = await db.execute(
-      `SELECT m.*, 
+    let query = `SELECT m.*, 
               bo.id as bargain_id, bo.product_id, bo.original_price, bo.offered_price,
               bo.current_price, bo.offer_type, bo.status, bo.is_final_offer,
               p.name as product_name, p.stock_quantity, p.image_keys as product_image_keys,
@@ -42,11 +40,18 @@ const getUserConversationMessages = async (req, res) => {
        FROM messages m
        LEFT JOIN bargain_offers bo ON m.bargain_offer_id = bo.id
        LEFT JOIN products p ON bo.product_id = p.id
-       WHERE m.conversation_id = ?
-       ORDER BY m.created_at ASC
-       LIMIT ${Number.parseInt(limit)} OFFSET ${offset}`,
-      [userId, userId, conversationId]
-    );
+       WHERE m.conversation_id = ?`;
+
+    const queryParams = [userId, userId, conversationId];
+
+    if (before) {
+      query += ` AND m.created_at < ?`;
+      queryParams.push(before);
+    }
+
+    query += ` ORDER BY m.created_at DESC LIMIT ${Number.parseInt(limit)}`;
+
+    const [messages] = await db.execute(query, queryParams);
 
     const formattedMessages = messages.map((message) => {
       const messageData = {

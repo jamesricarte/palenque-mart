@@ -3,7 +3,6 @@
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
@@ -12,8 +11,9 @@ import {
   Alert,
   Keyboard,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -48,33 +48,123 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
 
   const [keyBoardVisibility, setKeyboardVisibility] = useState(false);
 
+  const [oldestTimestamp, setOldestTimestamp] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   let markReadInProgress = false;
 
-  const fetchMessages = async () => {
+  useFocusEffect(
+    useCallback(() => {
+      setOldestTimestamp(null);
+      setHasMore(true);
+      fetchMessages(false);
+    }, [orderId, deliveryPartnerId])
+  );
+
+  useEffect(() => {
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId !== finalConversationId
+    ) {
+      (async () => {
+        try {
+          const response = await axios.get(
+            `${API_URL}/api/chat/delivery-partner/${deliveryPartnerId}/order/${orderId}/conversation-id`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.data.success) {
+            setFinalConversationId(response.data.data.conversationId);
+          }
+        } catch (error) {
+          console.log(
+            "Error getting conversation ID:",
+            error.response?.data || error
+          );
+        }
+      })();
+    }
+
+    if (
+      socketMessage &&
+      socketMessage.data.conversationId === finalConversationId
+    ) {
+      setMessages((prev) => [socketMessage.data.newMessage, ...prev]);
+
+      if (messages.length === 0)
+        setOldestTimestamp(socketMessage.data.newMessage.created_at);
+
+      setSocketMessage(null);
+      if (!markReadInProgress) markMessagesAsRead();
+    }
+  }, [socketMessage, finalConversationId]);
+
+  const fetchMessages = async (isLoadMore = false) => {
     if (!finalConversationId) {
       setLoading(false);
       return;
     }
 
+    if (isLoadMore && (loadingMore || !hasMore)) return;
+
+    if (isLoadMore) {
+      setLoadingMore(true);
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({
+          animated: true,
+        });
+      }, 100);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      const response = await axios.get(
-        `${API_URL}/api/chat/user/delivery-partner/conversations/${finalConversationId}/messages?orderId=${orderId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      let url = `${API_URL}/api/chat/user/delivery-partner/conversations/${finalConversationId}/messages?orderId=${orderId}&limit=20`;
+
+      if (isLoadMore && oldestTimestamp) {
+        url += `&before=${encodeURIComponent(oldestTimestamp)}`;
+      }
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data.success) {
-        setMessages(response.data.data.messages);
+        const newMessages = response.data.data.messages;
+
+        if (newMessages.length < 20) {
+          setHasMore(false);
+        }
+
+        if (isLoadMore) {
+          setMessages((prev) => [...prev, ...newMessages]);
+        } else {
+          setMessages(newMessages);
+        }
+
+        if (newMessages.length > 0) {
+          const oldestMessage = newMessages[newMessages.length - 1];
+          setOldestTimestamp(oldestMessage.created_at);
+        }
+
         // Mark messages as read
         if (!markReadInProgress) markMessagesAsRead();
       }
     } catch (error) {
       console.log("Error fetching messages:", error.response?.data || error);
     } finally {
-      setLoading(false);
+      if (isLoadMore) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -126,7 +216,12 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
 
       if (response.data.success) {
         setFinalConversationId(response.data.data.conversationId);
-        setMessages((prev) => [...prev, response.data.data.message]);
+        setMessages((prev) => [response.data.data.message, ...prev]);
+
+        if (messages.length === 0)
+          setOldestTimestamp(response.data.data.message.created_at);
+
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
         if (!markReadInProgress && finalConversationId) markMessagesAsRead();
       } else {
         Alert.alert("Error", "Failed to send message");
@@ -140,58 +235,6 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
       setSending(false);
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchMessages();
-    }, [orderId, deliveryPartnerId])
-  );
-
-  useEffect(() => {
-    if (
-      socketMessage &&
-      socketMessage.data.conversationId !== finalConversationId
-    ) {
-      (async () => {
-        try {
-          const response = await axios.get(
-            `${API_URL}/api/chat/delivery-partner/${deliveryPartnerId}/order/${orderId}/conversation-id`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (response.data.success) {
-            setFinalConversationId(response.data.data.conversationId);
-          }
-        } catch (error) {
-          console.log(
-            "Error getting conversation ID:",
-            error.response?.data || error
-          );
-        }
-      })();
-    }
-
-    if (
-      socketMessage &&
-      socketMessage.data.conversationId === finalConversationId
-    ) {
-      setMessages((prev) => [...prev, socketMessage.data.newMessage]);
-      setSocketMessage(null);
-      if (!markReadInProgress) markMessagesAsRead();
-    }
-  }, [socketMessage, finalConversationId]);
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages]);
 
   const formatMessageTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -221,7 +264,7 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
     const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
       setKeyboardVisibility(true);
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
       }, 0);
     });
 
@@ -231,7 +274,7 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
     };
   }, []);
 
-  const MessageItem = ({ message, showDate }) => {
+  const MessageItem = memo(({ message, showDate }) => {
     const isUser = message.sender_type === "user";
 
     return (
@@ -291,7 +334,7 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
         </View>
       </View>
     );
-  };
+  });
 
   if (loading) {
     return (
@@ -387,13 +430,29 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
       </View>
 
       {/* Messages */}
-      <ScrollView
+      <FlatList
         ref={scrollViewRef}
+        data={messages}
+        keyExtractor={(item) => item.id.toString()}
+        inverted
         className="flex-1 px-4"
         contentContainerStyle={{ paddingVertical: 16 }}
         showsVerticalScrollIndicator={false}
-      >
-        {messages.length === 0 ? (
+        removeClippedSubviews={true}
+        onEndReached={() => {
+          if (!loadingMore && hasMore && messages.length > 0) {
+            fetchMessages(true);
+          }
+        }}
+        onEndReachedThreshold={0}
+        ListFooterComponent={
+          loadingMore ? (
+            <View className="py-4">
+              <ActivityIndicator size="large" color="#EA580C" />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
           <View className="items-center justify-center flex-1 py-20">
             <MaterialIcons
               name="chat-bubble-outline"
@@ -407,24 +466,18 @@ const UserDeliveryPartnerChatScreen = ({ navigation, route }) => {
               Send a message to communicate with your delivery partner
             </Text>
           </View>
-        ) : (
-          messages.map((message, index) => {
-            const prevMessage = index > 0 ? messages[index - 1] : null;
-            const showDate =
-              !prevMessage ||
-              new Date(message.created_at).toDateString() !==
-                new Date(prevMessage.created_at).toDateString();
+        }
+        renderItem={({ item, index }) => {
+          const prevMessage =
+            index < messages.length - 1 ? messages[index + 1] : null;
+          const showDate =
+            !prevMessage ||
+            new Date(item.created_at).toDateString() !==
+              new Date(prevMessage.created_at).toDateString();
 
-            return (
-              <MessageItem
-                key={message.id}
-                message={message}
-                showDate={showDate}
-              />
-            );
-          })
-        )}
-      </ScrollView>
+          return <MessageItem message={item} showDate={showDate} />;
+        }}
+      />
 
       {/* Message Input */}
       {!isDeliveryCompleted && (
