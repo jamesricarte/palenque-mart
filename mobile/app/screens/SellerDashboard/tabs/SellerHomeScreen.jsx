@@ -313,7 +313,7 @@ const SellerOverviewScreen = ({ navigation }) => {
 
           {loading && transactions.length === 0 ? (
             <View className="items-center justify-center p-8">
-              <ActivityIndicator size="large" color="#2563eb" />
+              <ActivityIndicator size="large" color="#ea580c" />
               <Text className="mt-2 text-gray-500">Loading analytics...</Text>
             </View>
           ) : error ? (
@@ -333,7 +333,7 @@ const SellerOverviewScreen = ({ navigation }) => {
 
               <TouchableOpacity
                 onPress={onRefresh}
-                className="bg-blue-600 px-5 py-2.5 rounded-lg flex-row items-center"
+                className="bg-orange-600 px-5 py-2.5 rounded-lg flex-row items-center"
               >
                 <Ionicons
                   name="refresh"
@@ -471,7 +471,7 @@ const SellerOverviewScreen = ({ navigation }) => {
               )}
 
               {/* Transaction History */}
-              <View className="mb-4 mt-4">
+              <View className="mt-4 mb-4">
                 <View className="flex-row items-center justify-between mb-4">
                   <Text className="text-lg font-semibold text-gray-900">
                     Transaction History
@@ -597,7 +597,7 @@ const SellerOverviewScreen = ({ navigation }) => {
                   <Text className="ml-3 text-gray-900">{period.label}</Text>
                 </View>
                 {selectedPeriod === period.value && (
-                  <Ionicons name="checkmark" size={20} color="#2563eb" />
+                  <Ionicons name="checkmark" size={20} color="#ea580c" />
                 )}
               </TouchableOpacity>
             ))}

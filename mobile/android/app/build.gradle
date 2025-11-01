@@ -179,4 +179,11 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation('com.github.pedroSG94.RootEncoder:library:2.6.4')
+
+    // Optional (only if you want CameraX/UVC):
+    implementation('com.github.pedroSG94.RootEncoder:extra-sources:2.6.4')
+    
+    implementation project(':react-native-vlc-media-player')
 }

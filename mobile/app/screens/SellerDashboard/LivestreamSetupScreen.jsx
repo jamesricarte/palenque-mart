@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   Modal,
+  Alert,
 } from "react-native";
 import { useState } from "react";
 import { StatusBar } from "expo-status-bar";
@@ -53,6 +54,13 @@ const LivestreamSetupScreen = ({ navigation }) => {
       selected: false,
     },
   ]);
+
+  const handleThumbnailImport = () => {
+    Alert.alert(
+      "Incoming Feature",
+      "Uploading thumbnail will be implemented soon!"
+    );
+  };
 
   const handleNext = () => {
     if (!streamTitle.trim()) {
@@ -117,7 +125,10 @@ const LivestreamSetupScreen = ({ navigation }) => {
             <Text className="mb-3 text-sm font-medium text-gray-700">
               Thumbnail
             </Text>
-            <TouchableOpacity className="items-center justify-center w-20 h-20 bg-white border-2 border-gray-300 border-dashed rounded-lg shadow-sm">
+            <TouchableOpacity
+              className="items-center justify-center w-20 h-20 bg-white border-2 border-gray-300 border-dashed rounded-lg shadow-sm"
+              onPress={handleThumbnailImport}
+            >
               <MaterialCommunityIcons
                 name="image-plus"
                 size={20}
@@ -163,7 +174,8 @@ const LivestreamSetupScreen = ({ navigation }) => {
         </View>
 
         {/* Products to Feature */}
-        <View className="mb-6">
+        {/* Hidden for now */}
+        <View className="hidden mb-6">
           <Text className="mb-3 text-sm font-medium text-gray-700">
             Products to Feature
           </Text>
@@ -171,8 +183,10 @@ const LivestreamSetupScreen = ({ navigation }) => {
             className="flex-row items-center px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm"
             onPress={() => setShowProductSelectionModal(true)}
           >
-            <Ionicons name="add" size={20} color="#3b82f6" />
-            <Text className="ml-2 font-medium text-blue-600">Add Products</Text>
+            <Ionicons name="add" size={20} color="#ea580c" />
+            <Text className="ml-2 font-medium text-orange-600">
+              Add Products
+            </Text>
           </TouchableOpacity>
 
           {selectedProducts.length > 0 && (
@@ -221,7 +235,7 @@ const LivestreamSetupScreen = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 py-3 bg-blue-600 rounded-lg shadow-sm"
+            className="flex-1 py-3 bg-orange-600 rounded-lg shadow-sm"
             onPress={handleNext}
           >
             <Text className="font-medium text-center text-white">Next</Text>
@@ -266,7 +280,7 @@ const LivestreamSetupScreen = ({ navigation }) => {
                   </View>
                   <View className="w-6 h-6 border-2 border-gray-300 rounded-full">
                     {product.selected && (
-                      <View className="w-full h-full bg-blue-600 rounded-full" />
+                      <View className="w-full h-full bg-orange-600 rounded-full" />
                     )}
                   </View>
                 </TouchableOpacity>

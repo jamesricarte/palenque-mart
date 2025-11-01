@@ -52,7 +52,6 @@ import OrdersScreen from "../screens/Orders/OrdersScreen";
 
 // Partnership Options
 import PartnershipOptionsScreen from "../screens/PartnershipOptions/PartnershipOptionsScreen";
-
 import DeliveryPartnerApplicationStatusScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerApplicationStatusScreen";
 import DeliveryPartnerRegistrationFormScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerRegistrationFormScreen";
 import DeliveryPartnerReviewSubmitScreen from "../screens/PartnershipOptions/DeliveryPartner/DeliveryPartnerReviewSubmitScreen";
@@ -82,7 +81,7 @@ import ProfileScreen from "../screens/Profile/ProfileScreen";
 import AddProductScreen from "../screens/SellerDashboard/AddProductScreen";
 import EditProductScreen from "../screens/SellerDashboard/EditProductScreen";
 import EditStoreProfileScreen from "../screens/SellerDashboard/EditStoreProfileScreen";
-// import LivestreamSessionScreen from "../screens/SellerDashboard/LivestreamSessionScreen";
+import LivestreamSessionScreen from "../screens/SellerDashboard/LivestreamSessionScreen";
 import LivestreamSetupScreen from "../screens/SellerDashboard/LivestreamSetupScreen";
 import LivestreamSummaryScreen from "../screens/SellerDashboard/LivestreamSummaryScreen";
 import SellerChatConversationScreen from "../screens/SellerDashboard/SellerChatConversationScreen";
@@ -291,10 +290,10 @@ const MainStackNavigator = () => {
         name="EditStoreProfile"
         component={EditStoreProfileScreen}
       />
-      {/* <Stack.Screen
+      <Stack.Screen
         name="LivestreamSession"
         component={LivestreamSessionScreen}
-      /> */}
+      />
       <Stack.Screen name="LivestreamSetup" component={LivestreamSetupScreen} />
       <Stack.Screen
         name="LivestreamSummary"

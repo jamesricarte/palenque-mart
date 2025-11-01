@@ -1,10 +1,10 @@
 CREATE DATABASE  IF NOT EXISTS `palenque_mart_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `palenque_mart_db`;
--- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.43, for macos15 (arm64)
 --
 -- Host: localhost    Database: palenque_mart_db
 -- ------------------------------------------------------
--- Server version	8.0.42
+-- Server version	8.0.43
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -362,7 +362,7 @@ CREATE TABLE `delivery_partners` (
 
 LOCK TABLES `delivery_partners` WRITE;
 /*!40000 ALTER TABLE `delivery_partners` DISABLE KEYS */;
-INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'occupied',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-10-13 09:01:51');
+INSERT INTO `delivery_partners` VALUES (1,3,1,'DP89506894','motorcycle','FSD0-343-FDFD-342','GDFD-345SF-DFDF-343','Honda','Click 125','2018','Red','Independent','[]','{\"friday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"monday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"sunday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"tuesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"saturday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"thursday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}, \"wednesday\": {\"end\": \"17:00\", \"start\": \"09:00\", \"available\": false}}','Marita C. Ricarte','0977345346546','Parent','delivery-partners/DP89506894/profile_photos/profile_photo_1755771587260.jpeg',0,'occupied',NULL,NULL,5.00,0,1,'2025-08-21 10:19:47','2025-10-25 17:44:31');
 /*!40000 ALTER TABLE `delivery_partners` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -505,6 +505,7 @@ CREATE TABLE `livestreams` (
   `seller_id` int NOT NULL,
   `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `stream_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `stream_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `thumbnail_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` enum('setup','scheduled','live','ended','cancelled') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'setup',
@@ -522,12 +523,13 @@ CREATE TABLE `livestreams` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`livestream_id`),
   UNIQUE KEY `stream_key` (`stream_key`),
+  UNIQUE KEY `stream_id_UNIQUE` (`stream_id`),
   KEY `idx_seller_status` (`seller_id`,`status`),
   KEY `idx_status` (`status`),
   KEY `idx_stream_key` (`stream_key`),
   KEY `idx_livestream_status_time` (`status`,`actual_start_time` DESC),
   CONSTRAINT `livestreams_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -536,7 +538,7 @@ CREATE TABLE `livestreams` (
 
 LOCK TABLES `livestreams` WRITE;
 /*!40000 ALTER TABLE `livestreams` DISABLE KEYS */;
-INSERT INTO `livestreams` VALUES (1,2,'Test 1','','2dd5-1bhi-f8li-ghd1',NULL,'live','https://livepeer.studio/hls/2dd5ish6yy7xypmo/index.m3u8',NULL,NULL,'2025-10-03 19:41:04',NULL,0,0,0,0,0,'2025-10-03 11:41:04','2025-10-03 11:41:04'),(2,2,'Hello','','507c-qayw-lpwc-qqti',NULL,'live','https://livepeer.studio/hls/507cybgabv24tqlh/index.m3u8',NULL,NULL,'2025-10-03 19:44:08',NULL,0,0,0,0,0,'2025-10-03 11:44:08','2025-10-03 11:44:08'),(3,2,'Test 3','','dd11-xdpr-1c6g-vl2b',NULL,'live','https://livepeer.studio/hls/dd111xz01nqaxm7r/index.m3u8',NULL,NULL,'2025-10-03 19:49:26',NULL,0,0,0,0,0,'2025-10-03 11:49:26','2025-10-03 11:49:26'),(4,2,'Test 4','','5389-fjcj-mrdv-pmmj',NULL,'live','https://livepeer.studio/hls/5389vry51tnl7rga/index.m3u8',NULL,NULL,'2025-10-03 20:12:54',NULL,0,0,0,0,0,'2025-10-03 12:12:54','2025-10-03 12:12:54'),(5,2,'Bshshs','','701d-t85h-8zd4-hsdo',NULL,'live','https://livepeer.studio/hls/701dxpl2q16pudkb/index.m3u8',NULL,NULL,'2025-10-03 21:43:55',NULL,0,0,0,0,0,'2025-10-03 13:43:55','2025-10-03 13:43:55'),(6,2,'Test 5','','0185-ef9x-mki5-u5kn',NULL,'ended','https://livepeer.studio/hls/0185hg70gq5j8zel/index.m3u8',NULL,NULL,'2025-10-03 22:41:20','2025-10-03 22:44:17',177,0,0,0,0,'2025-10-03 14:41:20','2025-10-03 14:44:17'),(7,2,'Hey','','0ce9-w8et-v1bh-pson',NULL,'ended','https://livepeer.studio/hls/0ce9uxm6hz0u44i3/index.m3u8',NULL,NULL,'2025-10-03 22:44:39','2025-10-03 22:45:47',68,0,0,0,0,'2025-10-03 14:44:39','2025-10-03 14:45:47'),(8,2,'Ggg','','38d4-93p5-4g0b-spm3',NULL,'ended','https://livepeer.studio/hls/38d4w6xnf2zb8zot/index.m3u8',NULL,NULL,'2025-10-03 22:51:09','2025-10-03 22:57:14',365,0,0,0,0,'2025-10-03 14:51:09','2025-10-03 14:57:14'),(9,2,'Bwbebs','','e33a-rytl-sw0j-rlp1',NULL,'ended','https://livepeer.studio/hls/e33a2l5uvs0kgejv/index.m3u8',NULL,NULL,'2025-10-03 22:57:31','2025-10-03 22:59:55',144,0,0,0,0,'2025-10-03 14:57:31','2025-10-03 14:59:55'),(10,2,'Behehe','','b458-oic2-cvb1-rxez',NULL,'live','https://livepeer.studio/hls/b458q75qvourby8o/index.m3u8',NULL,NULL,'2025-10-03 23:00:59',NULL,0,0,0,0,0,'2025-10-03 15:00:59','2025-10-03 15:00:59');
+INSERT INTO `livestreams` VALUES (1,1,'Stream 1','','54878680-f87b-46ad-8d91-98c31577ea77','5487-he0w-yogd-7pce',NULL,'ended','https://livepeercdn.studio/hls/5487cz4r42n3pg1a/index.m3u8','rtmp://rtmp.livepeer.com/live/5487-he0w-yogd-7pce',NULL,'2025-11-01 19:43:11',NULL,0,0,0,0,0,'2025-11-01 11:43:01','2025-11-01 11:45:26'),(2,1,'Stream 2','','5769f090-5c05-44af-8a6e-1aab30042599','5769-v753-p8q1-t6e2',NULL,'ended','https://livepeercdn.studio/hls/5769wsskm8yfjd8o/index.m3u8','rtmp://rtmp.livepeer.com/live/5769-v753-p8q1-t6e2',NULL,'2025-11-01 19:47:11','2025-11-01 19:48:30',79,1,0,0,0,'2025-11-01 11:47:03','2025-11-01 11:48:30'),(3,1,'Stream 3','','6ccd0018-a60c-4ad3-8c7b-2d9e59039974','6ccd-pb9m-5c7x-kvw8',NULL,'ended','https://livepeercdn.studio/hls/6ccdtew18hbnlgmy/index.m3u8','rtmp://rtmp.livepeer.com/live/6ccd-pb9m-5c7x-kvw8',NULL,'2025-11-01 19:49:21','2025-11-01 19:49:31',10,0,0,0,0,'2025-11-01 11:49:14','2025-11-01 11:49:31'),(4,1,'Stream 4','','750eb9ce-269e-48f4-b34c-200b6300fb33','750e-nz4s-onpa-9o86',NULL,'ended','https://livepeercdn.studio/hls/750ectqyw8629lqw/index.m3u8','rtmp://rtmp.livepeer.com/live/750e-nz4s-onpa-9o86',NULL,'2025-11-01 19:51:57','2025-11-01 19:52:52',55,1,0,0,0,'2025-11-01 11:51:49','2025-11-01 11:52:52'),(5,1,'Stream 5','','f57427d8-6f5a-4c45-be1e-bb52fe9ea3b2','f574-kzom-5p1z-b5fg',NULL,'ended','https://livepeercdn.studio/hls/f574bkwij40lw0z9/index.m3u8','rtmp://rtmp.livepeer.com/live/f574-kzom-5p1z-b5fg',NULL,'2025-11-01 19:54:00','2025-11-01 19:55:14',74,0,0,0,0,'2025-11-01 11:53:47','2025-11-01 11:55:14'),(6,1,'Stream 6','','a62ab37d-ecd9-4287-8dc3-d69b7b0dcfac','a62a-o6tk-php1-45o4',NULL,'ended','https://livepeercdn.studio/hls/a62axn6uuf5mlmxx/index.m3u8','rtmp://rtmp.livepeer.com/live/a62a-o6tk-php1-45o4',NULL,'2025-11-01 19:55:58','2025-11-01 19:57:28',90,1,0,0,0,'2025-11-01 11:55:51','2025-11-01 11:57:28'),(7,1,'Stream 7','','cd7cd1c5-3fc9-4819-9428-19ca8839d86c','cd7c-ymk8-zwrv-86pf',NULL,'ended','https://livepeercdn.studio/hls/cd7cf4f9bemb2emg/index.m3u8','rtmp://rtmp.livepeer.com/live/cd7c-ymk8-zwrv-86pf',NULL,'2025-11-01 20:00:36','2025-11-01 20:03:08',152,0,0,0,0,'2025-11-01 12:00:28','2025-11-01 12:03:08'),(8,1,'Stream 8','','e716619d-9984-4277-9b1a-036b10893c46','e716-yott-6589-qbqv',NULL,'ended','https://livepeercdn.studio/hls/e716cpm9xg8wipko/index.m3u8','rtmp://rtmp.livepeer.com/live/e716-yott-6589-qbqv',NULL,'2025-11-02 00:37:57','2025-11-02 01:24:32',2795,7,0,0,0,'2025-11-01 16:37:45','2025-11-01 17:24:32'),(9,1,'Stream 10','','8fa6a2bb-c8df-4e48-8d23-62faa6bda83d','8fa6-97ib-6znt-7owl',NULL,'ended','https://livepeercdn.studio/hls/8fa62sv5u3f5lcs9/index.m3u8','rtmp://rtmp.livepeer.com/live/8fa6-97ib-6znt-7owl',NULL,'2025-11-02 01:28:50','2025-11-02 01:41:01',731,1,0,0,0,'2025-11-01 17:28:42','2025-11-01 17:41:01'),(10,1,'Stream 11','','432d4582-16c1-40b0-9349-1a67c8d057ac','432d-yxuf-wl46-rgeb',NULL,'ended','https://livepeercdn.studio/hls/432djpi31ccd53ea/index.m3u8','rtmp://rtmp.livepeer.com/live/432d-yxuf-wl46-rgeb',NULL,'2025-11-02 01:43:12',NULL,0,0,0,0,0,'2025-11-01 17:41:55','2025-11-01 17:56:08'),(11,1,'Stream 12','','ef473cb2-0ee7-4779-85a2-6b803dfadd85','ef47-j399-tpkj-s9yi',NULL,'ended','https://livepeercdn.studio/hls/ef476026i5thg6hc/index.m3u8','rtmp://rtmp.livepeer.com/live/ef47-j399-tpkj-s9yi',NULL,'2025-11-02 01:56:58','2025-11-02 02:10:26',808,0,0,0,0,'2025-11-01 17:56:49','2025-11-01 18:10:26');
 /*!40000 ALTER TABLE `livestreams` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1345,4 +1347,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-10-13 18:21:11
+-- Dump completed on 2025-11-02  2:30:48

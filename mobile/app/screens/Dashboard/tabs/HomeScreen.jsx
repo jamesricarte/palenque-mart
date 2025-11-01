@@ -244,7 +244,7 @@ const HomeScreen = ({ navigation }) => {
         })
       }
     >
-      <View className="w-20 h-20 mb-2 bg-gray-200 border border-secondary rounded-full ">
+      <View className="w-20 h-20 mb-2 bg-gray-200 border rounded-full border-secondary ">
         {category.name !== "Others" ? (
           <Image
             source={category.image}
@@ -354,7 +354,7 @@ const HomeScreen = ({ navigation }) => {
                 handleAddToCart(product);
               }}
             >
-              <View className="p-1 bg-accent rounded-full min-w-5 min-h-5">
+              <View className="p-1 rounded-full bg-accent min-w-5 min-h-5">
                 <Ionicons name="bag-outline" size={18} color="white" />
               </View>
             </TouchableOpacity>
@@ -378,12 +378,12 @@ const HomeScreen = ({ navigation }) => {
 
   const VendorCard = ({ vendor }) => (
     <Pressable
-      className="w-96 mr-3 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+      className="mr-3 overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm w-96"
       onPress={() =>
         navigation.navigate("SellerStore", { sellerId: vendor.id })
       }
     >
-      <View className="relative bg-gray-300 rounded-t-lg h-32">
+      <View className="relative h-32 bg-gray-300 rounded-t-lg">
         <Image
           source={{ uri: vendor.store_logo_key }}
           className="w-full h-full rounded-t-lg"
@@ -393,7 +393,7 @@ const HomeScreen = ({ navigation }) => {
 
       <View className="p-3">
         <View className="flex-row items-center justify-between">
-          <Text className="font-medium text-lg text-center text-black rounded">
+          <Text className="text-lg font-medium text-center text-black rounded">
             {vendor.store_name}
           </Text>
 
@@ -405,7 +405,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View className="flex-row items-center mb-2 mt-1">
+        <View className="flex-row items-center mt-1 mb-2">
           <Ionicons name="location-outline" size={12} color="#9CA3AF" />
           <Text className="ml-1 text-base text-gray-500" numberOfLines={1}>
             {formatCardAddress(vendor.city, vendor.province)}
@@ -501,7 +501,7 @@ const HomeScreen = ({ navigation }) => {
 
         <Pressable
           onPress={handleSearchPress}
-          className="flex-row items-center px-4 py-4 border rounded-md border-gray-300"
+          className="flex-row items-center px-4 py-4 border border-gray-300 rounded-md"
         >
           <Ionicons name="search" size={20} color="#6B7280" />
           <Text className="flex-1 ml-3 text-lg text-gray-500">
@@ -649,10 +649,10 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Authentication Buttons - Fixed at bottom */}
       {!user && (
-        <View className="absolute bottom-0 left-0 right-0 bg-primary px-4 pt-1 pb-2">
+        <View className="absolute bottom-0 left-0 right-0 px-4 pt-1 pb-2 bg-primary">
           <View className="flex flex-row justify-between py-6">
             <TouchableOpacity
-              className="flex-1 py-4 border-2 border-white rounded-lg mr-2"
+              className="flex-1 py-4 mr-2 border-2 border-white rounded-lg"
               onPress={() => navigation.push("Login")}
             >
               <Text className="text-xl font-medium text-center text-white">
@@ -661,7 +661,7 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 py-4 bg-white rounded-lg ml-2"
+              className="flex-1 py-4 ml-2 bg-white rounded-lg"
               onPress={() => navigation.push("SignUp")}
             >
               <Text className="text-xl font-medium text-center text-primary">
@@ -802,7 +802,7 @@ const HomeScreen = ({ navigation }) => {
 
               {/* Action Button */}
               <TouchableOpacity
-                className="items-center p-4 bg-primary rounded-lg"
+                className="items-center p-4 rounded-lg bg-primary"
                 onPress={handleConfirmAction}
                 disabled={addingToCart}
               >

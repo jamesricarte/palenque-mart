@@ -13,7 +13,11 @@ buildscript {
 }
 
 ext {
-  ffmpegKitPackage = "full-gpl" // options: min, full, full-gpl, audio, video
+  // ffmpegKitPackage = "full-gpl" // options: min, full, full-gpl, audio, video
+  // buildToolsVersion = "34.0.0"
+  minSdkVersion = 26
+  // compileSdkVersion = 34
+  // targetSdkVersion = 34
 }
 
 allprojects {
@@ -21,6 +25,15 @@ allprojects {
     google()
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
+  }
+}
+
+// 👇 This tells the new React Native Gradle Plugin to include JitPack globally
+plugins.withId("com.facebook.react") {
+  gradle.ext.react {
+    repositories {
+      maven { url 'https://jitpack.io' }
+    }
   }
 }
 

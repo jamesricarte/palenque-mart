@@ -26,6 +26,7 @@ const SellerDashboard = ({ navigation }) => {
     setTriggerWebSocket,
     refreshOrdersData,
     setSellerId,
+    setSellerProfileData,
   } = useSeller();
 
   useEffect(() => {
@@ -47,6 +48,7 @@ const SellerDashboard = ({ navigation }) => {
       const response = await axios.get(`${API_URL}/api/seller/store-profile`);
       if (response.data.success) {
         setSellerId(response.data.data.id);
+        setSellerProfileData(response.data.data);
       }
     } catch (error) {
       console.error("Error fetching seller data:", error);

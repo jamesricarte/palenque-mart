@@ -118,7 +118,7 @@ const SellerStoreAccountScreen = ({ navigation }) => {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="px-4 pt-16 pb-5 bg-white mt-4">
+      <View className="px-4 pt-16 pb-5 mt-4 bg-white">
         <View className="flex-row items-center justify-between">
           <Text className="text-3xl font-semibold">My Store</Text>
           <View className="flex-row gap-0.5">
@@ -145,7 +145,7 @@ const SellerStoreAccountScreen = ({ navigation }) => {
           className="flex flex-row items-center p-4 mx-4 bg-white border border-gray-200 shadow-sm rounded-xl"
           onPress={() => navigation.navigate("EditStoreProfile")}
         >
-          <View className="flex flex-row items-center gap-4 flex-1">
+          <View className="flex flex-row items-center flex-1 gap-4">
             {sellerData.storeLogoUrl ? (
               <Image
                 source={{ uri: sellerData.storeLogoUrl }}

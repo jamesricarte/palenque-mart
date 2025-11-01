@@ -5,12 +5,13 @@ import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useAuth } from "../../../context/AuthContext";
 import { useDeliveryPartner } from "../../../context/DeliveryPartnerContext";
 import axios from "axios";
 import { API_URL } from "../../../config/apiConfig";
 
-const DeliveryPartnerOverviewScreen = ({ route }) => {
+const DeliveryPartnerHomeScreen = ({ route }) => {
   const { token } = useAuth();
   const { currentLocation, isOnline } = useDeliveryPartner();
   const [stats, setStats] = useState(null);
@@ -109,7 +110,7 @@ const DeliveryPartnerOverviewScreen = ({ route }) => {
           {/* Total Earnings */}
           <View className="flex-1 min-w-[45%] bg-white border border-gray-200 rounded-lg shadow-sm p-4">
             <View className="flex flex-row items-center justify-between mb-2">
-              <MaterialIcons name="money" size={24} color="#f59e0b" />
+              <FontAwesome6 name="peso-sign" size={22} color="#f59e0b" />
               <Text className="text-2xl font-bold text-gray-900">
                 ₱{stats?.totalEarnings?.toFixed(2) || "0.00"}
               </Text>
@@ -262,4 +263,4 @@ const DeliveryPartnerOverviewScreen = ({ route }) => {
   );
 };
 
-export default DeliveryPartnerOverviewScreen;
+export default DeliveryPartnerHomeScreen;

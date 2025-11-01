@@ -2,7 +2,6 @@
 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import HomeScreen from "./tabs/HomeScreen";
 import LiveStreamingScreen from "./tabs/LiveStreamingScreen";
 import ChatScreen from "./tabs/ChatScreen";
@@ -25,8 +24,10 @@ const DashboardScreen = () => {
         tabBarStyle: !user
           ? { display: "none" }
           : {
-              backgroundColor: "#F16B44",
-              borderTopColor: "#F16B44",
+              backgroundColor:
+                route.name === "Live Selling" ? "#000000" : "#F16B44",
+              borderTopColor:
+                route.name === "Live Selling" ? "#000000" : "#F16B44",
               borderTopWidth: 1,
               height: 100, // 👈 increase this value to make the tab bar taller
               paddingTop: 15,

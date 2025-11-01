@@ -12,7 +12,7 @@ import { API_URL } from "../../config/apiConfig";
 import { StatusBar } from "expo-status-bar";
 
 // Import tab screens
-import DeliveryPartnerOverviewScreen from "./tabs/DeliveryPartnerOverviewScreen";
+import DeliveryPartnerHomeScreen from "./tabs/DeliveryPartnerHomeScreen";
 import DeliveryPartnerDeliveriesScreen from "./tabs/DeliveryPartnerDeliveriesScreen";
 import DeliveryPartnerHistoryScreen from "./tabs/DeliveryPartnerHistoryScreen";
 import DeliveryPartnerAccountScreen from "./tabs/DeliveryPartnerAccountScreen";
@@ -139,7 +139,7 @@ const DeliveryPartnerDashboardScreen = ({ navigation }) => {
       >
         <Tab.Screen
           name="Home"
-          component={DeliveryPartnerOverviewScreen}
+          component={DeliveryPartnerHomeScreen}
           initialParams={{ deliveryPartnerProfile }}
         />
         <Tab.Screen

@@ -22,6 +22,7 @@ export const SellerProvider = ({ children }) => {
   const [triggerWebsocket, setTriggerWebSocket] = useState(false);
   const [refreshOrdersData, setRefreshOrdersData] = useState(false);
   const [sellerId, setSellerId] = useState(null);
+  const [sellerProfileData, setSellerProfileData] = useState(null);
   const [deliveryPartnerId, setDeliveryPartnerId] = useState(null);
   const [trackDeliveryPartner, setTrackDeliveryPartner] = useState(false);
   const [deliveryPartnerLocation, setDeliveryPartnerLocation] = useState(null);
@@ -29,6 +30,9 @@ export const SellerProvider = ({ children }) => {
 
   const [refreshTransactionData, setRefreshTransactionData] = useState(false);
   const [refreshAnalyticsData, setRefreshAnalyticsData] = useState(false);
+
+  const [updateLivestreamViewerCount, setUpdateLivestreamViewerCount] =
+    useState(false);
 
   const { socket, isConnected } = useWebSocket(
     token && isInSellerDashboard && triggerWebsocket ? WEBSOCKET_URL : null
@@ -72,6 +76,10 @@ export const SellerProvider = ({ children }) => {
           if (data.type === "SELLER_PAYMENT_STATUS_CHANGED") {
             setRefreshTransactionData(true);
             setRefreshAnalyticsData(true);
+          }
+
+          if (data.type === "UPDATE_VIEWER_COUNT") {
+            setUpdateLivestreamViewerCount(true);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -163,6 +171,17 @@ export const SellerProvider = ({ children }) => {
     return () => clearTimeout(timer);
   }, [refreshAnalyticsData]);
 
+  useEffect(() => {
+    let timer;
+    if (updateLivestreamViewerCount) {
+      timer = setTimeout(() => {
+        setUpdateLivestreamViewerCount(false);
+      }, 200);
+    }
+
+    return () => clearTimeout(timer);
+  }, [updateLivestreamViewerCount]);
+
   const createDeliveryAssignment = async (orderId, deliveryFee) => {
     if (!token) return null;
 
@@ -221,6 +240,8 @@ export const SellerProvider = ({ children }) => {
     setRefreshOrdersData,
     sellerId,
     setSellerId,
+    sellerProfileData,
+    setSellerProfileData,
     startTrackingDeliveryPartner,
     stopTrackingDeliveryPartner,
     deliveryPartnerLocation,
@@ -230,6 +251,8 @@ export const SellerProvider = ({ children }) => {
     setRefreshTransactionData,
     refreshAnalyticsData,
     setRefreshAnalyticsData,
+    updateLivestreamViewerCount,
+    setUpdateLivestreamViewerCount,
   };
 
   return (

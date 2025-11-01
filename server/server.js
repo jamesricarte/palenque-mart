@@ -42,6 +42,13 @@ app.use("/api/notifications", notificationRoutes); // Added notification routes 
 app.use("/api/reviews", reviewRoutes); // Added review routes registration
 app.use("/api/bargain", bargainRoutes); // Added review routes registration
 app.use("/api/livestream", livestreamRoutes); // Added livestream routes registration
+
+// Livepeer webhook route
+app.post(
+  "/api/livestream/webhook",
+  require("./controllers/livestreamControllers/handleWebhook")
+);
+
 app.use("/api", userRoutes);
 
 const socketStore = require("./utils/socketStore");

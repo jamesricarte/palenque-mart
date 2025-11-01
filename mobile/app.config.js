@@ -15,6 +15,7 @@ export default {
     },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: "com.anonymous.PalenqueMart",
       config: {
         googleMapsApiKey: "AIzaSyCYnz_StMrjKEKNnnCdciltxcNTKa_8yaU",
       },
@@ -37,5 +38,19 @@ export default {
       favicon: "./app/assets/favicon.png",
       bundler: "metro",
     },
+    plugins: [
+      "react-native-video",
+      // [
+      //   "react-native-vlc-media-player",
+      //   {
+      //     ios: {
+      //       includeVLCKit: false,
+      //     },
+      //     android: {
+      //       legacyJetifier: false,
+      //     },
+      //   },
+      // ],
+    ],
   },
 };
