@@ -24,7 +24,7 @@ const LivestreamSummaryScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       <StatusBar style="light" />
       <View className="px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <Text className="text-xl font-semibold">Stream Ended</Text>
@@ -99,7 +99,7 @@ const LivestreamSummaryScreen = ({ route, navigation }) => {
 
         <View className="w-full max-w-sm mt-8">
           <TouchableOpacity
-            className="py-3 bg-orange-600 rounded-lg"
+            className="py-3 bg-primary rounded-lg"
             onPress={() => navigation.pop(2)}
           >
             <Text className="font-medium text-center text-white">Done</Text>
