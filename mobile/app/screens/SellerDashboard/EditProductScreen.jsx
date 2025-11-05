@@ -333,7 +333,7 @@ const EditProductScreen = ({ navigation, route }) => {
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving || !hasChanges()}
-          className={`px-4 py-2 rounded-lg ${saving || !hasChanges() ? "bg-gray-400" : "bg-blue-600"}`}
+          className={`px-4 py-2 rounded-lg ${saving || !hasChanges() ? "bg-gray-400" : "bg-primary"}`}
         >
           {saving ? (
             <ActivityIndicator size="small" color="white" />
@@ -509,7 +509,7 @@ const EditProductScreen = ({ navigation, route }) => {
                   onPress={() => setFormData({ ...formData, unit_type: unit })}
                   className={`px-3 py-2 rounded-lg border ${
                     formData.unit_type === unit
-                      ? "bg-blue-600 border-blue-600"
+                      ? "bg-primary border-primary"
                       : "bg-white border-gray-300"
                   }`}
                 >
@@ -598,7 +598,7 @@ const EditProductScreen = ({ navigation, route }) => {
                   bargaining_enabled: !formData.bargaining_enabled,
                 })
               }
-              className={`w-12 h-6 rounded-full ${formData.bargaining_enabled ? "bg-blue-600" : "bg-gray-300"}`}
+              className={`w-12 h-6 rounded-full ${formData.bargaining_enabled ? "bg-primary" : "bg-gray-300"}`}
             >
               <View
                 className={`w-5 h-5 bg-white rounded-full shadow-sm transform ${
@@ -630,7 +630,7 @@ const EditProductScreen = ({ navigation, route }) => {
                       setFormData({ ...formData, minimum_offer_price: "" });
                     }
                   }}
-                  className={`w-12 h-6 rounded-full ${enableMinimumOffer ? "bg-blue-600" : "bg-gray-300"}`}
+                  className={`w-12 h-6 rounded-full ${enableMinimumOffer ? "bg-primary" : "bg-gray-300"}`}
                 >
                   <View
                     className={`w-5 h-5 bg-white rounded-full shadow-sm transform ${
@@ -695,7 +695,7 @@ const EditProductScreen = ({ navigation, route }) => {
                   is_preorder_enabled: !formData.is_preorder_enabled,
                 })
               }
-              className={`w-12 h-6 rounded-full ${formData.is_preorder_enabled ? "bg-blue-600" : "bg-gray-300"}`}
+              className={`w-12 h-6 rounded-full ${formData.is_preorder_enabled ? "bg-primary" : "bg-gray-300"}`}
             >
               <View
                 className={`w-5 h-5 bg-white rounded-full shadow-sm transform ${
@@ -780,7 +780,7 @@ const EditProductScreen = ({ navigation, route }) => {
                   is_active: !formData.is_active,
                 })
               }
-              className={`w-12 h-6 rounded-full ${formData.is_active ? "bg-blue-600" : "bg-gray-300"}`}
+              className={`w-12 h-6 rounded-full ${formData.is_active ? "bg-primary" : "bg-gray-300"}`}
             >
               <View
                 className={`w-5 h-5 bg-white rounded-full shadow-sm transform ${
@@ -815,7 +815,7 @@ const EditProductScreen = ({ navigation, route }) => {
               />
               <TouchableOpacity
                 onPress={() => setShowDatePicker(false)}
-                className="p-3 mt-4 bg-blue-600 rounded-lg"
+                className="p-3 mt-4 bg-primary rounded-lg"
               >
                 <Text className="font-semibold text-center text-white">
                   Done

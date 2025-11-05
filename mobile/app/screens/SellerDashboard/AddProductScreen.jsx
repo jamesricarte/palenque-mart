@@ -168,7 +168,7 @@ const AddProductScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       {/* Header */}
       <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -381,16 +381,16 @@ const AddProductScreen = () => {
       </ScrollView>
 
       {/* Submit Button */}
-      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+      <View className="absolute bottom-0 left-0 right-0 px-4 py-6 bg-primary border-t border-gray-200">
         <TouchableOpacity
-          className={`items-center justify-center p-4 rounded-lg ${isLoading ? "bg-blue-300" : "bg-blue-600"}`}
+          className={`items-center justify-center p-4 rounded-lg ${isLoading ? "bg-orange-300" : "bg-white"}`}
           onPress={handleSubmit}
           disabled={isLoading}
         >
           {isLoading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-lg font-semibold text-white">
+            <Text className="text-lg font-semibold text-primary">
               Add Product
             </Text>
           )}
