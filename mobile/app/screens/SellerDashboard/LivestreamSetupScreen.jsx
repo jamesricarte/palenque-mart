@@ -108,21 +108,22 @@ const LivestreamSetupScreen = ({ navigation }) => {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white">
       <StatusBar style="dark" />
       {/* Header */}
-      <View className="flex-row items-center px-4 pt-16 pb-5 bg-white border-b border-gray-200">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3">
-          <Ionicons name="arrow-back" size={24} color="#374151" />
+      <View className="flex-row items-center justify-between p-4 bg-white border-b border-gray-300 pt-14">
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold">Start Livestream</Text>
+        <View></View>
       </View>
 
       <ScrollView className="flex-1 p-4">
         <View className="flex-row gap-4 mb-6">
           {/* Thumbnail Upload - Left Side */}
           <View className="w-24">
-            <Text className="mb-3 text-sm font-medium text-gray-700">
+            <Text className="mb-3 text-base font-medium text-gray-700">
               Thumbnail
             </Text>
             <TouchableOpacity
@@ -139,7 +140,7 @@ const LivestreamSetupScreen = ({ navigation }) => {
 
           {/* Title - Right Side */}
           <View className="flex-1">
-            <Text className="mb-3 text-sm font-medium text-gray-700">
+            <Text className="mb-3 text-base font-medium text-gray-700">
               Title
             </Text>
             <TextInput
@@ -149,14 +150,14 @@ const LivestreamSetupScreen = ({ navigation }) => {
               onChangeText={setStreamTitle}
               maxLength={100}
             />
-            <Text className="mt-1 text-xs text-gray-500">
+            <Text className="mt-1 ml-2 text-xs text-gray-500">
               {streamTitle.length}/100 characters
             </Text>
           </View>
         </View>
 
         <View className="mb-6">
-          <Text className="mb-3 text-sm font-medium text-gray-700">
+          <Text className="mb-3 text-base font-medium text-gray-700">
             Description
           </Text>
           <TextInput
@@ -168,7 +169,7 @@ const LivestreamSetupScreen = ({ navigation }) => {
             multiline
             numberOfLines={3}
           />
-          <Text className="mt-1 text-xs text-gray-500">
+          <Text className="mt-1 ml-2 text-xs text-gray-500 ">
             {streamDescription.length}/200 characters
           </Text>
         </View>
@@ -184,9 +185,7 @@ const LivestreamSetupScreen = ({ navigation }) => {
             onPress={() => setShowProductSelectionModal(true)}
           >
             <Ionicons name="add" size={20} color="#ea580c" />
-            <Text className="ml-2 font-medium text-orange-600">
-              Add Products
-            </Text>
+            <Text className="ml-2 font-medium text-primary">Add Products</Text>
           </TouchableOpacity>
 
           {selectedProducts.length > 0 && (
@@ -224,21 +223,19 @@ const LivestreamSetupScreen = ({ navigation }) => {
       </ScrollView>
 
       {/* Action Buttons */}
-      <View className="p-4 bg-white border-t border-gray-200">
+      <View className="px-4 py-6 bg-primary">
         <View className="flex-row gap-3">
           <TouchableOpacity
-            className="flex-1 py-3 border border-gray-300 rounded-lg"
+            className="flex-1 py-4 border border-white rounded-lg"
             onPress={() => navigation.goBack()}
           >
-            <Text className="font-medium text-center text-gray-700">
-              Cancel
-            </Text>
+            <Text className="font-medium text-center text-white">Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 py-3 bg-orange-600 rounded-lg shadow-sm"
+            className="flex-1 py-4 bg-white rounded-lg shadow-sm"
             onPress={handleNext}
           >
-            <Text className="font-medium text-center text-white">Next</Text>
+            <Text className="font-medium text-center text-primary">Next</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -280,7 +277,7 @@ const LivestreamSetupScreen = ({ navigation }) => {
                   </View>
                   <View className="w-6 h-6 border-2 border-gray-300 rounded-full">
                     {product.selected && (
-                      <View className="w-full h-full bg-orange-600 rounded-full" />
+                      <View className="w-full h-full bg-primary rounded-full" />
                     )}
                   </View>
                 </TouchableOpacity>

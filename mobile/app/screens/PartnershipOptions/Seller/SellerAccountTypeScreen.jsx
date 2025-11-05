@@ -116,7 +116,7 @@ const SellerAccountTypeScreen = ({ navigation }) => {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View className="px-6 py-6 bg-primary border-t border-gray-200">
+      <View className="px-6 pt-6 pb-8 bg-primary">
         <TouchableOpacity
           className={`w-full py-4 rounded-lg ${selectedType ? "bg-white" : "bg-gray-300"}`}
           onPress={handleContinue}

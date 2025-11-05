@@ -633,7 +633,7 @@ const LivestreamSessionScreen = ({ route, navigation }) => {
             >
               <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
-            <Text className="text-xl font-semibold text-white">
+            <Text className="ml-28 text-xl font-semibold text-white">
               Ready to Go Live
             </Text>
           </View>
@@ -706,19 +706,19 @@ const LivestreamSessionScreen = ({ route, navigation }) => {
       </View>
 
       {showPreLive && (
-        <View className="absolute bottom-0 w-full p-4 bg-black/50">
+        <View className="absolute bottom-0 w-full px-4 py-6 bg-primary">
           <View className="flex-row gap-3">
             <TouchableOpacity
-              className="flex-1 py-3 border rounded-lg border-white/30"
+              className="flex-1 py-4 border rounded-lg border-white"
               onPress={handleCancelFromPreLive}
             >
               <Text className="font-medium text-center text-white">Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="flex-1 py-3 bg-orange-600 rounded-lg shadow-sm"
+              className="flex-1 py-4 bg-white rounded-lg"
               onPress={handleGoLive}
             >
-              <Text className="font-medium text-center text-white">
+              <Text className="font-medium text-center text-primary">
                 Go Live
               </Text>
             </TouchableOpacity>
@@ -835,7 +835,7 @@ const LivestreamSessionScreen = ({ route, navigation }) => {
                   <TouchableOpacity
                     className={`px-3 py-2 rounded-lg ${
                       pinnedProduct && pinnedProduct.id === product.id
-                        ? "bg-orange-600"
+                        ? "bg-primary"
                         : "bg-orange-100"
                     }`}
                     onPress={() => handlePinProduct(product)}
@@ -844,7 +844,7 @@ const LivestreamSessionScreen = ({ route, navigation }) => {
                       className={`text-sm font-medium ${
                         pinnedProduct && pinnedProduct.id === product.id
                           ? "text-white"
-                          : "text-orange-600"
+                          : "text-primary"
                       }`}
                     >
                       {pinnedProduct && pinnedProduct.id === product.id
@@ -862,7 +862,7 @@ const LivestreamSessionScreen = ({ route, navigation }) => {
                 }}
               >
                 <Ionicons name="add" size={20} color="#ea580c" />
-                <Text className="ml-2 font-medium text-orange-600">
+                <Text className="ml-2 font-medium text-primary">
                   Add More Products
                 </Text>
               </TouchableOpacity>
@@ -907,7 +907,7 @@ const LivestreamSessionScreen = ({ route, navigation }) => {
                   </View>
                   <View className="w-6 h-6 border-2 border-gray-300 rounded-full">
                     {product.selected && (
-                      <View className="w-full h-full bg-orange-600 rounded-full" />
+                      <View className="w-full h-full bg-primary rounded-full" />
                     )}
                   </View>
                 </TouchableOpacity>
