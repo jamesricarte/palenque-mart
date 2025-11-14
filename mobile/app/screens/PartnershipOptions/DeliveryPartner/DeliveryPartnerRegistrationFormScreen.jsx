@@ -631,10 +631,10 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
         )}
       </View>
 
-      <View className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+      <View className="p-4 border border-green-200 rounded-lg bg-green-50">
         <View className="flex flex-row items-start">
-          <Ionicons name="information-circle" size={20} color="#3b82f6" />
-          <Text className="ml-2 text-sm text-blue-700">
+          <Ionicons name="information-circle" size={20} color="#39B54A" />
+          <Text className="ml-2 text-sm text-secondary">
             This information will only be used in case of emergencies during
             delivery operations. Your emergency contact will not receive
             marketing communications.
@@ -839,22 +839,22 @@ const DeliveryPartnerRegistrationFormScreen = ({ navigation, route }) => {
       <ScrollView className="flex-1">{renderCurrentStep()}</ScrollView>
 
       {/* Bottom Navigation */}
-      <View className="px-6 py-4 bg-white border-t border-gray-200">
+      <View className="px-4 py-6 bg-secondary">
         <View className="flex flex-row gap-3">
           {currentStep > 1 && (
             <TouchableOpacity
-              className="flex-1 py-4 border border-gray-300 rounded-lg"
+              className="flex-1 py-4 border border-white rounded-lg"
               onPress={handleBack}
             >
-              <Text className="font-semibold text-center">Back</Text>
+              <Text className="font-semibold text-center text-white">Back</Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity
-            className="flex-1 py-4 bg-green-500 rounded-lg"
+            className="flex-1 py-4 bg-white rounded-lg"
             onPress={handleNext}
           >
-            <Text className="font-semibold text-center text-white">
+            <Text className="font-semibold text-center text-secondary">
               {currentStep === totalSteps ? "Review & Submit" : "Next"}
             </Text>
           </TouchableOpacity>

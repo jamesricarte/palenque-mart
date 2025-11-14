@@ -37,9 +37,10 @@ const SellerSubmissionSuccessScreen = ({ navigation, route }) => {
       <View className="flex flex-row items-center justify-between px-4 pt-16 pb-5 bg-white border-b border-gray-200">
         <View className="w-6" />
         <Text className="text-xl font-semibold">Application Submitted</Text>
-        <TouchableOpacity onPress={handleBackToHome}>
+        <View className="w-6" />
+        {/* <TouchableOpacity onPress={handleBackToHome}>
           <Ionicons name="close" size={24} color="black" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <ScrollView className="flex-1">
@@ -55,15 +56,6 @@ const SellerSubmissionSuccessScreen = ({ navigation, route }) => {
           <Text className="text-lg text-gray-600 text-center mb-8">
             Your seller application has been submitted successfully
           </Text>
-
-          <TouchableOpacity
-            className="w-full py-4 mb-4 bg-primary rounded-lg"
-            onPress={handleCheckStatus}
-          >
-            <Text className="text-white text-center font-semibold text-lg">
-              Check Application Status
-            </Text>
-          </TouchableOpacity>
 
           {/* Application ID */}
           <View className="w-full p-4 bg-white rounded-lg border border-gray-200 ">
@@ -157,15 +149,26 @@ const SellerSubmissionSuccessScreen = ({ navigation, route }) => {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View className="px-6 py-6 bg-primary border-t border-gray-200">
-        <TouchableOpacity
-          className="w-full py-4 bg-white rounded-lg"
-          onPress={handleBackToHome}
-        >
-          <Text className="text-primary text-center font-semibold text-lg">
-            Back to Home
-          </Text>
-        </TouchableOpacity>
+      <View className="px-4 py-6 bg-primary">
+        <View className="flex flex-row gap-3">
+          <TouchableOpacity
+            className="flex-1 py-4 border border-white rounded-lg"
+            onPress={handleBackToHome}
+          >
+            <Text className="font-semibold text-center text-white">
+              Back to Home
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="flex-1 py-4 bg-white rounded-lg"
+            onPress={handleCheckStatus}
+          >
+            <Text className="font-semibold text-center text-primary">
+              Check Status
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

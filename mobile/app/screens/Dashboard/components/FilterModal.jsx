@@ -45,7 +45,7 @@ const FilterModal = ({
                     key={cat}
                     className={`px-4 py-2 mr-2 rounded-full border ${
                       filters.category === cat
-                        ? "bg-orange-500 border-orange-500"
+                        ? "bg-primary border-primary"
                         : "bg-white border-gray-300"
                     }`}
                     onPress={() => setFilters({ ...filters, category: cat })}
@@ -75,7 +75,7 @@ const FilterModal = ({
                     key={price.value}
                     className={`px-4 py-2 mr-2 rounded-lg border ${
                       filters.priceRange === price.value
-                        ? "bg-orange-500 border-orange-500"
+                        ? "bg-primary border-primary"
                         : "bg-white border-gray-300"
                     }`}
                     onPress={() =>
@@ -105,7 +105,7 @@ const FilterModal = ({
                     key={rating.value}
                     className={`px-3 py-2 mr-2 rounded-lg border ${
                       filters.rating === rating.value
-                        ? "bg-orange-500 border-orange-500"
+                        ? "bg-primary border-primary"
                         : "bg-white border-gray-300"
                     }`}
                     onPress={() =>
@@ -124,7 +124,7 @@ const FilterModal = ({
           </ScrollView>
 
           <TouchableOpacity
-            className="py-4 mt-4 bg-orange-500 rounded-lg"
+            className="py-4 mt-4 bg-primary rounded-lg"
             onPress={() => handleFilterApply(filters)}
           >
             <Text className="text-lg font-semibold text-center text-white">

@@ -243,14 +243,14 @@ const DeliveryPartnerWelcomeScreen = ({ navigation }) => {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View className="px-6 py-6 bg-secondary">
+      <View className="px-4 py-6 bg-secondary">
         <TouchableOpacity
-          className={`w-full py-6 rounded-lg ${selectedVehicle ? "bg-white" : "bg-gray-200"}`}
+          className={`w-full py-4 rounded-lg ${selectedVehicle ? "bg-white" : "bg-gray-200"}`}
           onPress={handleContinue}
           disabled={!selectedVehicle}
         >
           <Text
-            className={`text-lg font-semibold text-center ${selectedVehicle ? "text-secondary" : "text-gray-400"}`}
+            className={`font-semibold text-center ${selectedVehicle ? "text-secondary" : "text-gray-400"}`}
           >
             Continue Registration
           </Text>

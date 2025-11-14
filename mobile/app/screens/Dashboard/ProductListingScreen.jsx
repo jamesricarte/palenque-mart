@@ -262,7 +262,7 @@ const ProductListingScreen = ({ navigation, route }) => {
           </View>
         )}
         {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <View className="absolute px-2 py-1 bg-orange-500 rounded top-2 left-2">
+          <View className="absolute px-2 py-1 bg-primary rounded top-2 left-2">
             <Text className="text-xs font-medium text-white">Low Stock</Text>
           </View>
         )}
@@ -338,9 +338,7 @@ const ProductListingScreen = ({ navigation, route }) => {
   const CategoryCard = ({ category, isSelected, onPress }) => (
     <TouchableOpacity
       className={`px-4 py-2 mx-2 rounded-full border ${
-        isSelected
-          ? "bg-orange-500 border-orange-500"
-          : "bg-white border-gray-300"
+        isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
       }`}
       onPress={onPress}
     >
@@ -355,9 +353,7 @@ const ProductListingScreen = ({ navigation, route }) => {
   const SortButton = ({ sortOption, label, isSelected, onPress }) => (
     <TouchableOpacity
       className={`px-3 py-2 mx-1 rounded-lg border ${
-        isSelected
-          ? "bg-orange-500 border-orange-500"
-          : "bg-white border-gray-300"
+        isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
       }`}
       onPress={onPress}
     >
@@ -595,7 +591,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                       key={price.value}
                       className={`px-4 py-2 mr-2 rounded-lg border ${
                         priceRange === price.value
-                          ? "bg-orange-500 border-orange-500"
+                          ? "bg-primary border-primary"
                           : "bg-white border-gray-300"
                       }`}
                       onPress={() => setPriceRange(price.value)}
@@ -622,7 +618,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                         key={rating}
                         className={`px-3 py-2 rounded-lg border ${
                           minRating === rating
-                            ? "bg-orange-500 border-orange-500"
+                            ? "bg-primary border-primary"
                             : "bg-white border-gray-300"
                         }`}
                         onPress={() => setMinRating(rating)}
@@ -648,7 +644,7 @@ const ProductListingScreen = ({ navigation, route }) => {
 
             <View className="p-4 border-t border-gray-200">
               <TouchableOpacity
-                className="w-full py-3 bg-orange-500 rounded-lg"
+                className="w-full py-3 bg-primary rounded-lg"
                 onPress={() => setShowFilterDrawer(false)}
               >
                 <Text className="font-semibold text-center text-white">
