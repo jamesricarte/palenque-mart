@@ -370,7 +370,7 @@ const SellerAddressSetupScreen = ({ navigation, route }) => {
 
       {/* Description */}
       <View className="px-6 py-4 border-b border-blue-200 bg-blue-50">
-        <Text className="mb-2 text-sm text-blue-700">
+        <Text className="mb-2 text-sm text-primary">
           {getAddressTypeDescription()}
         </Text>
 
@@ -383,7 +383,7 @@ const SellerAddressSetupScreen = ({ navigation, route }) => {
       <View className="flex-1">
         {isLoadingLocation ? (
           <View className="items-center justify-center flex-1">
-            <ActivityIndicator size="large" color="#3b82f6" />
+            <ActivityIndicator size="large" color="#F16B44" />
             <Text className="mt-2 text-gray-600">Getting your location...</Text>
           </View>
         ) : (

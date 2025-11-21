@@ -8,6 +8,8 @@ import { SellerProvider } from "./context/SellerContext";
 import LoadingScreen from "./screens/LoadingScreen";
 import { prettyLog } from "./utils/prettyLog";
 import { StatusBar } from "expo-status-bar";
+import { LogBox } from "react-native";
+import linking from "./config/linking";
 
 import DeliveryPartnerGlobalModal from "./components/DeliveryPartnerGlobalModal";
 
@@ -22,9 +24,9 @@ import { useEffect } from "react";
 import { PermissionsAndroid } from "react-native";
 
 const AppContent = () => {
-  const { isLoading } = useAuth();
+  LogBox.ignoreAllLogs();
 
-  const RTMP_URL = "rtmp://rtmp.livepeer.com/live/f848-rv6a-wxrw-j35o";
+  const { isLoading } = useAuth();
 
   async function requestPermissions() {
     try {
@@ -57,25 +59,9 @@ const AppContent = () => {
     }
   }
 
-  async function testStream() {
-    try {
-      const res = await RtmpTestModule.startStream(RTMP_URL);
-      console.log(res);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async function stopStream() {
-    await RtmpTestModule.stopStream();
-  }
-
   useEffect(() => {
     (async () => {
       const granted = await requestPermissions();
-      // if (granted) {
-      //   await testStream();
-      // }
     })();
   }, []);
 
@@ -85,7 +71,7 @@ const AppContent = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <MainStackNavigator />
     </NavigationContainer>
   );

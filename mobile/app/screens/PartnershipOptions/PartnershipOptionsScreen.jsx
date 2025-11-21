@@ -254,7 +254,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
             <View className="mb-4 bg-white border border-gray-200 rounded-lg shadow-sm">
               <View className="p-6">
                 <View className="flex flex-row items-center mb-4">
-                  <View className="flex items-center justify-center w-16 h-16 mr-4 bg-primary rounded-lg">
+                  <View className="flex items-center justify-center w-16 h-16 mr-4 rounded-lg bg-primary">
                     <FontAwesome6 name="store" size={40} color="white" />
                   </View>
                   <View className="flex-1">
@@ -282,7 +282,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                 </View>
 
                 <TouchableOpacity
-                  className="w-full py-3 bg-primary rounded-lg"
+                  className="w-full py-3 rounded-lg bg-primary"
                   onPress={handleGoToSellerDashboard}
                 >
                   <Text className="font-semibold text-center text-white">
@@ -356,8 +356,8 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                   <View className="flex-1">
                     <Text className="text-xl font-semibold">
                       {hasSellerApplication
-                        ? "Seller Application"
-                        : "Become a Seller"}
+                        ? "Vendor Application"
+                        : "Become a Vendor"}
                     </Text>
                     <Text className="text-sm text-gray-600">
                       {hasSellerApplication
@@ -375,7 +375,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
 
                 <View className="flex flex-row gap-3">
                   <TouchableOpacity
-                    className="flex-1 py-3 bg-black rounded-lg"
+                    className="flex-1 py-3 rounded-lg bg-primary"
                     onPress={handleSellerAction}
                   >
                     <Text className="font-semibold text-center text-white">
@@ -603,7 +603,7 @@ const PartnershipOptionsScreen = ({ navigation }) => {
                   {/* Action Buttons */}
                   <View className="flex flex-row gap-3">
                     <TouchableOpacity
-                      className="flex-1 py-3 bg-black rounded-lg"
+                      className="flex-1 py-3 rounded-lg bg-secondary"
                       onPress={() => handleApplyNow(option)}
                     >
                       <Text className="font-semibold text-center text-white">

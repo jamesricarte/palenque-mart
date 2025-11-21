@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import Feather from "@expo/vector-icons/Feather";
 
 import axios from "axios";
 
@@ -17,6 +16,8 @@ import DefaultLoadingAnimation from "../../../components/DefaultLoadingAnimation
 import { API_URL, WEBSOCKET_URL } from "../../../config/apiConfig";
 import useWebSocket from "../../../hooks/useWebSocket";
 import { useAuth } from "../../../context/AuthContext";
+
+import EmailVerificationImage from "../../../assets/images/EmailVerificationIllustration.png";
 
 const EmailSentVerificationScreen = ({ navigation }) => {
   const customNavigation = useNavigation();
@@ -42,6 +43,7 @@ const EmailSentVerificationScreen = ({ navigation }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Listens to websocket if verification happens from email
   useEffect(() => {
     if (!socket) return;
 
@@ -54,6 +56,33 @@ const EmailSentVerificationScreen = ({ navigation }) => {
       }
     };
   }, [socket]);
+
+  // Listens to token params if verification happens from deep linking
+  useEffect(() => {
+    if (route.params?.token && route.params?.email) {
+      verifyEmail(route.params.token, route.params.email);
+    }
+  }, [route.params]);
+
+  // Reset resend email timeout countdown
+  useEffect(() => {
+    let interval;
+
+    if (resendEmailTimeout > 0) {
+      interval = setTimeout(() => {
+        setResendEmailTimeout((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [resendEmailTimeout]);
 
   const proceedSignup = async (email) => {
     setLoading(true);
@@ -151,24 +180,24 @@ const EmailSentVerificationScreen = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    let interval;
+  const verifyEmail = async (token, email) => {
+    if (!token || !email) return;
 
-    if (resendEmailTimeout > 0) {
-      interval = setTimeout(() => {
-        setResendEmailTimeout((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
+    try {
+      const response = await axios.post(`${API_URL}/api/verify-email`, {
+        token,
+        email,
+      });
 
-          return prev - 1;
-        });
-      }, 1000);
+      console.log(response?.data);
+
+      if (response?.data.success) {
+        proceedSignup(response?.data.data.email);
+      }
+    } catch (error) {
+      console.error("Error verifying email:", error?.response?.data || error);
     }
-
-    return () => clearInterval(interval);
-  }, [resendEmailTimeout]);
+  };
 
   return (
     <>
@@ -184,43 +213,48 @@ const EmailSentVerificationScreen = ({ navigation }) => {
 
         {!initialLoading && (
           <>
-            <View className="mb-10">
+            <View className="mb-12">
               <Text className="text-3xl font-semibold text-black">
                 Check your email
               </Text>
-              <Text className="text-lg font-normal text-primary">
+              <Text className="text-lg font-normal text-[#E85A4F] mt-2">
                 We've sent a verification link to your inbox.
               </Text>
             </View>
 
-            <View className="flex items-center justify-center flex-1">
-              <View className="items-center mb-8">
-                <View className="items-center justify-center w-20 h-20 mb-6 rounded-full bg-grey">
-                  <Feather name="mail" size={32} color="gray" />
-                </View>
+            <View className="items-center justify-center flex-1 mb-8">
+              <Image
+                source={EmailVerificationImage}
+                style={{ width: 280, height: 280 }}
+                resizeMode="contain"
+              />
+            </View>
 
-                <Text className="mb-4 text-xl font-medium text-center text-black">
-                  Verify your email address
-                </Text>
+            <View className="mb-8">
+              <Text className="mb-1 text-base font-medium text-center text-black">
+                Verify your email address
+              </Text>
 
-                <Text className="text-base text-center text-darkgrey">
-                  We sent a verification link to{"\n"}
-                  <Text className="font-medium text-black">
-                    {route.params?.email}
-                  </Text>
-                </Text>
-              </View>
+              <Text className="text-base text-center text-gray-600">
+                Please tap the link in the email sent to{"\n"}
+                <Text className="font-semibold text-black">
+                  {route.params?.email}
+                </Text>{" "}
+                to complete verification
+              </Text>
             </View>
 
             <View className="mt-auto">
               <TouchableOpacity
                 className={`flex items-center justify-center w-full p-4 rounded-md ${
-                  resendEmailTimeout > 0 ? "bg-gray-300" : "bg-primary"
+                  resendEmailTimeout > 0 ? "bg-gray-200" : "bg-[#F16B44]"
                 }`}
                 onPress={resendEmail}
                 disabled={resendEmailTimeout > 0}
               >
-                <Text className="text-lg font-semibold text-white">
+                <Text
+                  className={`text-lg font-semibold ${resendEmailTimeout > 0 ? "text-gray-400" : "text-white"}`}
+                >
                   {resendEmailTimeout > 0
                     ? `Resend in ${resendEmailTimeout}s`
                     : "Resend verification email"}

@@ -185,7 +185,7 @@ const SellerDashboard = ({ navigation }) => {
         }}
       />
       <Tab.Screen
-        name="Seller Products"
+        name="SellerProducts"
         component={SellerProductsScreen}
         options={{
           title: "Products",

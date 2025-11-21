@@ -176,10 +176,11 @@ const reviewSellerApplication = async (req, res) => {
 
           // Fetch user details for notification
           const [users] = await connection.execute(
-            `SELECT u.id, u.email, u.first_name, ssp.store_name 
+            `SELECT u.id, u.email, u.first_name, ssp.store_name, s.seller_id, sa.account_type 
            FROM users u 
            JOIN seller_applications sa ON u.id = sa.user_id 
            LEFT JOIN seller_store_profiles ssp ON sa.id = ssp.application_id 
+           JOIN sellers s ON sa.id = s.application_id
            WHERE sa.id = ?`,
             [application.id]
           );

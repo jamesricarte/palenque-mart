@@ -303,12 +303,16 @@ const AccountDetailsCreationScreen = ({ navigation }) => {
 
       <TouchableOpacity
         className={`flex items-center justify-center w-full p-4 mt-6 rounded-md ${
-          isFieldValid && isPasswordValid ? "bg-primary" : "bg-gray-300"
+          isFieldValid && isPasswordValid ? "bg-primary" : "bg-gray-200"
         }`}
         onPress={createAccount}
         disabled={!(isFieldValid && isPasswordValid)}
       >
-        <Text className="text-lg font-semibold text-white">Create Account</Text>
+        <Text
+          className={`text-lg font-semibold  ${isFieldValid && isPasswordValid ? "text-white" : "text-gray-400"}`}
+        >
+          Create Account
+        </Text>
       </TouchableOpacity>
 
       <PersonalizedLoadingAnimation visible={loading} />

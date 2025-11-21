@@ -381,7 +381,7 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
       </View>
       <View className="w-full h-2 bg-gray-200 rounded-full">
         <View
-          className="h-2 transition-all duration-300 bg-primary rounded-full"
+          className="h-2 transition-all duration-300 rounded-full bg-primary"
           style={{ width: `${(currentStep / totalSteps) * 100}%` }}
         />
       </View>
@@ -723,10 +723,10 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
         )}
       </View>
 
-      <View className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+      <View className="p-4 border border-blue-200 rounded-lg bg-orange-50">
         <View className="flex flex-row items-start">
           <Ionicons name="information-circle" size={20} color="#3b82f6" />
-          <Text className="ml-2 text-sm text-blue-700">
+          <Text className="ml-2 text-sm text-orange-700">
             All addresses will be verified and used for order processing and
             delivery coordination.
           </Text>
@@ -1226,7 +1226,7 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
       <ScrollView className="flex-1">{renderCurrentStep()}</ScrollView>
 
       {/* Bottom Navigation */}
-      <View className="px-6 py-6 bg-primary border-t border-gray-200">
+      <View className="px-6 py-6 border-t border-gray-200 bg-primary">
         <View className="flex flex-row gap-3">
           {currentStep > 1 && (
             <TouchableOpacity
@@ -1323,7 +1323,7 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
                       setTimePickerVisible(false);
                     }}
                   >
-                    <Text className="text-base font-semibold text-blue-500">
+                    <Text className="text-base font-semibold text-orange-500">
                       Done
                     </Text>
                   </TouchableOpacity>
@@ -1356,12 +1356,12 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
                         <TouchableOpacity
                           key={hour}
                           onPress={() => setSelectedHour(hour)}
-                          className={`py-3 ${selectedHour === hour ? "bg-blue-50" : ""}`}
+                          className={`py-3 ${selectedHour === hour ? "bg-orange-50" : ""}`}
                         >
                           <Text
                             className={`text-center text-lg ${
                               selectedHour === hour
-                                ? "font-bold text-blue-500"
+                                ? "font-bold text-orange-500"
                                 : "text-gray-600"
                             }`}
                           >
@@ -1392,12 +1392,12 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
                         <TouchableOpacity
                           key={minute}
                           onPress={() => setSelectedMinute(minute)}
-                          className={`py-3 ${selectedMinute === minute ? "bg-blue-50" : ""}`}
+                          className={`py-3 ${selectedMinute === minute ? "bg-orange-50" : ""}`}
                         >
                           <Text
                             className={`text-center text-lg ${
                               selectedMinute === minute
-                                ? "font-bold text-blue-500"
+                                ? "font-bold text-orange-500"
                                 : "text-gray-600"
                             }`}
                           >
@@ -1426,12 +1426,12 @@ const SellerRegistrationFormScreen = ({ navigation, route }) => {
                         <TouchableOpacity
                           key={period}
                           onPress={() => setSelectedPeriod(period)}
-                          className={`py-3 ${selectedPeriod === period ? "bg-blue-50" : ""}`}
+                          className={`py-3 ${selectedPeriod === period ? "bg-orange-50" : ""}`}
                         >
                           <Text
                             className={`text-center text-lg ${
                               selectedPeriod === period
-                                ? "font-bold text-blue-500"
+                                ? "font-bold text-orange-500"
                                 : "text-gray-600"
                             }`}
                           >

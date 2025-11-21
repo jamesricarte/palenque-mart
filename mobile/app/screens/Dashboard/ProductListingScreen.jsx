@@ -262,7 +262,7 @@ const ProductListingScreen = ({ navigation, route }) => {
           </View>
         )}
         {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-          <View className="absolute px-2 py-1 bg-orange-500 rounded top-2 left-2">
+          <View className="absolute px-2 py-1 rounded bg-primary top-2 left-2">
             <Text className="text-xs font-medium text-white">Low Stock</Text>
           </View>
         )}
@@ -303,7 +303,7 @@ const ProductListingScreen = ({ navigation, route }) => {
         </View>
 
         <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-bold text-orange-600">
+          <Text className="text-sm font-bold text-primary">
             ₱{Number.parseFloat(product.price).toFixed(2)}/
             {formatUnitType(product.unit_type)}
           </Text>
@@ -315,7 +315,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                 handleAddToCart(product);
               }}
             >
-              <View className="p-1 bg-orange-600 rounded-full min-w-5 min-h-5 opacity-70">
+              <View className="p-1 rounded-full bg-primary min-w-5 min-h-5 opacity-70">
                 <Ionicons name="bag-outline" size={15} color="white" />
               </View>
             </TouchableOpacity>
@@ -338,9 +338,7 @@ const ProductListingScreen = ({ navigation, route }) => {
   const CategoryCard = ({ category, isSelected, onPress }) => (
     <TouchableOpacity
       className={`px-4 py-2 mx-2 rounded-full border ${
-        isSelected
-          ? "bg-orange-500 border-orange-500"
-          : "bg-white border-gray-300"
+        isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
       }`}
       onPress={onPress}
     >
@@ -355,9 +353,7 @@ const ProductListingScreen = ({ navigation, route }) => {
   const SortButton = ({ sortOption, label, isSelected, onPress }) => (
     <TouchableOpacity
       className={`px-3 py-2 mx-1 rounded-lg border ${
-        isSelected
-          ? "bg-orange-500 border-orange-500"
-          : "bg-white border-gray-300"
+        isSelected ? "bg-primary border-primary" : "bg-white border-gray-300"
       }`}
       onPress={onPress}
     >
@@ -595,7 +591,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                       key={price.value}
                       className={`px-4 py-2 mr-2 rounded-lg border ${
                         priceRange === price.value
-                          ? "bg-orange-500 border-orange-500"
+                          ? "bg-primary border-primary"
                           : "bg-white border-gray-300"
                       }`}
                       onPress={() => setPriceRange(price.value)}
@@ -622,7 +618,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                         key={rating}
                         className={`px-3 py-2 rounded-lg border ${
                           minRating === rating
-                            ? "bg-orange-500 border-orange-500"
+                            ? "bg-primary border-primary"
                             : "bg-white border-gray-300"
                         }`}
                         onPress={() => setMinRating(rating)}
@@ -648,7 +644,7 @@ const ProductListingScreen = ({ navigation, route }) => {
 
             <View className="p-4 border-t border-gray-200">
               <TouchableOpacity
-                className="w-full py-3 bg-orange-500 rounded-lg"
+                className="w-full py-3 rounded-lg bg-primary"
                 onPress={() => setShowFilterDrawer(false)}
               >
                 <Text className="font-semibold text-center text-white">
@@ -718,7 +714,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                       </Text>
                     </View>
 
-                    <Text className="font-bold text-orange-600">
+                    <Text className="font-bold text-primary">
                       ₱{Number.parseFloat(selectedProduct?.price).toFixed(2)}/
                       {formatUnitType(selectedProduct?.unit_type)}
                     </Text>
@@ -781,7 +777,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                               key={option}
                               className={`flex-row items-center p-3 mb-2 rounded-lg border ${
                                 selectedPreparations[option]
-                                  ? "bg-orange-50 border-orange-600"
+                                  ? "bg-primaryborder-primary"
                                   : "bg-gray-50 border-gray-200"
                               }`}
                               onPress={() =>
@@ -794,7 +790,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                               <View
                                 className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
                                   selectedPreparations[option]
-                                    ? "bg-orange-600 border-orange-600"
+                                    ? "bg-primary border-primary"
                                     : "border-gray-300"
                                 }`}
                               >
@@ -819,7 +815,7 @@ const ProductListingScreen = ({ navigation, route }) => {
                 <View className="p-4 mb-4 bg-gray-100 rounded-lg">
                   <View className="flex-row items-center justify-between">
                     <Text className="text-lg font-medium">Total Price:</Text>
-                    <Text className="text-2xl font-bold text-orange-600">
+                    <Text className="text-2xl font-bold text-primary">
                       ₱
                       {(
                         Number.parseFloat(selectedProduct?.price) *
@@ -832,7 +828,7 @@ const ProductListingScreen = ({ navigation, route }) => {
 
               {/* Action Button */}
               <TouchableOpacity
-                className="items-center p-4 bg-orange-600 rounded-lg"
+                className="items-center p-4 rounded-lg bg-primary"
                 onPress={handleConfirmAction}
                 disabled={addingToCart}
               >

@@ -198,7 +198,7 @@ const HomeScreen = ({ navigation }) => {
       if (user) {
         fetchCartCount();
       }
-    }, [])
+    }, [user])
   );
 
   useEffect(() => {
@@ -559,7 +559,7 @@ const HomeScreen = ({ navigation }) => {
                     className="px-2 py-1 text-base font-light text-white rounded"
                     style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
                   >
-                    BoyBanat Store
+                    Albay Fresh Meats...
                   </Text>
                 </View>
 

@@ -3,6 +3,7 @@ const authenticateToken = require("../middlewares/authenticateToken");
 
 const signUpEmail = require("../controllers/authControllers/signUpEmail");
 const verifyEmail = require("../controllers/authControllers/verifyEmail");
+const openAppVerify = require("../controllers/authControllers/openAppVerify");
 const sendEmail = require("../controllers/authControllers/sendEmail");
 const checkEmail = require("../controllers/authControllers/checkEmail");
 const signUpMobile = require("../controllers/authControllers/signUpMobile");
@@ -17,7 +18,8 @@ const router = express.Router();
 
 // Sign up with email
 router.post("/sign-up-email", signUpEmail);
-router.get("/verify-email", verifyEmail);
+router.post("/verify-email", verifyEmail);
+router.get("/open-app-verify", openAppVerify);
 router.post("/send-email", sendEmail);
 router.post("/check-email", checkEmail);
 

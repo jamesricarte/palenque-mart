@@ -389,7 +389,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
           <Text className="mb-1 text-lg font-semibold text-primary">
             Account Type
           </Text>
-          <Text className="text-primary capitalize">{accountType} Seller</Text>
+          <Text className="capitalize text-primary">{accountType} Seller</Text>
         </View>
 
         {/* Personal/Business Details */}
@@ -438,7 +438,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
         {/* Terms and Conditions */}
         <View className="p-4 mb-6 border border-gray-200 rounded-lg">
           <View className="flex flex-row items-start">
-            <AntDesign name="infocirlce" size={20} color="#3b82f6" />
+            <AntDesign name="info-circle" size={20} color="#3b82f6" />
             <View className="flex-1 ml-3">
               <Text className="mb-2 font-semibold">Terms & Conditions</Text>
               <Text className="mb-3 text-sm text-gray-600">
@@ -481,7 +481,7 @@ const SellerReviewSubmitScreen = ({ navigation, route }) => {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View className="px-6 py-6 bg-primary border-t border-gray-200">
+      <View className="px-6 py-6 border-t border-gray-200 bg-primary">
         <TouchableOpacity
           className={`w-full py-4 rounded-lg ${isSubmitting ? "bg-gray-400" : "bg-white"}`}
           onPress={handleSubmit}

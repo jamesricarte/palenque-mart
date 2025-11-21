@@ -289,7 +289,7 @@ const DeliveryPartnerReviewSubmitScreen = ({ navigation, route }) => {
         {/* Terms and Conditions */}
         <View className="p-4 mb-6 border border-gray-200 rounded-lg">
           <View className="flex flex-row items-start">
-            <AntDesign name="infocirlce" size={20} color="#10b981" />
+            <AntDesign name="info-circle" size={20} color="#10b981" />
             <View className="flex-1 ml-3">
               <Text className="mb-2 font-semibold">Terms & Conditions</Text>
               <Text className="mb-3 text-sm text-gray-600">
